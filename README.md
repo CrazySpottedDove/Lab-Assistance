@@ -17,14 +17,14 @@
 ## 示例
 
 ### 直接数据
-<img src='./figures/demo1.png'/>
+<img src='./figures/demo1.jpeg'/>
 
 ### 间接数据
-<img src='./figures/demo2.png'/>
-<img src='./figures/demo3.png'/>
+<img src='./figures/demo2.jpeg'/>
+<img src='./figures/demo3.jpeg'/>
 
 ### LaTeX制表
-<img src='./figures/demo4.png'/>
+<img src='./figures/demo4.jpeg'/>
 
 ### LaTeX制图
-<img src='./figures/demo5.png'/>
+<img src='./figures/demo5.jpeg'/>
