@@ -812,7 +812,7 @@ function roundToPrecision(num, precision) {
     }
 
     let result = n / factor;
-    if (Math.abs(result) >= Math.pow(10, precision) || (Math.abs(result) < 0.01 && result !== 0)) {
+    if (Math.abs(result) >= Math.pow(10, precision) || (Math.abs(result) < 0.01 && result !== 0 && 1000*Math.abs(result) - Math.floor(1000*Math.abs(result)) !== 0)) {
         return result.toExponential(precision - 1);
     } else {
         return result.toFixed(Math.max(0, precision - Math.floor(Math.log10(Math.abs(result))) - 1));
@@ -891,7 +891,7 @@ function standardByLevel(str,level){
     result = parts[0] + 'e' + parts[1]
     let bit = countSignificantDigits(parts[0])
     // 保留位数工作结束
-    if(Number(parts[1]) <= -3 || Number(parts[1]) >= bit){
+    if((Number(parts[1]) <= -3 && Number(parts[1]) - bit < -4)|| Number(parts[1]) >= bit){
         return result
     }
     else{
@@ -1080,10 +1080,9 @@ function errorMode(str){
             }
         }
         // 处理特殊情况
-        let resultLevel = getLevel(result)
         let resultBit = countSignificantDigits(result)
         result = result + 'e' + parts[1]
-        if(Number(parts[1]) > resultBit || Number(parts[1]) <= -3){
+        if(Number(parts[1]) > resultBit || (Number(parts[1]) <= -3 && Number(parts[1]) - resultBit < -4)){
             return result
         }
         else{
