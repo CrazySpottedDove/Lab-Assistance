@@ -748,7 +748,8 @@ function getLevel(str){
     // 除去加减符号
     if (/e/i.test(trimmedStr)) {
         let parts = trimmedStr.split(/e/i);
-        return Number(parts[1])- countSignificantDigits(parts[0]) + 1
+        //return Number(parts[1])-countSignificantDigits(parts[0]) + 1
+        return Number(parts[1])+getLevel(parts[0])
     }
     // 处理科学计数法数字
     let [integerPart, decimalPart] = trimmedStr.split('.')
@@ -1296,7 +1297,17 @@ export const useAllDataStore = defineStore('allData',()=>{
                         selectedList.moreUncer.wholeUncer = selectedList.moreUncer.bUncer
                     }
                     else{
-                        selectedList.moreUncer.wholeUncer = '0'
+                        if(selectedList.dataSet.length === 1){
+                            if(selectedList.moreUncer.wholeUncer === ''){
+                                selectedList.moreUncer.wholeUncer = '0'
+                            }
+                            else{
+                                selectedList.moreUncer.wholeUncer = errorMode(selectedList.moreUncer.wholeUncer)
+                            }
+                        }
+                        else{
+                            selectedList.moreUncer.wholeUncer = '0'
+                        }
                     }
                 }
             }

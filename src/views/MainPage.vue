@@ -184,6 +184,14 @@ const result = computed(()=>{
     return output.value.split(/,\s*|\s+/)
 })
 const graphContent = ref('')
+function formatString(input) {
+    // 使用正则表达式匹配字母后面直接跟随的数字
+    var formatted = input.replace(/([a-zA-Z])(\d+)/g, '$1_{$2}');
+
+    // 在字符串两边添加 $ 符号
+    return `$${formatted}$`;
+}
+
 const centerContent = computed(()=>{
     let center = '组数 & '
     for(let i = 0; i<result.value.length;i++){
@@ -199,7 +207,7 @@ const centerContent = computed(()=>{
             }
         }
         if(theItem){
-            center = center+theItem.title+' & '
+            center = center+formatString(theItem.title)+' & '
             for(let j=0; j<theItem.dataSet.length;j++){
                 if(j!==theItem.dataSet.length-1){
                     center = center + theItem.dataSet[j].rawData+' & '
@@ -287,7 +295,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = '\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{x轴标签}\\ystyle{y轴标签}}\n\t\t\t\\datapoint[no markers]{' + center2 +'}[拟合直线]\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.slope)+'x'+(graphData.value.intercept[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.intercept)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{${formatString(xData.value)}}\\ystyle{${formatString(yData.value)}}}\n\t\t\t\\datapoint[no markers]{` + center2 +'}[拟合直线]\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.slope)+'x'+(graphData.value.intercept[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.intercept)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'square'){
         graphData.value = store.evaluateSquare(xData.value,yData.value)
@@ -314,7 +322,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = '\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{x轴标签}\\ystyle{y轴标签}}\n\t\t\t\\addplot[no markers,domain='+String(xMin)+':'+String(xMax)+']{' + center2 +'};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.a) + 'x^2' + (graphData.value.b[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.b)+'x'+(graphData.value.c[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.c)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{${formatString(xData.value)}}\\ystyle{${formatString(yData.value)}}}\n\t\t\t\\addplot[no markers,domain=`+String(xMin)+':'+String(xMax)+']{' + center2 +'};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.a) + 'x^2' + (graphData.value.b[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.b)+'x'+(graphData.value.c[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.c)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'simple'){
         let center1 = ' '
@@ -330,7 +338,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = '\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{x轴标签}\\ystyle{y轴标签}}\n\t\t\t'+'\\datapoint{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{${formatString(xData.value)}}\\ystyle{${formatString(yData.value)}}}\n\t\t\t`+'\\datapoint{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'smooth'){
         let center1 = ' '
@@ -346,8 +354,11 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = '\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{x轴标签}\\ystyle{y轴标签}}\n\t\t\t'+'\\datapoint[smooth]{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{${formatString(xData.value)}}\\ystyle{${formatString(yData.value)}}}\n\t\t\t`+'\\datapoint[smooth]{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
     }
+}
+const handleUncerEdit = ()=>{
+    store.refresh()
 }
 </script>
 <template>
@@ -506,7 +517,7 @@ const handleGraphUpdate = ()=>{
         </div>
         <div class="equipment">
             <label style="font-weight: 550;width: 20%;text-align: left;">不确定度</label>
-            <input style="text-align: center;width: 80%;" disabled v-model="dataList[selectedDataIndex].moreUncer.wholeUncer">
+            <input style="text-align: center;width: 80%;" :disabled="dataList[selectedDataIndex].dataSet.length !== 1" v-model="dataList[selectedDataIndex].moreUncer.wholeUncer" @change="handleUncerEdit">
         </div>
     </el-card>
 </div>
@@ -606,7 +617,7 @@ const handleGraphUpdate = ()=>{
             <div class="equipment">
                 <label style="font-weight: 550;width: 10%;text-align: center;">表格数据</label>
                 <span style="width: 1%;"></span>
-                <input style="text-align: center;width: 64%;" placeholder="示例: a,b,c 或 a b c" v-model="output" @change="handleOutputChange">
+                <input style="text-align: center;width: 64%;" placeholder="示例: a,b,c 或 a b c" v-model="output">
                 <span style="width: 1%;"></span>
                 <el-button style="width: 14%;" @click="handleOutputAnew">重置</el-button>
              </div>

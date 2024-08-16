@@ -27,6 +27,6 @@ import MainPage from '../views/MainPage.vue'
 }
 .el-header{
     width: 87vw;
-    height: 10vh;
+    height: 8vh;
 }
 </style>
