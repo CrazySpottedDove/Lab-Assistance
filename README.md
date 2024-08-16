@@ -13,3 +13,18 @@
 支持依照有效数字的保留规则自动计算各类实验参数。允许数据的遍历运算，可以自动合成不确定度。
 
 可以自动生成制表和制图的LaTeX代码。目前在拟合方面支持常用的线性拟合和二次拟合。一键复制LaTeX代码后，使用xelatex构建命令编译。代码中的宏包依赖，texlive均有提供。
+
+## 示例
+
+### 直接数据
+<img src='./figures/demo1.png'/>
+
+### 间接数据
+<img src='./figures/demo2.png'/>
+<img src='./figures/demo3.png'/>
+
+### LaTeX制表
+<img src='./figures/demo4.png'/>
+
+### LaTeX制图
+<img src='./figures/demo5.png'/>
