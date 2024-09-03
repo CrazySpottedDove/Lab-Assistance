@@ -6,7 +6,7 @@
 
 ## 下载
 
-如果只需要使用，可以选择 Lab-Assistance.zip（解压即用）或 setup.exe（下载程序）。
+在页面右侧的Releases处选择版本下载。
 
 ## 功能
 

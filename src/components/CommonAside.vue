@@ -69,6 +69,9 @@
             <el-menu-item index="2" @click="handleSwitchToOutput" :class="{'selected':isOutput}">LaTeX制表</el-menu-item>
             <el-menu-item index="3" @click="handleSwitchToLine" :class="{'selected':isLine}">LaTeX制图</el-menu-item>
             <el-menu-item index="4" @click="handleSwitchToReadme" :class="{'selected':isReadme}">使用指南</el-menu-item>
+            <el-menu-item index="5" @click="handleSwitchToNumberDoc" :class="{'selected':isNumberDoc}">参考：有效数字</el-menu-item>
+            <el-menu-item index="6" @click="handleSwitchToUncerDoc" :class="{'selected':isUncerDoc}">参考：不确定度</el-menu-item>
+            <el-menu-item index="7" @click="handleSwitchToPropertyDoc" :class="{'selected':isPropertyDoc}">参考：各项参数</el-menu-item>
         </el-menu>
     </el-aside >
 </div>
@@ -83,23 +86,35 @@ const selectedDataIndex = computed(()=>store.state.selectedDataIndex)
 const isLine = computed(()=>store.state.isLine)
 const isReadme = computed(()=>store.state.isReadme)
 const isOutput = computed(()=>store.state.isOutput)
+const isNumberDoc = computed(()=>store.state.isNumberDoc)
+const isUncerDoc = computed(()=>store.state.isUncerDoc)
+const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
 const handleDataSelection = (index)=>{
     store.state.selectedDataIndex = index
     store.state.isLine = false
     store.state.isReadme = false
     store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
 }
 const handleDeleteData = (index)=>{
     store.deleteData(index)
     store.state.isLine = false
     store.state.isReadme = false
     store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
 }
 const handleAddData = (type) =>{
     store.addData(type)
     store.state.isLine = false
     store.state.isReadme = false
     store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
 }
 const handleTitleChange = (index)=>{
     store.state.dataList[index].named = true
@@ -109,18 +124,54 @@ const handleSwitchToLine = ()=>{
     store.state.isLine = true
     store.state.isReadme = false
     store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
 }
 const handleSwitchToReadme = ()=>{
     store.state.selectedDataIndex = -1
     store.state.isReadme = true
     store.state.isLine = false
     store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
 }
 const handleSwitchToOutput =()=>{
     store.state.selectedDataIndex = -1
     store.state.isOutput = true
     store.state.isReadme = false
     store.state.isLine = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleSwitchToNumberDoc =()=>{
+    store.state.selectedDataIndex = -1
+    store.state.isOutput = false
+    store.state.isReadme = false
+    store.state.isLine = false
+    store.state.isNumberDoc = true
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleSwitchToUncerDoc =()=>{
+    store.state.selectedDataIndex = -1
+    store.state.isOutput = false
+    store.state.isReadme = false
+    store.state.isLine = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = true
+    store.state.isPropertyDoc = false
+}
+const handleSwitchToPropertyDoc =()=>{
+    store.state.selectedDataIndex = -1
+    store.state.isOutput = false
+    store.state.isReadme = false
+    store.state.isLine = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = true
 }
 </script>
 <style lang="less" scoped>

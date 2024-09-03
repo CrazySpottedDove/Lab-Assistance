@@ -7,11 +7,14 @@ function initState(){
         selectedDataIndex : -1,
         isLine:false,
         isReadme:true,
-        isOutput:false
+        isOutput:false,
+        isNumberDoc:false,
+        isUncerDoc:false,
+        isPropertyDoc:false,
     }
 }
-import { create, all, typed } from 'mathjs';
-//import { ElMessage } from 'element-plus';
+import { create, all, typed, exp } from 'mathjs';
+//Don't import { ElMessage } from 'element-plus'
 const config = {
   // 可以选择在这里添加其他配置，如处理大数等
 };
@@ -32,8 +35,8 @@ math1.import({
       if(length1 === 1){
         for(let i = 0; i<length2;i++){
             let tmpBit = Math.min(a[0].bit,b[i].bit)
-            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) * (${b[i].rawData})`),tmpBit)
-            let tmpLevel = getLevel(tmpRawData)
+            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) * (${b[i].rawData})`),tmpBit+1)
+            let tmpLevel = getLevel(standardByBit(calc(`(${a[0].rawData}) * (${b[i].rawData})`),tmpBit))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -44,8 +47,8 @@ math1.import({
       else if(length2 === 1){
         for(let i = 0; i<length1;i++){
             let tmpBit = Math.min(b[0].bit,a[i].bit)
-            let tmpRawData = standardByBit(calc(`(${b[0].rawData}) * (${a[i].rawData})`),tmpBit)
-            let tmpLevel = getLevel(tmpRawData)
+            let tmpRawData = standardByBit(calc(`(${b[0].rawData}) * (${a[i].rawData})`),tmpBit+1)
+            let tmpLevel = getLevel(standardByBit(calc(`(${b[0].rawData}) * (${a[i].rawData})`),tmpBit))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -57,8 +60,8 @@ math1.import({
         if(length1 === length2){
             for(let i = 0; i<length1;i++){
                 let tmpBit = Math.min(a[i].bit,b[i].bit)
-                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) * (${b[i].rawData})`),tmpBit)
-                let tmpLevel = getLevel(tmpRawData)
+                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) * (${b[i].rawData})`),tmpBit+1)
+                let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) * (${b[i].rawData})`),tmpBit))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -82,8 +85,8 @@ math1.import({
       for(let i =0;i<length;i++){
         let maxLevel = Math.floor(Math.log10(Math.abs(b)))
         let tmpLevel = a[i].level + maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel)
-        let tmpBit = countSignificantDigits(tmpRawData)
+        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel-1)
+        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})*(${String(b)})`),tmpLevel))
         c[i] = {
             bit:tmpBit,
             rawData:tmpRawData,
@@ -101,8 +104,8 @@ math1.import({
       for(let i =0;i<length;i++){
         let maxLevel = Math.floor(Math.log10(Math.abs(b)))
         let tmpLevel = a[i].level + maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel)
-        let tmpBit = countSignificantDigits(tmpRawData)
+        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel-1)
+        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})*(${String(b)})`),tmpLevel))
         c[i] = {
             bit:tmpBit,
             rawData:tmpRawData,
@@ -127,10 +130,8 @@ math1.import({
       if(length1 === 1){
         for(let i = 0; i<length2;i++){
             let tmpBit = Math.min(a[0].bit,b[i].bit)
-            console.log(a[0])
-            console.log(b[i])
-            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) / (${b[i].rawData})`),tmpBit)
-            let tmpLevel = getLevel(tmpRawData)
+            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) / (${b[i].rawData})`),tmpBit+1)
+            let tmpLevel = getLevel(standardByBit(calc(`(${a[0].rawData}) / (${b[i].rawData})`),tmpBit))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -141,8 +142,8 @@ math1.import({
       else if(length2 === 1){
         for(let i = 0; i<length1;i++){
             let tmpBit = Math.min(b[0].bit,a[i].bit)
-            let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[0].rawData})`),tmpBit)
-            let tmpLevel = getLevel(tmpRawData)
+            let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[0].rawData})`),tmpBit+1)
+            let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) / (${b[0].rawData})`),tmpBit))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -156,9 +157,8 @@ math1.import({
                 console.log(a[i])
                 console.log(b[i])
                 let tmpBit = Math.min(a[i].bit,b[i].bit)
-                console.log(tmpBit)
-                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[i].rawData})`),tmpBit)
-                let tmpLevel = getLevel(tmpRawData)
+                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[i].rawData})`),tmpBit+1)
+                let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) / (${b[i].rawData})`),tmpBit))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -182,8 +182,8 @@ math1.import({
       for(let i =0;i<length;i++){
         let maxLevel = Math.floor(Math.log10(Math.abs(b)))
         let tmpLevel = a[i].level - maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})/(${String(b)})`),tmpLevel)
-        let tmpBit = countSignificantDigits(tmpRawData)
+        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})/(${String(b)})`),tmpLevel-1)
+        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})/(${String(b)})`),tmpLevel))
         c[i] = {
             bit:tmpBit,
             rawData:tmpRawData,
@@ -199,9 +199,9 @@ math1.import({
       }
       let c = []
       for(let i =0;i<length;i++){
-        let tmpBit = countSignificantDigits(a[i].rawData)
-        let tmpRawData = standardByBit(calc(`(${String(b)})/(${a[i].rawData})`),tmpBit)
-        let tmpLevel = getLevel(tmpRawData)
+        let tmpBit = a[i].bit
+        let tmpRawData = standardByBit(calc(`(${String(b)})/(${a[i].rawData})`),tmpBit+1)
+        let tmpLevel = getLevel(standardByBit(calc(`(${String(b)})/(${standardByBit(a[i].rawData,tmpBit)})`),tmpBit))
         c[i] = {
             bit:tmpBit,
             rawData:tmpRawData,
@@ -225,8 +225,8 @@ math1.import({
         if(length1 === 1){
             for(let i = 0;i<length2;i++){
                 let tmpLevel = Math.max(a[0].level,b[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})+(${b[i].rawData})`),tmpLevel)
-                let tmpBit = countSignificantDigits(tmpRawData)
+                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})+(${b[i].rawData})`),tmpLevel-1)
+                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[0].rawData})+(${b[i].rawData})`),tmpLevel))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -237,8 +237,8 @@ math1.import({
         else if(length2 === 1){
             for(let i = 0;i<length1;i++){
                 let tmpLevel = Math.max(b[0].level,a[i].level)
-                let tmpRawData = standardByLevel(calc(`(${b[0].rawData})+(${a[i].rawData})`),tmpLevel)
-                let tmpBit = countSignificantDigits(tmpRawData)
+                let tmpRawData = standardByLevel(calc(`(${b[0].rawData})+(${a[i].rawData})`),tmpLevel-1)
+                let tmpBit = countSignificantDigits(tmpRawDatstandardByLevel(calc(`(${b[0].rawData})+(${a[i].rawData})`),tmpLevel))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -250,8 +250,8 @@ math1.import({
             if(length1 === length2){
                 for(let i = 0;i<length1;i++){
                     let tmpLevel = Math.max(b[i].level,a[i].level)
-                    let tmpRawData = standardByLevel(calc(`(${b[i].rawData})+(${a[i].rawData})`),tmpLevel)
-                    let tmpBit = countSignificantDigits(tmpRawData)
+                    let tmpRawData = standardByLevel(calc(`(${b[i].rawData})+(${a[i].rawData})`),tmpLevel-1)
+                    let tmpBit = countSignificantDigits(standardByLevel(calc(`(${b[i].rawData})+(${a[i].rawData})`),tmpLevel))
                     c[i] = {
                         bit:tmpBit,
                         rawData:tmpRawData,
@@ -274,8 +274,8 @@ math1.import({
         let c = []
         for(let i = 0;i<length;i++){
             let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel)
-            let tmpBit = countSignificantDigits(tmpRawData)
+            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel-1)
+            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})+(${String(b)})`),tmpLevel))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -292,8 +292,8 @@ math1.import({
         let c = []
         for(let i = 0;i<length;i++){
             let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel)
-            let tmpBit = countSignificantDigits(tmpRawData)
+            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel-1)
+            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})+(${String(b)})`),tmpLevel))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -317,8 +317,8 @@ math1.import({
         if(length1 === 1){
             for(let i = 0;i<length2;i++){
                 let tmpLevel = Math.max(a[0].level,b[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})-(${b[i].rawData})`),tmpLevel)
-                let tmpBit = countSignificantDigits(tmpRawData)
+                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})-(${b[i].rawData})`),tmpLevel-1)
+                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[0].rawData})-(${b[i].rawData})`),tmpLevel))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -329,8 +329,8 @@ math1.import({
         else if(length2 === 1){
             for(let i = 0;i<length1;i++){
                 let tmpLevel = Math.max(b[0].level,a[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[0].rawData})`),tmpLevel)
-                let tmpBit = countSignificantDigits(tmpRawData)
+                let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[0].rawData})`),tmpLevel-1)
+                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[i].rawData})-(${b[0].rawData})`),tmpLevel))
                 c[i] = {
                     bit:tmpBit,
                     rawData:tmpRawData,
@@ -342,8 +342,8 @@ math1.import({
             if(length1 === length2){
                 for(let i = 0;i<length1;i++){
                     let tmpLevel = Math.max(b[i].level,a[i].level)
-                    let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[i].rawData})`),tmpLevel)
-                    let tmpBit = countSignificantDigits(tmpRawData)
+                    let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[i].rawData})`),tmpLevel-1)
+                    let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[i].rawData})-(${b[i].rawData})`),tmpLevel))
                     c[i] = {
                         bit:tmpBit,
                         rawData:tmpRawData,
@@ -366,8 +366,8 @@ math1.import({
         let c = []
         for(let i = 0;i<length;i++){
             let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${String(b)})`),tmpLevel)
-            let tmpBit = countSignificantDigits(tmpRawData)
+            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${String(b)})`),tmpLevel-1)
+            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})-(${String(b)})`),tmpLevel))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -384,8 +384,8 @@ math1.import({
         let c = []
         for(let i = 0;i<length;i++){
             let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${String(b)})-(${a[i].rawData})`),tmpLevel)
-            let tmpBit = countSignificantDigits(tmpRawData)
+            let tmpRawData = standardByLevel(calc(`(${String(b)})-(${a[i].rawData})`),tmpLevel-1)
+            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${String(b)})-(${standardByLevel(a[i].rawData,tmpLevel)})`),tmpLevel))
             c[i] = {
                 bit:tmpBit,
                 rawData:tmpRawData,
@@ -410,25 +410,13 @@ math1.import({
                 ElMessage.error('不可对非正数取对数！')
                 return []
             }
-            if(x[i].level < 0){
-                let tmpBit = -x[i].level
-                let tmpRawData = standardByBit(String(Math.log(Number(x[i].rawData))),tmpBit)
-                let tmpLevel = getLevel(tmpRawData)
-                result[i]={
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
-            else{
-                let tmpBit = 1
-                let tmpRawData = standardByBit(String(Math.log(Number(x[i].rawData))),tmpBit)
-                let tmpLevel = getLevel(tmpRawData)
-                result[i]={
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
+            let tmpLevel = -x[i].bit
+            let tmpRawData = standardByLevel(String(Math.log(Number(x[i].rawData))),tmpLevel-1)
+            let tmpBit = countSignificantDigits(standardByLevel(String(Math.log(Number(x[i].rawData))),tmpLevel))
+            result[i] = {
+                bit:tmpBit,
+                rawData:tmpRawData,
+                level:tmpLevel
             }
         }
         return result
@@ -439,6 +427,37 @@ math1.import({
             return []
         }
         return Math.log(x)
+    }
+  }),
+  sqrt:typed('sqrt',{
+    'Array':function (x) {
+        let length = x.length
+        if(length === 0){
+            return []
+        }
+        let result = []
+        for(let i = 0; i<length; i++){
+            if(Number(x[i].rawData)<0){
+                ElMessage.error('不可对负数取根号！')
+                return []
+            }
+            let tmpBit = x[i].bit
+            let tmpRawData = standardByBit(String(Math.sqrt(Number(x[i].rawData))),tmpBit+1)
+            let tmpLevel = getLevel(standardByBit(String(Math.sqrt(Number(x[i].rawData))),tmpBit))
+            result[i] = {
+                bit:tmpBit,
+                rawData:tmpRawData,
+                level:tmpLevel
+            }
+        }
+        return result
+    },
+    'number':function(x){
+        if(x < 0 ){
+            ElMessage.error('不可对负数取平方根！')
+            return []
+        }
+        return Math.sqrt(x)
     }
   })
 }, { override: true });
@@ -573,16 +592,56 @@ math3.import({
             uncer:'0'
         }
     }
+  }),
+  sqrt:typed('sqrt',{
+    'Object':function(x){
+        return{
+            data:String(Math.sqrt(Math.abs(Number(x.data)))),
+            uncer:calc(`(${x.uncer})/(${String(Math.sqrt(Math.abs(Number(x.data))))})/2`)
+        }
+    },
+    'number':function(x){
+        if(x<0){
+            ElMessage.error('不确定度运算：不可对负数取平方根！已修正为绝对值！')
+            x = -x
+        }
+        if(x == 0){
+            return{
+                data:'0',
+                uncer:'0'
+            }
+        }
+        return{
+            data:String(Math.sqrt(x)),
+            uncer:'0'
+        }
+    }
   })
 }, { override: true });
+// 不确定度计算规则
+function escapeVariableName(variableName) {
+    if(!variableName){
+        return ''
+    }
+    // 用双引号包裹变量名，防止撇号引起解析错误
+    let tmp = variableName.includes("'") ? variableName.replace(/'/g, "_apostrophe_") : variableName
+    tmp = tmp.includes(",") ? tmp.replace(/,/g,"_comma_") : tmp
+    return tmp
+}
+// 处理变量名规范
+function escapeExpression(expression) {
+    return escapeVariableName(expression)
+}
+// 处理表达式规范
 function evaluateUncer(dataList, expression){
     const parser = math3.parser()
     dataList.forEach(item =>{
-        parser.set(item.title,{data:item.analysis[0].propertyValue,uncer:item.moreUncer.wholeUncer})
+        parser.set(escapeVariableName(item.title),{data:item.analysis[0].propertyValue,uncer:item.moreUncer.wholeUncer})
     })
     try {
         // 直接使用 mathjs 解析器评估整个表达式
-        let result = parser.evaluate(expression);
+        //console.log(`Escaped expression: ${escapeExpression(expression)}`); // 调试输出
+        let result = parser.evaluate(escapeExpression(expression));
         // 确保结果是数组
         // 返回计算结果
         return errorMode(result.uncer)
@@ -599,14 +658,15 @@ function evaluateExpression(dataList, expression, option) {
         dataList.forEach(item => {
             // let rawDataArray = item.dataSet.map(obj => obj.rawData)
             // parser.set(item.title, rawDataArray)
-            parser.set(item.title,item.dataSet)
+            //console.log(escapeVariableName(item.title))
+            parser.set(escapeVariableName(item.title),item.dataSet)
         })
     }
     else if(option === 'forAvg'){
         dataList.forEach(item => {
             // parser.set(item.title, Number(item.analysis[0].propertyValue))
             let tmpRawData = item.analysis[0].propertyValue
-            parser.set(item.title,[
+            parser.set(escapeVariableName(item.title),[
                 {
                     rawData:tmpRawData,
                     level:getLevel(tmpRawData),
@@ -617,13 +677,15 @@ function evaluateExpression(dataList, expression, option) {
     }
     try {
         // 直接使用 mathjs 解析器评估整个表达式
-        let result = parser.evaluate(expression);
+        let result = parser.evaluate(escapeExpression(expression));
         // 确保结果是数组
         if (!Array.isArray(result)) {
             result = [result];
         }
         // 返回计算结果
-        // return result.map(value => ({ rawData: String(value) }));
+        result.forEach(item=>{
+            item.rawData = standardByBit(item.rawData,item.bit)
+        })
         return result
     } catch (error) {
         console.error("Error evaluating expression:", error);
@@ -1132,7 +1194,8 @@ export const useAllDataStore = defineStore('allData',()=>{
                     equipUncer:'',
                     bUncer:'',
                     wholeUncer:''
-                }
+                },
+                unit:''
             })
         }
         else{
@@ -1146,15 +1209,10 @@ export const useAllDataStore = defineStore('allData',()=>{
                 computeOption:'',
                 moreUncer:{
                     wholeUncer:''
-                }
+                },
+                unit:''
             })
         }
-
-        // for(let i = 0; i < state.value.dataList.length; i++){
-        //     if(! state.value.dataList[i].named){
-        //         state.value.dataList[i].title = `数据${i+1}`
-        //     }
-        // }
         state.value.selectedDataIndex = state.value.dataList.length - 1
     }
     function refresh(){
@@ -1257,10 +1315,15 @@ export const useAllDataStore = defineStore('allData',()=>{
                 selectedList.analysis[1].propertyValue = calc(shiftValue + '/' + String(length) + '/' + avgvalue)
                 selectedList.analysis[1].propertyValue = errorMode(selectedList.analysis[1].propertyValue)
                 selectedList.analysis[1].propertyValue = toPercent(selectedList.analysis[1].propertyValue)
-                selectedList.analysis[2].propertyValue = calc(stdShiftValue + '/' + String(length))
+                if(length > 1){
+                    selectedList.analysis[2].propertyValue = calc(stdShiftValue + '/' + String(length-1))
+                }
+                else{
+                    selectedList.analysis[2].propertyValue = '0'
+                }
                 if(selectedList.type === 'direct'){
                     if(length > 1){
-                        selectedList.analysis[4].propertyValue = calc(selectedList.analysis[2].propertyValue + '/' +String(length - 1))
+                        selectedList.analysis[4].propertyValue = calc(selectedList.analysis[2].propertyValue + '/' +String(length))
                         selectedList.analysis[4].propertyValue = String(Math.sqrt(Number(selectedList.analysis[4].propertyValue)))
                         selectedList.analysis[4].propertyValue = errorMode(selectedList.analysis[4].propertyValue)
                     }
@@ -1461,6 +1524,6 @@ export const useAllDataStore = defineStore('allData',()=>{
         editIndirectData,
         analysisChange,
         evaluateLine,
-        evaluateSquare
+        evaluateSquare,
     }
 })

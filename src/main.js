@@ -4,7 +4,6 @@ import './assets/less/index.less'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { useAllDataStore } from './assets/stores'
 import { createPinia } from 'pinia'
-
 const pinia = createPinia()
 const app = createApp(App)
 app.use(pinia)
