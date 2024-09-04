@@ -24,7 +24,7 @@
 <img src='./figures/demo3.jpeg'/>
 
 ### LaTeX制表
-<img src='./figures/demo4.jpeg'/>
+<img src='./figures/demo4.gif'/>
 
 ### LaTeX制图
 <img src='./figures/demo5.jpeg'/>
