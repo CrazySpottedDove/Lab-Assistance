@@ -14,6 +14,7 @@
 
 可以自动生成制表和制图的LaTeX代码。目前在拟合方面支持常用的线性拟合和二次拟合。一键复制LaTeX代码后，使用xelatex构建命令编译。代码中的宏包依赖，texlive均有提供。
 
+内部提供了基本的有关有效数字，不确定度和各种参数的相关资料。
 ## 示例
 
 ### 直接数据
@@ -28,3 +29,9 @@
 
 ### LaTeX制图
 <img src='./figures/demo5.jpeg'/>
+
+### 使用说明
+<img src='./figures/demo6.gif'/>
+
+### 内部参考
+<img src='./figures/demo7.gif'/>
