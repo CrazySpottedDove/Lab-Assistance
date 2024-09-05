@@ -1,6 +1,6 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed,ref} from 'vue';
+import { computed,reactive,ref} from 'vue';
 import { CircleClose } from '@element-plus/icons-vue';
 //Don't import { ElMessage } from 'element-plus'!
 const store = useAllDataStore()
@@ -180,9 +180,7 @@ const yData = ref('')
 const titleList = computed(()=>{
     return dataList.value.map(data => ({value:data.title,label:data.title}))
 })
-// const result = computed(()=>{
-//     return output.value.split(/,\s*|\s+/)
-// })
+
 const graphContent = ref('')
 function formatString(input) {
     if (!input) {
@@ -230,10 +228,10 @@ function formatString(input) {
     input = input.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
 
     // 使用正则表达式匹配字母后面直接跟随的数字或逗号隔开的数字
-    return input.replace(/([a-zA-Z\\])(\d+(,\d+)*)/g, '$1_{$2}');
+    return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
 }
 // 把表格数据的头按LaTeX格式化
-const headContent = ref('')
+//const headContent = ref('')
 // 表格的选项区
 const unitFormat = ((str) => {
     if (str === '') {
@@ -253,58 +251,345 @@ const unitFormat = ((str) => {
     return '/\\mathrm{' + str + '}'
 })
 // 把单位按LaTeX格式化
-const centerContent = computed(()=>{
-    let center = ''
+//const commentContent = ref('')
+// 表格的注释区
+// const commentFormat = ((str) => {
+//     if(str === ''){
+//         return str
+//     }
+//     const greekLetters = {
+//         'α': '\\alpha ',
+//         'β': '\\beta ',
+//         'γ': '\\gamma ',
+//         'δ': '\\delta ',
+//         'ε': '\\epsilon ',
+//         'ζ': '\\zeta ',
+//         'η': '\\eta ',
+//         'θ': '\\theta ',
+//         'ι': '\\iota ',
+//         'κ': '\\kappa ',
+//         'λ': '\\lambda ',
+//         'μ': '\\mu ',
+//         'ν': '\\nu ',
+//         'ξ': '\\xi ',
+//         'ο': '\\omicron ',
+//         'π': '\\pi ',
+//         'ρ': '\\rho ',
+//         'σ': '\\sigma ',
+//         'τ': '\\tau ',
+//         'υ': '\\upsilon ',
+//         'φ': '\\phi ',
+//         'χ': '\\chi ',
+//         'ψ': '\\psi ',
+//         'ω': '\\omega ',
+//         'Δ': '\\Delta ',
+//         'Θ': '\\Theta ',
+//         'Λ': '\\Lambda ',
+//         'Ξ': '\\Xi ',
+//         'Π': '\\Pi ',
+//         'Σ': '\\Sigma ',
+//         'Φ': '\\Phi ',
+//         'Ψ': '\\Psi ',
+//         'Ω': '\\Omega '
+//     };
+
+//     // 处理希腊字母替换
+//     str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match])
+//     str = str.replace(/([a-zA-Z\\])(\d+(,\d+)*)/g, '$1_{$2}')
+
+//     str = str.replace(/\*/g, '\\cdot ')
+
+//      // 处理分数形式：仅当 / 的前后都是括号包裹的内容时
+//     str = str.replace(/(?:\(([^)]+)\))\/(?:\(([^)]+)\))/g, '\\frac{$1}{$2}')
+
+//     // 处理sqrt()形式
+//     str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}')
+
+//     // 处理abs()形式
+//     str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|')
+
+//     // 处理ln()形式
+//     str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)')
+
+//     return '$\\displaystyle ' + str + '$ \\\\ '
+// })
+// const commentFormat = (str) => {
+//     if (str === '') {
+//         return str;
+//     }
+
+//     const greekLetters = {
+//         'α': '\\alpha ',
+//         'β': '\\beta ',
+//         'γ': '\\gamma ',
+//         'δ': '\\delta ',
+//         'ε': '\\epsilon ',
+//         'ζ': '\\zeta ',
+//         'η': '\\eta ',
+//         'θ': '\\theta ',
+//         'ι': '\\iota ',
+//         'κ': '\\kappa ',
+//         'λ': '\\lambda ',
+//         'μ': '\\mu ',
+//         'ν': '\\nu ',
+//         'ξ': '\\xi ',
+//         'ο': '\\omicron ',
+//         'π': '\\pi ',
+//         'ρ': '\\rho ',
+//         'σ': '\\sigma ',
+//         'τ': '\\tau ',
+//         'υ': '\\upsilon ',
+//         'φ': '\\phi ',
+//         'χ': '\\chi ',
+//         'ψ': '\\psi ',
+//         'ω': '\\omega ',
+//         'Δ': '\\Delta ',
+//         'Θ': '\\Theta ',
+//         'Λ': '\\Lambda ',
+//         'Ξ': '\\Xi ',
+//         'Π': '\\Pi ',
+//         'Σ': '\\Sigma ',
+//         'Φ': '\\Phi ',
+//         'Ψ': '\\Psi ',
+//         'Ω': '\\Omega '
+//     };
+
+//     // 处理希腊字母替换
+//     str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
+
+//     // 处理希腊字母或字母后面的数字
+//     str = str.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
+
+//     // 处理乘法符号
+//     str = str.replace(/\*/g, ' ');
+
+//     // 递归函数处理分数表达式
+//     const processFractions = (input) => {
+//         let stack = [];
+//         let output = '';
+//         for (let i = 0; i < input.length; i++) {
+//             const char = input[i];
+//             if (char === '(') {
+//                 stack.push(output.length);
+//                 output += char;
+//             } else if (char === ')') {
+//                 const start = stack.pop();
+//                 const innerExpr = output.slice(start + 1);
+//                 output = output.slice(0, start);
+//                 if (innerExpr.includes('/')) {
+//                     const [numerator, denominator] = innerExpr.split('/');
+//                     output += `\\frac{${processFractions(numerator)}}{${processFractions(denominator)}}`;
+//                 } else {
+//                     output += `(${processFractions(innerExpr)})`;
+//                 }
+//             } else {
+//                 output += char;
+//             }
+//         }
+//         return output;
+//     };
+
+//     // 处理分数表达式
+//     str = processFractions(str);
+
+//     // 处理 abs() 形式
+//     str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|');
+
+//     // 处理 sqrt() 形式
+//     str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+
+//     // 处理 ln() 形式
+//     str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)');
+
+//     return str
+// };
+const commentFormat = (str) => {
+    if (str === '') {
+        return str;
+    }
+
+    const greekLetters = {
+        'α': '\\alpha ',
+        'β': '\\beta ',
+        'γ': '\\gamma ',
+        'δ': '\\delta ',
+        'ε': '\\epsilon ',
+        'ζ': '\\zeta ',
+        'η': '\\eta ',
+        'θ': '\\theta ',
+        'ι': '\\iota ',
+        'κ': '\\kappa ',
+        'λ': '\\lambda ',
+        'μ': '\\mu ',
+        'ν': '\\nu ',
+        'ξ': '\\xi ',
+        'ο': '\\omicron ',
+        'π': '\\pi ',
+        'ρ': '\\rho ',
+        'σ': '\\sigma ',
+        'τ': '\\tau ',
+        'υ': '\\upsilon ',
+        'φ': '\\phi ',
+        'χ': '\\chi ',
+        'ψ': '\\psi ',
+        'ω': '\\omega ',
+        'Δ': '\\Delta ',
+        'Θ': '\\Theta ',
+        'Λ': '\\Lambda ',
+        'Ξ': '\\Xi ',
+        'Π': '\\Pi ',
+        'Σ': '\\Sigma ',
+        'Φ': '\\Phi ',
+        'Ψ': '\\Psi ',
+        'Ω': '\\Omega '
+    };
+
+    // 处理希腊字母替换
+    str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
+
+    // 处理希腊字母或字母后面的数字
+    str = str.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
+
+    // 处理乘法符号
+    str = str.replace(/\*/g, ' ');
+
+    // 处理乘方表达式
+    const processExponentiation = (input) => {
+        let output = '';
+        let i = 0;
+
+        while (i < input.length) {
+            const char = input[i];
+
+            if (char === '^') {
+                let base = output; // 底数部分
+                let exponent = ''; // 指数部分
+                let stack = [];
+                i++; // 跳过 '^'
+
+                // 处理指数部分
+                while (i < input.length && (stack.length > 0 || !/[+\-*/^ {}]/.test(input[i]))) {
+                    if (input[i] === '(') {
+                        stack.push('(');
+                    }
+                    if (input[i] === ')') {
+                        stack.pop();
+                    }
+                    exponent += input[i];
+                    i++;
+                }
+
+                // 移除指数部分的外层括号
+                if (exponent[0] === '(' && exponent[exponent.length - 1] === ')') {
+                    exponent = exponent.slice(1, -1);
+                    exponent = `{${exponent}}`
+                }
+                else{
+                    exponent = `{${exponent}}`
+                }
+                exponent = processExponentiation(exponent);
+                // 构建 LaTeX 格式的输出
+                output = `${base}^${exponent}`;
+            } else {
+                output += char;
+                i++;
+            }
+        }
+        return output;
+    };
+
+
+    str = processExponentiation(str);
+
+    // 处理分数表达式
+    const processFractions = (input) => {
+        let output = '';
+        let stack = [];
+        let numerator = '';
+        let denominator = '';
+        let inDenominator = false;
+        let lastSlashIndex = -1;
+
+        for (let i = 0; i < input.length; i++) {
+            const char = input[i];
+
+            if (char === '(') {
+                stack.push('(');
+                if (inDenominator) {
+                    denominator += char;
+                } else {
+                    numerator += char;
+                }
+            } else if (char === ')') {
+                stack.pop();
+                if (inDenominator) {
+                    denominator += char;
+                } else {
+                    numerator += char;
+                }
+            } else if (char === '/' && stack.length === 0) {
+                inDenominator = true;
+                lastSlashIndex = i;
+            } else {
+                if (inDenominator) {
+                    denominator += char;
+                } else {
+                    numerator += char;
+                }
+            }
+        }
+
+        if (lastSlashIndex === -1) {
+            output = numerator;
+        } else {
+            if (numerator.startsWith('(') && numerator.endsWith(')')) {
+                numerator = numerator.slice(1, -1);
+            }
+            if (denominator.startsWith('(') && denominator.endsWith(')')) {
+                denominator = denominator.slice(1, -1);
+            }
+            output = `\\frac{${numerator}}{${denominator}}`;
+        }
+
+        return output;
+    };
+
+    str = processFractions(str);
+
+    // 处理 abs() 形式
+    str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|');
+
+    // 处理 sqrt() 形式
+    str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+
+    // 处理 ln() 形式
+    str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)');
+
+    return str;
+};
+//表格注释按LaTeX格式化
+const headContent = computed(()=>{
+    let head = ''
     let hlength = 1
     let vlength = 0
     let flag = true
-    headContent.value = ''
     for(let i = 0; i<result.value.length;i++){
-        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect'&& item.computeOption === 'forAvg' ) )
+        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
         if(theItem && theItem.dataSet.length !== 1){
             if(theItem && flag){
-                headContent.value = ''
+                head = ''
                 flag = false
-                center = center+'编号 &'
                 hlength = theItem.dataSet.length
-                for(let j = 1; j<=theItem.dataSet.length;j++){
-                    if(j!== theItem.dataSet.length){
-                        center = center + '$'+ String(j) + '$ & '
-                    }
-                    else{
-                        center = center + '$'+ String(j) + '$ \\\\\n\t\t\t'
-                    }
-                }
                 vlength++
             }
             if(theItem){
-                center = center+'$'+ formatString(theItem.title) + unitFormat(theItem.unit) + '$ & '
-                for(let j=0; j<theItem.dataSet.length;j++){
-                    if(j!==theItem.dataSet.length-1){
-                        center = center + '$'+formatScientificToLatex(theItem.dataSet[j].rawData)+ '$ & '
-                    }
-                    else{
-                        if(i!== result.value.length-1){
-                            center = center + '$'+formatScientificToLatex(theItem.dataSet[j].rawData)+'$ \\\\'
-                        }
-                        else{
-                            center = center + '$'+formatScientificToLatex(theItem.dataSet[j].rawData)+'$'
-                            if(dataValues.value && dataValues.value.length >0){
-                                center = center + ' \\\\'
-                            }
-                        }
-                    }
-                }
-                if(i!==result.value.length-1 || (dataValues.value && dataValues.value.length >0)){
-                    center = center+'\n\t\t\t'
-                }
                 vlength++
             }
         }
     }
     if(dataValues.value && dataValues.value.length >0){
-        if(!(dataValues.value.length ===1 && typeof dataValues.value[0].data === 'object')){
-            headContent.value = ',cell{'
+        if(!(dataValues.value.length === 1 && typeof dataValues.value[0].data === 'object')){
+            head = ',cell{'
         }
     }
     for(let i = 0; i < dataValues.value.length; i++){
@@ -312,37 +597,216 @@ const centerContent = computed(()=>{
         vlength++
         if(typeof datavalue.data === 'object'){
             hlength = datavalue.data.length
-            center = center + datavalue.title
-            datavalue.data.forEach(metadata =>{
-                center = center + ' & '+ metadata
-            })
             if(i !== dataValues.value.length -1){
-                center = center + ' \\\\\n\t\t\t'
                 if(i !== 0){
-                    headContent.value = headContent.value + ','
+                    head = headContent.value + ','
                 }
             }
             else{
                 if(!(dataValues.value.length ===1 && typeof dataValues.value[0].data === 'object')){
-                    headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
+                    head += `}{2}={r=1,c=${hlength}}{c}`
                 }
             }
         }
         else{
-            headContent.value = headContent.value + String(vlength)
+            head = head + String(vlength)
             if(i !== dataValues.value.length - 1){
-                center = center + datavalue.title +' & '+ datavalue.data + ' \\\\' + '\n\t\t\t'
                 if(typeof dataValues.value[i+1].data !== 'object'){
-                    headContent.value = headContent.value + ','
+                    head += ','
                 }
             }
             else{
-                center = center + datavalue.title +' & '+ datavalue.data
-                headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
+                head += `}{2}={r=1,c=${hlength}}{c}`
             }
         }
     }
-    center = center+'\n\t\t'
+    return head
+})
+const commentContent = computed(()=>{
+    let comment = ''
+    for(let i = 0; i<result.value.length;i++){
+        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
+        if(theItem && theItem.dataSet.length !== 1){
+            if(theItem){
+                if(theItem.computeMethod){
+                    comment += ` $\\displaystyle ${formatString(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
+                }
+            }
+        }
+    }
+    for(let i = 0; i < dataValues.value.length; i++){
+        let datavalue = dataValues.value[i]
+        if(typeof datavalue.data === 'object'){}
+        else{
+            if(datavalue.formula){
+                comment += ` $\\displaystyle ${formatString(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
+            }
+        }
+    }
+    return comment
+})
+// const centerContent = computed(()=>{
+//     let center = ''
+//     let hlength = 1
+//     let vlength = 0
+//     let flag = true
+//     headContent.value = ''
+//     commentContent.value = ''
+//     for(let i = 0; i<result.value.length;i++){
+//         let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
+//         if(theItem && theItem.dataSet.length !== 1){
+//             if(theItem && flag){
+//                 headContent.value = ''
+//                 flag = false
+//                 center = center+'编号 &'
+//                 hlength = theItem.dataSet.length
+//                 for(let j = 1; j<=theItem.dataSet.length;j++){
+//                     if(j!== theItem.dataSet.length){
+//                         center = center + '$'+ String(j) + '$ & '
+//                     }
+//                     else{
+//                         center = center + '$'+ String(j) + '$ \\\\\n\t\t\t'
+//                     }
+//                 }
+//                 vlength++
+//             }
+//             if(theItem){
+//                 if(theItem.computeMethod){
+//                     commentContent.value += ` $\\displaystyle ${formatString(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
+//                 }
+//                 center = center+'$'+ formatString(theItem.title) + unitFormat(theItem.unit) + '$ & '
+//                 for(let j=0; j<theItem.dataSet.length;j++){
+//                     if(j!==theItem.dataSet.length-1){
+//                         center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+ '$ & '
+//                     }
+//                     else{
+//                         if(i!== result.value.length-1){
+//                             center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+'$ \\\\'
+//                         }
+//                         else{
+//                             center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+'$'
+//                             if(dataValues.value && dataValues.value.length >0){
+//                                 center = center + ' \\\\'
+//                             }
+//                         }
+//                     }
+//                 }
+//                 if(i!==result.value.length-1 || (dataValues.value && dataValues.value.length >0)){
+//                     center = center+'\n\t\t\t'
+//                 }
+//                 vlength++
+//             }
+//         }
+//     }
+//     if(dataValues.value && dataValues.value.length >0){
+//         if(!(dataValues.value.length === 1 && typeof dataValues.value[0].data === 'object')){
+//             headContent.value = ',cell{'
+//         }
+//     }
+//     for(let i = 0; i < dataValues.value.length; i++){
+//         let datavalue = dataValues.value[i]
+//         vlength++
+//         if(typeof datavalue.data === 'object'){
+//             hlength = datavalue.data.length
+//             center = center + datavalue.title
+//             datavalue.data.forEach(metadata =>{
+//                 center = center + ' & '+ metadata
+//             })
+//             if(i !== dataValues.value.length -1){
+//                 center = center + ' \\\\\n\t\t\t'
+//                 if(i !== 0){
+//                     headContent.value = headContent.value + ','
+//                 }
+//             }
+//             else{
+//                 if(!(dataValues.value.length ===1 && typeof dataValues.value[0].data === 'object')){
+//                     headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
+//                 }
+//             }
+//         }
+//         else{
+//             if(datavalue.formula){
+//                 commentContent.value += ` $\\displaystyle ${formatString(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
+//             }
+//             headContent.value = headContent.value + String(vlength)
+//             if(i !== dataValues.value.length - 1){
+//                 center = center + datavalue.title +' & '+ datavalue.data + ' \\\\' + '\n\t\t\t'
+//                 if(typeof dataValues.value[i+1].data !== 'object'){
+//                     headContent.value = headContent.value + ','
+//                 }
+//             }
+//             else{
+//                 center = center + datavalue.title +' & '+ datavalue.data
+//                 headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
+//             }
+//         }
+//     }
+//     center = center+'\n\t\t'
+//     return center
+// })
+const centerContent = computed(()=>{
+    let center = ''
+    let flag = true
+    for(let i = 0; i<result.value.length;i++){
+        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
+        if(theItem && theItem.dataSet.length !== 1){
+            if(theItem && flag){
+                flag = false
+                center += '编号 &'
+                for(let j = 1; j<=theItem.dataSet.length;j++){
+                    if(j!== theItem.dataSet.length){
+                        center += '$'+ String(j) + '$ & '
+                    }
+                    else{
+                        center += '$'+ String(j) + '$ \\\\\n\t\t\t'
+                    }
+                }
+            }
+            if(theItem){
+                center += '$'+ formatString(theItem.title) + unitFormat(theItem.unit) + '$ & '
+                for(let j=0; j<theItem.dataSet.length;j++){
+                    if(j!==theItem.dataSet.length-1){
+                        center += '$'+ dataFormat(theItem.dataSet[j].rawData)+ '$ & '
+                    }
+                    else{
+                        if(i!== result.value.length-1){
+                            center += '$'+ dataFormat(theItem.dataSet[j].rawData)+'$ \\\\'
+                        }
+                        else{
+                            center += '$'+ dataFormat(theItem.dataSet[j].rawData)+'$'
+                            if(dataValues.value && dataValues.value.length >0){
+                                center += ' \\\\'
+                            }
+                        }
+                    }
+                }
+                if(i!==result.value.length-1 || (dataValues.value && dataValues.value.length >0)){
+                    center += '\n\t\t\t'
+                }
+            }
+        }
+    }
+    for(let i = 0; i < dataValues.value.length; i++){
+        let datavalue = dataValues.value[i]
+        if(typeof datavalue.data === 'object'){
+            center += datavalue.title
+            datavalue.data.forEach(metadata =>{
+                center += ' & '+ metadata
+            })
+            if(i !== dataValues.value.length -1){
+                center += ' \\\\\n\t\t\t'
+            }
+        }
+        else{
+            if(i !== dataValues.value.length - 1){
+                center += datavalue.title +' & '+ datavalue.data + ' \\\\' + '\n\t\t\t'
+            }
+            else{
+                center += datavalue.title +' & '+ datavalue.data
+            }
+        }
+    }
+    center += '\n\t\t'
     return center
 })
 // 表格的中心内容
@@ -351,10 +815,14 @@ const props={
     checkStrictly: true,
     emitPath: false, // 如果只希望返回最后一级选项的值
     label:'label',
-    value:'value'
+    value:'value',
 }
 const optionMap = (name , title, unit)=>{
     let tmpunit = unitFormat(unit)
+    if(title === ''){
+        ElMessage.error('未命名的数据！')
+        return ''
+    }
     if(name === '平均值'){
         return `$\\overline{${formatString(title)}}`+tmpunit+'$'
     }
@@ -392,6 +860,14 @@ const optionMap = (name , title, unit)=>{
         return `$\\varepsilon_{r,${formatString(title)}}$`
     }
 }
+const dataFormat = ((str) =>{
+    if(typeof str === 'string'){
+        return formatScientificToLatex(str.replace(/%/g, '\\%'))
+    }
+    else{
+        return ''
+    }
+})
 // 表格中的非运算数据
 const dataOptions = computed(()=>{
     let tmpDataOptions = []
@@ -403,7 +879,11 @@ const dataOptions = computed(()=>{
         if(theItem.dataSet.length === 1){
             tmp.value = {
                 title:`$${formatString(theItem.title)}`+unitFormat(unit)+'$',
-                data:'$'+formatScientificToLatex(theItem.dataSet[0].rawData)+'$'
+                data:'$'+dataFormat(theItem.dataSet[0].rawData)+'$'
+            }
+            if(theItem.type === 'indirect'){
+                tmp.value.formula = theItem.computeMethod
+                tmp.value.formulaTitle = formatString(theItem.title)
             }
         }
         else{
@@ -412,7 +892,7 @@ const dataOptions = computed(()=>{
         tmp.children=[]
         if(theItem.theoData && theItem.theoData !== '0'){
             tmp.children.push({
-                value:{title:optionMap('理论值',theItem.title,unit),data:'$'+formatScientificToLatex(theItem.theoData)+'$'},
+                value:{title:optionMap('理论值',theItem.title,unit),data:'$'+dataFormat(theItem.theoData)+'$'},
                 label:'理论值'
             })
             let tmpdata = []
@@ -434,25 +914,26 @@ const dataOptions = computed(()=>{
                     },
                     label:ana.propertyName
                 }
-                if(ana.propertyName === '相对平均偏差' || ana.propertyName === '相对标准偏差' || ana.propertyName === '平均相对误差' || ana.propertyName === '平均值与理论值的相对误差'){
-                    tmpChild.value.data = ana.propertyValue.replace(/%/g, '\\%')
-                }
-                else{
-                    tmpChild.value.data = ana.propertyValue
-                }
-                tmpChild.value.data = '$'+formatScientificToLatex(tmpChild.value.data)+'$'
+                // if(ana.propertyName === '相对平均偏差' || ana.propertyName === '相对标准偏差' || ana.propertyName === '平均相对误差' || ana.propertyName === '平均值与理论值的相对误差'){
+                //     tmpChild.value.data = ana.propertyValue.replace(/%/g, '\\%')
+                // }
+                // else{
+                //     tmpChild.value.data = ana.propertyValue
+                // }
+                tmpChild.value.data = dataFormat(ana.propertyValue)
+                tmpChild.value.data = '$'+ tmpChild.value.data +'$'
                 tmp.children.push(tmpChild)
             }
         })
         if(theItem.moreUncer.bUncer && theItem.moreUncer.bUncer !== '0'){
             tmp.children.push({
-                value:{title:optionMap('B类不确定度',theItem.title,unit),data:'$'+formatScientificToLatex(theItem.moreUncer.bUncer)+'$'},
+                value:{title:optionMap('B类不确定度',theItem.title,unit),data:'$'+dataFormat(theItem.moreUncer.bUncer)+'$'},
                 label:'B类不确定度'
             })
         }
         if(theItem.moreUncer.wholeUncer && theItem.moreUncer.wholeUncer !== '0'){
             tmp.children.push({
-                value:{title:optionMap('不确定度',theItem.title,unit),data:'$'+formatScientificToLatex(theItem.moreUncer.wholeUncer)+'$'},
+                value:{title:optionMap('不确定度',theItem.title,unit),data:'$'+dataFormat(theItem.moreUncer.wholeUncer)+'$'},
                 label:'不确定度'
             })
         }
@@ -466,6 +947,7 @@ const dataValues = computed(()=>{
     if(dataValuesSource.value && dataValuesSource.value.length){
         dataValuesSource.value.forEach(item=>{
             if(typeof item === 'object'){
+
                 tmp.push(item)
             }
         })
@@ -477,14 +959,20 @@ const result = computed(()=>{
     if(dataValuesSource.value && dataValuesSource.value.length){
         dataValuesSource.value.forEach(item=>{
             if(typeof item === 'string'){
+                if(item === ''){
+                    ElMessage.error('未命名的数据！')
+                    return []
+                }
                 tmp.push(item)
             }
         })
     }
     return tmp
 })
-const code = computed(()=>{
-    return '\\begin{table}[H]\n\t\\framed[标题]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}'+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}\n\\end{table}'
+const code = ref('')
+const handleTableUpdate = (()=>{
+    code.value = '\\begin{table}[H]\n\t\\framed[标题]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}'+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    // code.value = '\\begin{table}[H]\n\t\\framed[标题]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}'+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
 })
 const copyToClipboard = (str,type) => {
     navigator.clipboard.writeText(str)
@@ -613,6 +1101,29 @@ const handleGraphUpdate = ()=>{
 const handleUncerEdit = ()=>{
     store.refresh()
 }
+const handleDataMethodChange =()=>{
+    let selectedList = dataList.value[selectedDataIndex.value]
+    if(selectedList.dataMethod){
+        dataList.value[selectedDataIndex.value].dataSet.forEach(item=>{
+            item.rawData = store.errorMode(item.rawData)
+        })
+    }
+    else{
+        store.editIndirectData()
+    }
+}
+const handleTableSelectAll =()=>{
+    let tmpValueSource = []
+    dataOptions.value.forEach(item => {
+        tmpValueSource.push(item.value)
+    })
+    dataValuesSource.value = tmpValueSource
+    handleTableUpdate()
+}
+const handleTableClearAll = ()=>{
+    dataValuesSource.value = []
+    handleTableUpdate()
+}
 </script>
 <template>
 
@@ -684,19 +1195,32 @@ const handleUncerEdit = ()=>{
             <span style="width: 1%;"></span>
             <el-button style="width: 14%;" @click="handleCompute">刷新</el-button>
         </div>
+        <div class="equipment">
+            <label style="font-weight: 550;width: 10%;text-align: center;">保留方式</label>
+            <span style="width: 30%;"></span>
+            <el-switch
+                v-model="dataList[selectedDataIndex].dataMethod"
+                size="large"
+                active-text="不确定度方式"
+                inactive-text="有效数字方式"
+                style="font-size: large;width: 60%;--el-switch-on-color: #626aef;"
+                @change="handleDataMethodChange"
+            />
+            <br />
+        </div>
     </el-card>
 </div>
 <!-- 间接数据的编辑卡片 -->
 <div class="card-div" v-if="selectedDataIndex >= 0">
     <el-card shadow="hover">
         <div class="equipment">
-            <label style="font-weight: 550;width: 20%;text-align: left;">单位</label>
-            <input style="text-align: center;width: 80%;" placeholder="选填，仅对LaTeX制表/图有影响" v-model="dataList[selectedDataIndex].unit">
+            <label style="font-weight: 550;width: 16%;text-align: left;">单位</label>
+            <input style="text-align: center;width: 84%;" placeholder="选填，仅对LaTeX制表/图有影响" v-model="dataList[selectedDataIndex].unit">
         </div>
     </el-card>
 </div>
 <!-- 公用的单位卡片 -->
- <div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAll' : false">
+<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAll' : false">
     <div class="card-div">
         <el-card shadow="hover">
             <el-table
@@ -732,8 +1256,8 @@ const handleUncerEdit = ()=>{
             </div>
         </el-card>
     </div>
- </div>
- <div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAvg' : false">
+</div>
+<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAvg' : false">
     <div class="card-div">
         <el-card shadow="hover">
             <div class="edit-one">
@@ -744,7 +1268,7 @@ const handleUncerEdit = ()=>{
             </div>
         </el-card>
     </div>
- </div>
+</div>
  <!-- 间接数据的展示卡片 -->
 <div class="card-div" v-show="selectedDataIndex >= 0">
     <el-card shadow="hover">
@@ -858,19 +1382,20 @@ const handleUncerEdit = ()=>{
     <p>直接数据默认是精度相同的数据集。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）</p>
     <p>在新数据处输入数据并回车即可添加数据了，各类信息会随着数据的输入自动更新。</p>
     <p>单位只会影响LaTeX制作图表，不参与计算。斑鸠会自动处理 *，/ 和数字上标，也包括 μ，°，℃ 这几个不常见字符。</p>
-    <p>单位示例：kg*m/s2</p>
+    <p>单位示例：kg*m/s2 。</p>
     <h2>间接数据</h2>
-    <p>间接数据通过直接数据计算得到。可以在待填处填入计算式，支持 +，-，*，/，() 运算符与 ln() 函数，sqrt() 函数。使用直接数据前，需要在侧栏处为直接数据<em>命名(不接受中文命名与带 ; 号的命名)</em>。如果命名成数字，运算时会<em>识别成数字</em>而非数据集，所以不要这么做。同样地，为避免混淆，<em>不要取名为 ln 或 sqrt。</em></p>
+    <p>间接数据通过直接数据计算得到。可以在待填处填入计算式，目前支持 +，-，*，/，^，() 运算符与 ln() 自然对数函数，sqrt() 平方根函数，abs() 绝对值函数。使用直接数据前，需要在侧栏处为直接数据<em>命名(不接受中文命名与带 ; 号的命名)</em>。如果命名成数字，运算时会<em>识别成数字</em>而非数据集，所以不要这么做。同样地，为避免混淆，<em>不要取名为函数名</em>。</p>
     <p><em>tips:字母后的数字会自动识别成下标，所以 a1，甚至 b1,2 都是合法的命名。</em></p>
     <p>示例：有直接数据a，b，c，d，可写计算式(a+b)*c/d/9.8。</p>
-    <p>需要注意的是，直接在运算式中输入数字，处理器会默认该数据是<em>精准数据</em>，<em>不会考虑</em>它的有效数字。如果你需要考虑它的有效数字，请把它<em>作为直接数据</em>输入。一般情况下，还是建议在直接数据处取一个合适的等价数据，毕竟“不考虑有效数字”的效果并不保证合理。</p>
+    <p>需要注意的是，直接在运算式中输入数字，处理器会默认该数据是<em>精准数据</em>，会按照<em>存疑数字原则</em>保留计算结果的有效数字。如果你需要考虑它的有效数字，请把它<em>作为直接数据</em>输入。</p>
     <p>确定计算方式和计算式后，<em>点击刷新</em>，即可获得最新的间接数据。</p>
     <p>斑鸠会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
     <h2>LaTeX制表</h2>
-    <p>选择表格数据，会自动生成对应表格的LaTeX代码。</p>
+    <p>选择表格数据，点击刷新，即生成对应表格的LaTeX代码。点击全选，可以选中当前的所有数据。</p>
     <p>LaTeX代码的依赖同时包含制表和制图的依赖。因此，<em>只需复制一次</em>即可。</p>
     <h2>LaTeX制图</h2>
     <p>为数据命名后，即可通过选择数据与制图方法获得LaTeX代码。在这里，依赖的内容与LaTeX制表处相同。</p>
+    <p>在最小二乘直线斜率的有效数字方面，使用 x 数据集中最大的有效位数、 y 数据集中最大的有效位数中的最小者。</p>
     <p>选择好数据后，<em>点击刷新</em>，即可获得最新的代码。</p>
     <h2>参考</h2>
     <p>时有忘记各种计算方法的时候，所以留了三个参考，方便查阅。</p>
@@ -887,9 +1412,13 @@ const handleUncerEdit = ()=>{
                     :props="props"
                     placeholder="选择数据"
                     v-model="dataValuesSource"
-                    style="width: 85%;"
+                    style="width: 50%;"
                 >
                 </el-cascader>
+                <span style="width: 5%;"></span>
+                <el-button @click="handleTableSelectAll" style="width: 10%;">全选</el-button>
+                <el-button @click="handleTableClearAll" style="width: 10%;">清空</el-button>
+                <el-button @click="handleTableUpdate" style="width: 10%;">刷新</el-button>
             </div>
         </el-card>
     </div>
@@ -935,6 +1464,7 @@ const handleUncerEdit = ()=>{
         <li>乘、除法运算：结果的有效位数由所有参与运算的数中<strong>有效数字最少</strong>的决定，即取<strong>最少的位数</strong>。例如：4.56 × 2.4 = 11 (保留2位有效数字)。</li>
         <li>混合运算：应按顺序逐步运算，并遵循每一步的运算规则。例如：(2.1 + 3.55) × 2.10 = 12 (在加法中，有效数字为2位)。</li>
         <li>在实际操作中，<strong>中间运算可不进行修约</strong>，只需保证最后结果的有效位数正确。</li>
+        <li>关于<strong>精确数字</strong>，一般认为它的有效数字有<strong>无穷多位</strong>。但存在一个特殊情况：取 93.1 和 92.9 的平均值时，如果直接按无穷多位来算，结果应当是 (93.1 + 92.9) / 2 = 186.0 / 2 = 93.00。然而，可以发现，平均值的精度居然比原始数据的精度还高了，这显然是不合理的。此时，我们应考虑<strong>存疑数字</strong>，原始数据的存疑数字是 0.1 ，所以除以 2 后仍是 0.1 ，因此结果是 93.0。 这个点比较隐蔽，不排除批改报告的老师没有注意到的情况。因此，<strong>保留时可以注明“依照存疑数字保留有效位数”</strong>。</li>
     </ul>
 </div>
 <!-- 有效数字视图 -->
@@ -966,6 +1496,8 @@ const handleUncerEdit = ()=>{
         </li>
         <li>总的来说，就是把微分在不同维度叠加。</li>
     </ul>
+    <h2>3. 何时使用不确定度方式保留数字</h2>
+    <p>不确定度是用来表示测量结果可能的误差的。凡是误差相关的量，都应按照不确定度方式保留数字。具体可见 <strong>参考：各项参数</strong>。</p>
 </div>
 <!-- 不确定度视图 -->
 <div v-show="isPropertyDoc">

@@ -18,6 +18,7 @@ import { create, all, typed, exp } from 'mathjs';
 const config = {
   // 可以选择在这里添加其他配置，如处理大数等
 };
+// 不要删除这里！！！
 const math = create(all, config)
 const math1 = create(all, config)
 const math3 = create(all, config)
@@ -433,6 +434,7 @@ math1.import({
     'Array':function (x) {
         let length = x.length
         if(length === 0){
+            ElMessage.error('有的数组为空！')
             return []
         }
         let result = []
@@ -459,7 +461,128 @@ math1.import({
         }
         return Math.sqrt(x)
     }
-  })
+  }),
+  abs:typed('abs',{
+    'Array':function(arr){
+        let length = arr.length
+        if(length === 0){
+            ElMessage.error('有的数组为空！')
+            return []
+        }
+        let result = []
+        arr.forEach(item => {
+            result.push({
+                bit:item.bit,
+                rawData:standardByBit(String(Math.abs(Number(item.rawData))),item.bit + 1),
+                level: item.level
+            })
+        })
+        return result
+    },
+    'number':function(x){
+        return Math.abs(x)
+    }
+  }),
+  pow:typed('pow',{
+    'Array,Array':function(arr1,arr2){
+        let length1 = arr1.length
+        let length2 = arr2.length
+        if(length1 === 0 || length2 === 0){
+            ElMessage.error('有的数组为空！')
+            return []
+        }
+        let result = []
+        if(length1 === 1){
+            arr2.forEach(item => {
+                if(Number(arr1[0].rawData) < 0 && Number(item.rawData) > 0 && Number(item.rawData) < 1){
+                    ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+                    return []
+                }
+                result.push({
+                    bit:arr1[0].bit,
+                    rawData:standardByBit(String(Math.pow(Number(arr1[0].rawData),Number(item.rawData))),arr1[0].bit + 1),
+                    level:getLevel(standardByBit(String(Math.pow(Number(arr1[0].rawData),Number(item.rawData))),arr1[0].bit))
+                })
+            })
+            return result
+        }
+        if(length2 === 1){
+            arr1.forEach(item => {
+                if(Number(item.rawData) < 0 && Number(arr2[0].rawData) > 0 && Number(arr2[0].rawData) < 1){
+                    ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+                    return []
+                }
+                result.push({
+                    bit:item.bit,
+                    rawData:standardByBit(String(Math.pow(Number(item.rawData),Number(arr2[0].rawData))),item.bit + 1),
+                    level:getLevel(standardByBit(String(Math.pow(Number(item.rawData),Number(arr2[0].rawData))),item.bit))
+                })
+            })
+            return result
+        }
+        if(length1 !== length2){
+            ElMessage.error('数组长度不一致！')
+            return []
+        }
+        for(let i = 0 ; i < length1 ; i++){
+            if(Number(arr1[i].rawData) < 0 && Number(arr2[i].rawData) > 0 && Number(arr2[i].rawData) < 1){
+                ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+                return []
+            }
+            result.push({
+                bit:arr1[i].bit,
+                rawData:standardByBit(String(Math.pow(Number(arr1[i].rawData), Number(arr2[i].rawData))), arr1[i].bit+1),
+                level: getLevel(standardByBit(String(Math.pow(Number(arr1[i].rawData), Number(arr2[i].rawData))), arr1[i].bit))
+            })
+        }
+        return result
+    },
+  'Array,number':function(arr,num){
+    if(arr.length === 0){
+        ElMessage.error('有的数组为空！')
+        return []
+    }
+    let result = []
+    arr.forEach(item => {
+        if(Number(item.rawData) < 0 && num > 0 && num < 1){
+            ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+            return []
+        }
+        result.push({
+            bit:item.bit,
+            rawData:standardByBit(String(Math.pow(Number(item.rawData), num)), item.bit+1),
+            level:getLevel(standardByBit(String(Math.pow(Number(item.rawData), num)), item.bit))
+        })
+    })
+    return result
+  },
+  'number,Array':function(num,arr){
+    if(arr.length === 0){
+        ElMessage.error('有的数组为空！')
+        return []
+    }
+    let result = []
+    arr.forEach(item => {
+        if(num < 0 && Number(item.rawData) > 0 && Number(item.rawData) < 1){
+            ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+            return []
+        }
+        result.push({
+            bit:item.bit,
+            rawData: standardByBit(String(Math.pow(num, Number(item.rawData))), item.bit+1),
+            level: getLevel(standardByBit(String(Math.pow(num, Number(item.rawData))), item.bit))
+        })
+    })
+    return result
+  },
+  'number,number':function(num1,num2){
+    if(num1 < 0 && 0 < num2 && num2 < 1){
+        ElMessage.error('不能对负数取介于 0 到 1 的指数！')
+        return []
+    }
+    return Math.pow(num1,num2)
+  }
+ })
 }, { override: true });
 // 数值计算规则
 math3.import({
@@ -605,14 +728,50 @@ math3.import({
             ElMessage.error('不确定度运算：不可对负数取平方根！已修正为绝对值！')
             x = -x
         }
-        if(x == 0){
-            return{
-                data:'0',
-                uncer:'0'
-            }
-        }
         return{
             data:String(Math.sqrt(x)),
+            uncer:'0'
+        }
+    }
+  }),
+  abs:typed('abs',{
+    'Object':function(x){
+        return{
+            data:String(Math.abs(Number(x.data))),
+            uncer:x.uncer
+        }
+    },
+    'number':function(x){
+        return{
+            data:String(Math.abs(x)),
+            uncer:'0'
+        }
+    }
+  }),
+  pow:typed('pow',{
+    'Object, Object':function(x1, x2){
+        let y1 = Number(x1.data)
+        let y2 = Number(x2.data)
+        return{
+            data:String(Math.pow(y1, y2)),
+            uncer:String(Math.sqrt(Math.pow(Math.pow(y1, y2) * Math.log(y1) * Number(x2.uncer), 2) + Math.pow(y2 * Math.pow(y1, y2-1) * Number(x1.uncer), 2)))
+        }
+    },
+    'Object, number':function(x1, x2){
+        return{
+            data:String(Math.pow(Number(x1.data), x2)),
+            uncer:String(Math.abs(x2 * Math.pow(Number(x1.data) , x2-1) * Number(x1.data)))
+        }
+    },
+    'number, Object':function(x1, x2){
+        return{
+            data:String(Math.pow(x1, Number(x2.data))),
+            uncer:String(Math.log(Number(x2.data)) * Math.pow(x1, Number(x2.data)))
+        }
+    },
+    'number, number':function(x1, x2){
+        return{
+            data:String(Math.pow(x1, x2)),
             uncer:'0'
         }
     }
@@ -646,6 +805,7 @@ function evaluateUncer(dataList, expression){
         // 返回计算结果
         return errorMode(result.uncer)
     } catch (error) {
+        ElMessage.error('计算过程中出错！')
         console.error("Error evaluating expression:", error);
         return '0';  // 错误处理，返回空数组
     }
@@ -688,6 +848,7 @@ function evaluateExpression(dataList, expression, option) {
         })
         return result
     } catch (error) {
+        ElMessage.error('计算过程中出错！')
         console.error("Error evaluating expression:", error);
         return [];  // 错误处理，返回空数组
     }
@@ -1210,7 +1371,8 @@ export const useAllDataStore = defineStore('allData',()=>{
                 moreUncer:{
                     wholeUncer:''
                 },
-                unit:''
+                unit:'',
+                dataMethod:false
             })
         }
         state.value.selectedDataIndex = state.value.dataList.length - 1
@@ -1224,12 +1386,25 @@ export const useAllDataStore = defineStore('allData',()=>{
             let sum =  '0'
             if(length !== 0){
                 for(let i = 0; i < length; i++){
-                    sum = calc(`(${sum}) + (${selectedList.dataSet[i].rawData})`)
-                    // 求和
-                    let tmp = getLevel(selectedList.dataSet[i].rawData)
-                    dataLevel = tmp < dataLevel ? tmp : dataLevel
-                    dataLev = tmp > dataLev ? tmp : dataLev
-                    // 取最小level
+                    let rawDataNum = Number(selectedList.dataSet[i].rawData)
+                    if(!isNaN(rawDataNum) && typeof rawDataNum === 'number'){
+                        if(selectedList.dataSet[i].rawData){
+                            sum = calc(`(${sum}) + (${selectedList.dataSet[i].rawData})`)
+                            // 求和
+                            let tmp = getLevel(selectedList.dataSet[i].rawData)
+                            dataLevel = tmp < dataLevel ? tmp : dataLevel
+                            dataLev = tmp > dataLev ? tmp : dataLev
+                            // 取最小level
+                        }
+                        else{
+                            ElMessage.error('数据不能为空！如果要删除，尝试点击右边的删除图标。')
+                            return
+                        }
+                    }
+                    else{
+                        ElMessage.error('无效的数据！是否包含了字母或百分号？')
+                        return
+                    }
                 }
                 if(selectedList.type === 'direct'){
                     for(let i = 0; i<length;i++){
@@ -1248,51 +1423,64 @@ export const useAllDataStore = defineStore('allData',()=>{
                 // 均值
                 let relErrValue = '0'
                 if(selectedList.theoData !== ''){
-                    for(let i = 0; i < length; i++){
-                        selectedList.dataSet[i].relErr = calc('('+selectedList.dataSet[i].rawData + '-' + selectedList.theoData + ')/' + selectedList.theoData )
-                        selectedList.dataSet[i].relErr = toPositive(selectedList.dataSet[i].relErr)
-                        relErrValue = calc(relErrValue + '+' + standardByBit(selectedList.dataSet[i].relErr,3) )
-                        selectedList.dataSet[i].relErr = errorMode(selectedList.dataSet[i].relErr)
-                        selectedList.dataSet[i].relErr = toPercent(selectedList.dataSet[i].relErr)
-                        // 相对误差
-                    }
-                    if(selectedList.type === 'direct'){
-                        selectedList.analysis[5] ={
-                            propertyName:'平均相对误差',
-                            propertyValue:''
-                        },
-                        selectedList.analysis[6]={
-                            propertyName:'平均值与理论值的相对误差',
-                            propertyValue:''
+                    if(!isNaN(Number(selectedList.theoData))&& typeof Number(selectedList.theoData) === 'number'){
+                        for(let i = 0; i < length; i++){
+                            selectedList.dataSet[i].relErr = calc('('+selectedList.dataSet[i].rawData + '-' + selectedList.theoData + ')/' + selectedList.theoData )
+                            selectedList.dataSet[i].relErr = toPositive(selectedList.dataSet[i].relErr)
+                            relErrValue = calc(relErrValue + '+' + standardByBit(selectedList.dataSet[i].relErr,3) )
+                            selectedList.dataSet[i].relErr = errorMode(selectedList.dataSet[i].relErr)
+                            selectedList.dataSet[i].relErr = toPercent(selectedList.dataSet[i].relErr)
+                            // 相对误差
                         }
-                        selectedList.analysis[6].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
-                        selectedList.analysis[6].propertyValue = errorMode(selectedList.analysis[6].propertyValue)
-                        selectedList.analysis[6].propertyValue = toPositive(selectedList.analysis[6].propertyValue)
-                        selectedList.analysis[6].propertyValue = toPercent(selectedList.analysis[6].propertyValue)
-                        // 平均值与理论值的相对误差
-                        selectedList.analysis[5].propertyValue = calc(relErrValue + '/' + String(length))
-                        selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
-                        selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
-                        // 平均相对误差
+                        if(selectedList.type === 'direct'){
+                            selectedList.analysis[5] ={
+                                propertyName:'平均相对误差',
+                                propertyValue:''
+                            },
+                            selectedList.analysis[6]={
+                                propertyName:'平均值与理论值的相对误差',
+                                propertyValue:''
+                            }
+                            selectedList.analysis[6].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
+                            selectedList.analysis[6].propertyValue = errorMode(selectedList.analysis[6].propertyValue)
+                            selectedList.analysis[6].propertyValue = toPositive(selectedList.analysis[6].propertyValue)
+                            selectedList.analysis[6].propertyValue = toPercent(selectedList.analysis[6].propertyValue)
+                            // 平均值与理论值的相对误差
+                            selectedList.analysis[5].propertyValue = calc(relErrValue + '/' + String(length))
+                            selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
+                            selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
+                            // 平均相对误差
+                        }
+                        else{
+                            selectedList.analysis[4] ={
+                                propertyName:'平均相对误差',
+                                propertyValue:''
+                            },
+                            selectedList.analysis[5]={
+                                propertyName:'平均值与理论值的相对误差',
+                                propertyValue:''
+                            }
+                            selectedList.analysis[5].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
+                            selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
+                            selectedList.analysis[5].propertyValue = toPositive(selectedList.analysis[5].propertyValue)
+                            selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
+                            // 平均值与理论值的相对误差
+                            selectedList.analysis[4].propertyValue = calc(relErrValue + '/' + String(length))
+                            selectedList.analysis[4].propertyValue = errorMode(selectedList.analysis[4].propertyValue)
+                            selectedList.analysis[4].propertyValue = toPercent(selectedList.analysis[4].propertyValue)
+                            // 平均相对误差
+                        }
                     }
                     else{
-                        selectedList.analysis[4] ={
-                            propertyName:'平均相对误差',
-                            propertyValue:''
-                        },
-                        selectedList.analysis[5]={
-                            propertyName:'平均值与理论值的相对误差',
-                            propertyValue:''
+                        ElMessage.error('无效的理论值！')
+                        if(selectedList.type === 'direct'){
+                            delete selectedList.analysis[5]
+                            delete selectedList.analysis[6]
                         }
-                        selectedList.analysis[5].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
-                        selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
-                        selectedList.analysis[5].propertyValue = toPositive(selectedList.analysis[5].propertyValue)
-                        selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
-                        // 平均值与理论值的相对误差
-                        selectedList.analysis[4].propertyValue = calc(relErrValue + '/' + String(length))
-                        selectedList.analysis[4].propertyValue = errorMode(selectedList.analysis[4].propertyValue)
-                        selectedList.analysis[4].propertyValue = toPercent(selectedList.analysis[4].propertyValue)
-                        // 平均相对误差
+                        else{
+                            delete selectedList.analysis[4]
+                            delete selectedList.analysis[5]
+                        }
                     }
                 }
                 else{
@@ -1339,8 +1527,15 @@ export const useAllDataStore = defineStore('allData',()=>{
             }
             if(selectedList.type == 'direct'){
                 if(selectedList.moreUncer.equipUncer){
-                    selectedList.moreUncer.bUncer = calc(selectedList.moreUncer.equipUncer + '/' + String(Math.sqrt(3)))
-                    selectedList.moreUncer.bUncer = errorMode(selectedList.moreUncer.bUncer)
+                    let equipUncerNum = Number(selectedList.moreUncer.equipUncer)
+                    if(!isNaN(equipUncerNum) && typeof equipUncerNum === 'number'){
+                        selectedList.moreUncer.bUncer = calc(selectedList.moreUncer.equipUncer + '/' + String(Math.sqrt(3)))
+                        selectedList.moreUncer.bUncer = errorMode(selectedList.moreUncer.bUncer)
+                    }
+                    else{
+                        ElMessage.error('无效的仪器允差！')
+                        selectedList.moreUncer.bUncer = ''
+                    }
                 }
                 else{
                     selectedList.moreUncer.bUncer = ''
@@ -1377,13 +1572,20 @@ export const useAllDataStore = defineStore('allData',()=>{
         else if(selectedList.type === 'indirect' && selectedList.computeOption === 'forAvg'){
             selectedList.analysis[0].propertyValue=selectedList.dataSet[0].rawData
             if(selectedList.theoData !== ''){
-                selectedList.analysis[1] ={
-                    propertyName:'相对误差',
-                    propertyValue:''
+                let theoDataNum = Number(selectedList.theoData)
+                if(!isNaN(theoDataNum) && typeof theoDataNum === 'number'){
+                    selectedList.analysis[1] ={
+                        propertyName:'相对误差',
+                        propertyValue:''
+                    }
+                    selectedList.analysis[1].propertyValue = calc(`((${selectedList.analysis[0].propertyValue})-(${selectedList.theoData}))/(${selectedList.theoData})`)
+                    selectedList.analysis[1].propertyValue = toPositive(selectedList.analysis[1].propertyValue)
+                    selectedList.analysis[1].propertyValue = toPercent(errorMode(selectedList.analysis[1].propertyValue))
                 }
-                selectedList.analysis[1].propertyValue = calc(`((${selectedList.analysis[0].propertyValue})-(${selectedList.theoData}))/(${selectedList.theoData})`)
-                selectedList.analysis[1].propertyValue = toPositive(selectedList.analysis[1].propertyValue)
-                selectedList.analysis[1].propertyValue = toPercent(errorMode(selectedList.analysis[1].propertyValue))
+                else{
+                    ElMessage.error('无效的理论值！')
+                    delete selectedList.analysis[1]
+                }
             }
             else{
                 delete selectedList.analysis[1]
@@ -1525,5 +1727,6 @@ export const useAllDataStore = defineStore('allData',()=>{
         analysisChange,
         evaluateLine,
         evaluateSquare,
+        errorMode,
     }
 })

@@ -69,9 +69,14 @@
             <el-menu-item index="2" @click="handleSwitchToOutput" :class="{'selected':isOutput}">LaTeX制表</el-menu-item>
             <el-menu-item index="3" @click="handleSwitchToLine" :class="{'selected':isLine}">LaTeX制图</el-menu-item>
             <el-menu-item index="4" @click="handleSwitchToReadme" :class="{'selected':isReadme}">使用指南</el-menu-item>
-            <el-menu-item index="5" @click="handleSwitchToNumberDoc" :class="{'selected':isNumberDoc}">参考：有效数字</el-menu-item>
-            <el-menu-item index="6" @click="handleSwitchToUncerDoc" :class="{'selected':isUncerDoc}">参考：不确定度</el-menu-item>
-            <el-menu-item index="7" @click="handleSwitchToPropertyDoc" :class="{'selected':isPropertyDoc}">参考：各项参数</el-menu-item>
+            <el-sub-menu index="5">
+                <template #title>
+                    <span style="color: gainsboro!important;">参考</span>
+                </template>
+                <el-menu-item index="5-1" @click="handleSwitchToNumberDoc" :class="{'selected':isNumberDoc}">参考：有效数字</el-menu-item>
+                <el-menu-item index="5-2" @click="handleSwitchToUncerDoc" :class="{'selected':isUncerDoc}">参考：不确定度</el-menu-item>
+                <el-menu-item index="5-3" @click="handleSwitchToPropertyDoc" :class="{'selected':isPropertyDoc}">参考：各项参数</el-menu-item>
+            </el-sub-menu>
         </el-menu>
     </el-aside >
 </div>
