@@ -20,7 +20,7 @@
                         :class="{'selected':selectedDataIndex === index}"
                         v-show="data ? data.type === 'direct' : false"
                     >
-                        <el-input v-model="data.title" @change="handleTitleChange(index)"></el-input>
+                        <el-input v-model="data.title" @change="handleTitleChange(index)" @click.stop="handleTitleCopy(index)"></el-input>
                         <span>
                             <el-icon
                                 @click="handleDeleteData(index)"
@@ -32,7 +32,7 @@
                     </el-menu-item>
                     <el-menu-item
                         class="mybutton"
-                        @click="handleAddData('direct')"
+                        @click="handleAddData(true)"
                     >
                         添加数据
                     </el-menu-item>
@@ -60,7 +60,7 @@
                     </el-menu-item>
                     <el-menu-item
                         class="mybutton"
-                        @click="handleAddData('indirect')"
+                        @click="handleAddData(false)"
                     >
                         添加数据
                     </el-menu-item>
@@ -103,6 +103,9 @@ const handleDataSelection = (index)=>{
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
+const handleTitleCopy = (index) =>{
+    navigator.clipboard.writeText(dataList.value[index].title)
+}
 const handleDeleteData = (index)=>{
     store.deleteData(index)
     store.state.isLine = false
@@ -112,8 +115,8 @@ const handleDeleteData = (index)=>{
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
-const handleAddData = (type) =>{
-    store.addData(type)
+const handleAddData = (flag) =>{
+    store.addData(flag)
     store.state.isLine = false
     store.state.isReadme = false
     store.state.isOutput = false

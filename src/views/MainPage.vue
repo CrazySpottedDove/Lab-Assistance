@@ -1,7 +1,8 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed,reactive,ref} from 'vue';
+import { computed, ref} from 'vue';
 import { CircleClose } from '@element-plus/icons-vue';
+
 //Don't import { ElMessage } from 'element-plus'!
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
@@ -182,7 +183,7 @@ const titleList = computed(()=>{
 })
 
 const graphContent = ref('')
-function formatString(input) {
+function titleFormat(input) {
     if (!input) {
         return '';
     }
@@ -224,15 +225,17 @@ function formatString(input) {
         'Ω': '\\Omega '
     };
 
+    const chinese = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g
+
     // 处理希腊字母替换
     input = input.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
 
+    input = input.replace(chinese, (match) => `\\text{${match}} `)
     // 使用正则表达式匹配字母后面直接跟随的数字或逗号隔开的数字
     return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
 }
 // 把表格数据的头按LaTeX格式化
-//const headContent = ref('')
-// 表格的选项区
+
 const unitFormat = ((str) => {
     if (str === '') {
         return str
@@ -251,158 +254,7 @@ const unitFormat = ((str) => {
     return '/\\mathrm{' + str + '}'
 })
 // 把单位按LaTeX格式化
-//const commentContent = ref('')
-// 表格的注释区
-// const commentFormat = ((str) => {
-//     if(str === ''){
-//         return str
-//     }
-//     const greekLetters = {
-//         'α': '\\alpha ',
-//         'β': '\\beta ',
-//         'γ': '\\gamma ',
-//         'δ': '\\delta ',
-//         'ε': '\\epsilon ',
-//         'ζ': '\\zeta ',
-//         'η': '\\eta ',
-//         'θ': '\\theta ',
-//         'ι': '\\iota ',
-//         'κ': '\\kappa ',
-//         'λ': '\\lambda ',
-//         'μ': '\\mu ',
-//         'ν': '\\nu ',
-//         'ξ': '\\xi ',
-//         'ο': '\\omicron ',
-//         'π': '\\pi ',
-//         'ρ': '\\rho ',
-//         'σ': '\\sigma ',
-//         'τ': '\\tau ',
-//         'υ': '\\upsilon ',
-//         'φ': '\\phi ',
-//         'χ': '\\chi ',
-//         'ψ': '\\psi ',
-//         'ω': '\\omega ',
-//         'Δ': '\\Delta ',
-//         'Θ': '\\Theta ',
-//         'Λ': '\\Lambda ',
-//         'Ξ': '\\Xi ',
-//         'Π': '\\Pi ',
-//         'Σ': '\\Sigma ',
-//         'Φ': '\\Phi ',
-//         'Ψ': '\\Psi ',
-//         'Ω': '\\Omega '
-//     };
 
-//     // 处理希腊字母替换
-//     str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match])
-//     str = str.replace(/([a-zA-Z\\])(\d+(,\d+)*)/g, '$1_{$2}')
-
-//     str = str.replace(/\*/g, '\\cdot ')
-
-//      // 处理分数形式：仅当 / 的前后都是括号包裹的内容时
-//     str = str.replace(/(?:\(([^)]+)\))\/(?:\(([^)]+)\))/g, '\\frac{$1}{$2}')
-
-//     // 处理sqrt()形式
-//     str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}')
-
-//     // 处理abs()形式
-//     str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|')
-
-//     // 处理ln()形式
-//     str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)')
-
-//     return '$\\displaystyle ' + str + '$ \\\\ '
-// })
-// const commentFormat = (str) => {
-//     if (str === '') {
-//         return str;
-//     }
-
-//     const greekLetters = {
-//         'α': '\\alpha ',
-//         'β': '\\beta ',
-//         'γ': '\\gamma ',
-//         'δ': '\\delta ',
-//         'ε': '\\epsilon ',
-//         'ζ': '\\zeta ',
-//         'η': '\\eta ',
-//         'θ': '\\theta ',
-//         'ι': '\\iota ',
-//         'κ': '\\kappa ',
-//         'λ': '\\lambda ',
-//         'μ': '\\mu ',
-//         'ν': '\\nu ',
-//         'ξ': '\\xi ',
-//         'ο': '\\omicron ',
-//         'π': '\\pi ',
-//         'ρ': '\\rho ',
-//         'σ': '\\sigma ',
-//         'τ': '\\tau ',
-//         'υ': '\\upsilon ',
-//         'φ': '\\phi ',
-//         'χ': '\\chi ',
-//         'ψ': '\\psi ',
-//         'ω': '\\omega ',
-//         'Δ': '\\Delta ',
-//         'Θ': '\\Theta ',
-//         'Λ': '\\Lambda ',
-//         'Ξ': '\\Xi ',
-//         'Π': '\\Pi ',
-//         'Σ': '\\Sigma ',
-//         'Φ': '\\Phi ',
-//         'Ψ': '\\Psi ',
-//         'Ω': '\\Omega '
-//     };
-
-//     // 处理希腊字母替换
-//     str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
-
-//     // 处理希腊字母或字母后面的数字
-//     str = str.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
-
-//     // 处理乘法符号
-//     str = str.replace(/\*/g, ' ');
-
-//     // 递归函数处理分数表达式
-//     const processFractions = (input) => {
-//         let stack = [];
-//         let output = '';
-//         for (let i = 0; i < input.length; i++) {
-//             const char = input[i];
-//             if (char === '(') {
-//                 stack.push(output.length);
-//                 output += char;
-//             } else if (char === ')') {
-//                 const start = stack.pop();
-//                 const innerExpr = output.slice(start + 1);
-//                 output = output.slice(0, start);
-//                 if (innerExpr.includes('/')) {
-//                     const [numerator, denominator] = innerExpr.split('/');
-//                     output += `\\frac{${processFractions(numerator)}}{${processFractions(denominator)}}`;
-//                 } else {
-//                     output += `(${processFractions(innerExpr)})`;
-//                 }
-//             } else {
-//                 output += char;
-//             }
-//         }
-//         return output;
-//     };
-
-//     // 处理分数表达式
-//     str = processFractions(str);
-
-//     // 处理 abs() 形式
-//     str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|');
-
-//     // 处理 sqrt() 形式
-//     str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
-
-//     // 处理 ln() 形式
-//     str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)');
-
-//     return str
-// };
 const commentFormat = (str) => {
     if (str === '') {
         return str;
@@ -443,7 +295,6 @@ const commentFormat = (str) => {
         'Ψ': '\\Psi ',
         'Ω': '\\Omega '
     };
-
     // 处理希腊字母替换
     str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
 
@@ -568,6 +419,27 @@ const commentFormat = (str) => {
     return str;
 };
 //表格注释按LaTeX格式化
+
+const docFormat = (str) => {
+    if(str === ''){
+        return ''
+    }
+    else{
+        return `(\\text{${str}})`
+    }
+}
+// 含义按LaTeX格式化
+
+const dataFormat = ((str) =>{
+    if(typeof str === 'string'){
+        return formatScientificToLatex(str.replace(/%/g, '\\%'))
+    }
+    else{
+        return ''
+    }
+})
+// 表格中的非运算数据
+
 const headContent = computed(()=>{
     let head = ''
     let hlength = 1
@@ -629,7 +501,7 @@ const commentContent = computed(()=>{
         if(theItem && theItem.dataSet.length !== 1){
             if(theItem){
                 if(theItem.computeMethod){
-                    comment += ` $\\displaystyle ${formatString(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
+                    comment += ` $\\displaystyle ${titleFormat(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
                 }
             }
         }
@@ -639,111 +511,13 @@ const commentContent = computed(()=>{
         if(typeof datavalue.data === 'object'){}
         else{
             if(datavalue.formula){
-                comment += ` $\\displaystyle ${formatString(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
+                comment += ` $\\displaystyle ${titleFormat(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
             }
         }
     }
     return comment
 })
-// const centerContent = computed(()=>{
-//     let center = ''
-//     let hlength = 1
-//     let vlength = 0
-//     let flag = true
-//     headContent.value = ''
-//     commentContent.value = ''
-//     for(let i = 0; i<result.value.length;i++){
-//         let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
-//         if(theItem && theItem.dataSet.length !== 1){
-//             if(theItem && flag){
-//                 headContent.value = ''
-//                 flag = false
-//                 center = center+'编号 &'
-//                 hlength = theItem.dataSet.length
-//                 for(let j = 1; j<=theItem.dataSet.length;j++){
-//                     if(j!== theItem.dataSet.length){
-//                         center = center + '$'+ String(j) + '$ & '
-//                     }
-//                     else{
-//                         center = center + '$'+ String(j) + '$ \\\\\n\t\t\t'
-//                     }
-//                 }
-//                 vlength++
-//             }
-//             if(theItem){
-//                 if(theItem.computeMethod){
-//                     commentContent.value += ` $\\displaystyle ${formatString(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
-//                 }
-//                 center = center+'$'+ formatString(theItem.title) + unitFormat(theItem.unit) + '$ & '
-//                 for(let j=0; j<theItem.dataSet.length;j++){
-//                     if(j!==theItem.dataSet.length-1){
-//                         center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+ '$ & '
-//                     }
-//                     else{
-//                         if(i!== result.value.length-1){
-//                             center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+'$ \\\\'
-//                         }
-//                         else{
-//                             center = center + '$'+ dataFormat(theItem.dataSet[j].rawData)+'$'
-//                             if(dataValues.value && dataValues.value.length >0){
-//                                 center = center + ' \\\\'
-//                             }
-//                         }
-//                     }
-//                 }
-//                 if(i!==result.value.length-1 || (dataValues.value && dataValues.value.length >0)){
-//                     center = center+'\n\t\t\t'
-//                 }
-//                 vlength++
-//             }
-//         }
-//     }
-//     if(dataValues.value && dataValues.value.length >0){
-//         if(!(dataValues.value.length === 1 && typeof dataValues.value[0].data === 'object')){
-//             headContent.value = ',cell{'
-//         }
-//     }
-//     for(let i = 0; i < dataValues.value.length; i++){
-//         let datavalue = dataValues.value[i]
-//         vlength++
-//         if(typeof datavalue.data === 'object'){
-//             hlength = datavalue.data.length
-//             center = center + datavalue.title
-//             datavalue.data.forEach(metadata =>{
-//                 center = center + ' & '+ metadata
-//             })
-//             if(i !== dataValues.value.length -1){
-//                 center = center + ' \\\\\n\t\t\t'
-//                 if(i !== 0){
-//                     headContent.value = headContent.value + ','
-//                 }
-//             }
-//             else{
-//                 if(!(dataValues.value.length ===1 && typeof dataValues.value[0].data === 'object')){
-//                     headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
-//                 }
-//             }
-//         }
-//         else{
-//             if(datavalue.formula){
-//                 commentContent.value += ` $\\displaystyle ${formatString(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
-//             }
-//             headContent.value = headContent.value + String(vlength)
-//             if(i !== dataValues.value.length - 1){
-//                 center = center + datavalue.title +' & '+ datavalue.data + ' \\\\' + '\n\t\t\t'
-//                 if(typeof dataValues.value[i+1].data !== 'object'){
-//                     headContent.value = headContent.value + ','
-//                 }
-//             }
-//             else{
-//                 center = center + datavalue.title +' & '+ datavalue.data
-//                 headContent.value = headContent.value + `}{2}={r=1,c=${hlength}}{c}`
-//             }
-//         }
-//     }
-//     center = center+'\n\t\t'
-//     return center
-// })
+
 const centerContent = computed(()=>{
     let center = ''
     let flag = true
@@ -763,7 +537,7 @@ const centerContent = computed(()=>{
                 }
             }
             if(theItem){
-                center += '$'+ formatString(theItem.title) + unitFormat(theItem.unit) + '$ & '
+                center += '$'+ titleFormat(theItem.title) + docFormat(theItem.doc) + unitFormat(theItem.unit) + '$ & '
                 for(let j=0; j<theItem.dataSet.length;j++){
                     if(j!==theItem.dataSet.length-1){
                         center += '$'+ dataFormat(theItem.dataSet[j].rawData)+ '$ & '
@@ -810,6 +584,8 @@ const centerContent = computed(()=>{
     return center
 })
 // 表格的中心内容
+
+const tableTitleContent = ref('')
 const props={
     multiple:true,
     checkStrictly: true,
@@ -817,73 +593,67 @@ const props={
     label:'label',
     value:'value',
 }
-const optionMap = (name , title, unit)=>{
+const optionMap = (name , title, unit, doc)=>{
     let tmpunit = unitFormat(unit)
+    let tmpdoc = docFormat(doc)
     if(title === ''){
         ElMessage.error('未命名的数据！')
         return ''
     }
     if(name === '平均值'){
-        return `$\\overline{${formatString(title)}}`+tmpunit+'$'
+        return `$\\overline{${titleFormat(title)}}`+ tmpdoc + tmpunit +'$'
     }
     if(name === '实验值'){
-        return `$${formatString(title)}`+tmpunit+'$'
+        return `$${titleFormat(title)}`+ tmpdoc + tmpunit +'$'
     }
     if(name === '相对平均偏差'){
-        return `$\\overline{\\delta}_{r,${formatString(title)}}$`
+        return `$\\overline{\\delta}_{r,${titleFormat(title)}}$`
     }
     if(name === '标准偏差'){
-        return `$s_{${formatString(title)}}`+tmpunit+'$'
+        return `$s_{${titleFormat(title)}}`+tmpunit+'$'
     }
     if(name === '相对标准偏差'){
-        return `$s_{r,${formatString(title)}}$`
+        return `$s_{r,${titleFormat(title)}}$`
     }
     if(name === 'A类不确定度'){
-        return `$u_{A,${formatString(title)}}`+tmpunit+'$'
+        return `$u_{A,${titleFormat(title)}}`+tmpunit+'$'
     }
     if(name === `B类不确定度`){
-        return `$u_{B,${formatString(title)}}`+tmpunit+'$'
+        return `$u_{B,${titleFormat(title)}}`+tmpunit+'$'
     }
     if(name === `不确定度`){
-        return `$u_{${formatString(title)}}`+tmpunit+'$'
+        return `$u_{${titleFormat(title)}}`+tmpunit+'$'
     }
     if(name === '平均相对误差'){
-        return `$\\overline{\\varepsilon}_{r,${formatString(title)}}$`
+        return `$\\overline{\\varepsilon}_{r,${titleFormat(title)}}$`
     }
     if(name === '平均值与理论值的相对误差'){
-        return `$\\Delta_{r,${formatString(title)}}$`
+        return `$\\Delta_{r,${titleFormat(title)}}$`
     }
     if(name === '理论值'){
-        return `$${formatString(title)}_{\\text{theory}}`+tmpunit+'$'
+        return `$${titleFormat(title)}_{\\text{theory}}`+ tmpdoc +tmpunit+'$'
     }
     if(name === '相对误差'){
-        return `$\\varepsilon_{r,${formatString(title)}}$`
+        return `$\\varepsilon_{r,${titleFormat(title)}}$`
     }
 }
-const dataFormat = ((str) =>{
-    if(typeof str === 'string'){
-        return formatScientificToLatex(str.replace(/%/g, '\\%'))
-    }
-    else{
-        return ''
-    }
-})
-// 表格中的非运算数据
+
 const dataOptions = computed(()=>{
     let tmpDataOptions = []
     for(let i = 0; i<dataList.value.length; i++){
         let theItem = dataList.value[i]
         let unit = theItem.unit
+        let doc = theItem.doc
         let tmp = {}
         tmp.label = theItem.title
         if(theItem.dataSet.length === 1){
             tmp.value = {
-                title:`$${formatString(theItem.title)}`+unitFormat(unit)+'$',
+                title:`$${titleFormat(theItem.title)}`+unitFormat(unit)+'$',
                 data:'$'+dataFormat(theItem.dataSet[0].rawData)+'$'
             }
             if(theItem.type === 'indirect'){
                 tmp.value.formula = theItem.computeMethod
-                tmp.value.formulaTitle = formatString(theItem.title)
+                tmp.value.formulaTitle = titleFormat(theItem.title)
             }
         }
         else{
@@ -892,7 +662,7 @@ const dataOptions = computed(()=>{
         tmp.children=[]
         if(theItem.theoData && theItem.theoData !== '0'){
             tmp.children.push({
-                value:{title:optionMap('理论值',theItem.title,unit),data:'$'+dataFormat(theItem.theoData)+'$'},
+                value:{title:optionMap('理论值',theItem.title,unit,doc),data:'$'+dataFormat(theItem.theoData)+'$'},
                 label:'理论值'
             })
             let tmpdata = []
@@ -902,38 +672,33 @@ const dataOptions = computed(()=>{
                 }
             })
             tmp.children.push({
-                value:{title:optionMap('相对误差',theItem.title,unit),data:tmpdata},
+                value:{title:optionMap('相对误差',theItem.title,unit,doc),data:tmpdata},
                 label:'相对误差'
             })
         }
-        theItem.analysis.forEach(ana => {
+        for(let key in theItem.analysis){
+            let ana = theItem.analysis[key]
             if(ana.propertyValue !== '' && ana.propertyValue !== '0'){
                 let tmpChild = {
                     value:{
-                        title:optionMap(ana.propertyName,theItem.title,unit)
+                        title:optionMap(ana.propertyName,theItem.title,unit, doc)
                     },
                     label:ana.propertyName
                 }
-                // if(ana.propertyName === '相对平均偏差' || ana.propertyName === '相对标准偏差' || ana.propertyName === '平均相对误差' || ana.propertyName === '平均值与理论值的相对误差'){
-                //     tmpChild.value.data = ana.propertyValue.replace(/%/g, '\\%')
-                // }
-                // else{
-                //     tmpChild.value.data = ana.propertyValue
-                // }
                 tmpChild.value.data = dataFormat(ana.propertyValue)
                 tmpChild.value.data = '$'+ tmpChild.value.data +'$'
                 tmp.children.push(tmpChild)
             }
-        })
+        }
         if(theItem.moreUncer.bUncer && theItem.moreUncer.bUncer !== '0'){
             tmp.children.push({
-                value:{title:optionMap('B类不确定度',theItem.title,unit),data:'$'+dataFormat(theItem.moreUncer.bUncer)+'$'},
+                value:{title:optionMap('B类不确定度',theItem.title,unit, doc),data:'$'+dataFormat(theItem.moreUncer.bUncer)+'$'},
                 label:'B类不确定度'
             })
         }
         if(theItem.moreUncer.wholeUncer && theItem.moreUncer.wholeUncer !== '0'){
             tmp.children.push({
-                value:{title:optionMap('不确定度',theItem.title,unit),data:'$'+dataFormat(theItem.moreUncer.wholeUncer)+'$'},
+                value:{title:optionMap('不确定度',theItem.title,unit, doc),data:'$'+dataFormat(theItem.moreUncer.wholeUncer)+'$'},
                 label:'不确定度'
             })
         }
@@ -971,8 +736,8 @@ const result = computed(()=>{
 })
 const code = ref('')
 const handleTableUpdate = (()=>{
-    code.value = '\\begin{table}[H]\n\t\\framed[标题]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}'+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
-    // code.value = '\\begin{table}[H]\n\t\\framed[标题]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}'+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    code.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    ElMessage.success('刷新成功！')
 })
 const copyToClipboard = (str,type) => {
     navigator.clipboard.writeText(str)
@@ -1010,6 +775,7 @@ function formatScientificToLatex(str) {
         return str; // 不是科学计数法的情况
     }
 }
+const graphTitleContent = ref('')
 const handleGraphUpdate = ()=>{
     if(graphOption.value === 'line'){
         graphData.value = store.evaluateLine(xData.value,yData.value)
@@ -1036,7 +802,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${formatString(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${formatString(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\datapoint[no markers]{` + center2 +'}[拟合直线]\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.slope)+'x'+(graphData.value.intercept[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.intercept)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\datapoint[no markers]{` + center2 +'}[拟合直线]\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.slope)+'x'+(graphData.value.intercept[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.intercept)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'square'){
         graphData.value = store.evaluateSquare(xData.value,yData.value)
@@ -1063,7 +829,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${formatString(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${formatString(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\addplot[no markers,domain=`+String(xMin)+':'+String(xMax)+']{' + center2 +'};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.a) + 'x^2' + (graphData.value.b[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.b)+'x'+(graphData.value.c[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.c)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\addplot[no markers,domain=`+String(xMin)+':'+String(xMax)+']{' + center2 +'};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.a) + 'x^2' + (graphData.value.b[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.b)+'x'+(graphData.value.c[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.c)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'simple'){
         let center1 = ' '
@@ -1079,7 +845,7 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${formatString(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${formatString(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
     }
     else if(graphOption.value === 'smooth'){
         let center1 = ' '
@@ -1095,8 +861,9 @@ const handleGraphUpdate = ()=>{
                 ElMessage.error('数组长度不一致！')
             }
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${formatString(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${formatString(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint[smooth]{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint[smooth]{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
     }
+    ElMessage.success('刷新成功！')
 }
 const handleUncerEdit = ()=>{
     store.refresh()
@@ -1122,6 +889,7 @@ const handleTableSelectAll =()=>{
 }
 const handleTableClearAll = ()=>{
     dataValuesSource.value = []
+    tableTitleContent.value = ''
     handleTableUpdate()
 }
 </script>
@@ -1175,6 +943,19 @@ const handleTableClearAll = ()=>{
                     <input v-model="dataList[selectedDataIndex].theoData" style="text-align: center;width: 80%;" placeholder="选填" @change="handleEditTheoData"></input>
                 </div>
             </div>
+            <div class="equipment" v-if="selectedDataIndex >= 0">
+                <label style="font-weight: 550;width: 10%;text-align: left;min-width: 5em;" >精度规则</label>
+                <el-switch
+                    v-model="dataList[selectedDataIndex].levelRule"
+                    size="large"
+                    inactive-text="统一精度"
+                    active-text="不统一精度"
+                    style="font-size: large;width: 40%;--el-switch-on-color: #626aef;"
+                />
+                <span style="width: 1%;"></span>
+                <label style="font-weight: 550;width: 9%;text-align: left;min-width: 5em;" >符号含义</label>
+                <input v-model="dataList[selectedDataIndex].doc" style="text-align: center;width: 40%;" placeholder="选填，仅对 LaTeX 制表/图有影响">
+            </div>
         </el-card>
     </div>
 </div>
@@ -1182,7 +963,7 @@ const handleTableClearAll = ()=>{
 <div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' : false">
     <el-card shadow="hover">
         <div class="equipment">
-            <label style="font-weight: 550;width: 10%;text-align: center;">计算方式</label>
+            <label style="font-weight: 550;width: 10%;text-align: center;min-width: 4.5em;">计算方式</label>
             <el-select
                 style="width: 10%;text-align: center;min-width: 7em"
                 v-model="dataList[selectedDataIndex].computeOption"
@@ -1197,15 +978,18 @@ const handleTableClearAll = ()=>{
         </div>
         <div class="equipment">
             <label style="font-weight: 550;width: 10%;text-align: center;">保留方式</label>
-            <span style="width: 30%;"></span>
+            <span style="width: 5%;"></span>
             <el-switch
                 v-model="dataList[selectedDataIndex].dataMethod"
                 size="large"
                 active-text="不确定度方式"
                 inactive-text="有效数字方式"
-                style="font-size: large;width: 60%;--el-switch-on-color: #626aef;"
+                style="font-size: large;width: 40%;--el-switch-on-color: #626aef;"
                 @change="handleDataMethodChange"
             />
+            <span style="width: 1%;"></span>
+            <label style="font-weight: 550;width: 5%;text-align: left;min-width: 5em;" >符号含义</label>
+            <input v-model="dataList[selectedDataIndex].doc" style="text-align: center;width: 39%;" placeholder="选填，仅对 LaTeX 制表/图有影响">
             <br />
         </div>
     </el-card>
@@ -1273,7 +1057,7 @@ const handleTableClearAll = ()=>{
 <div class="card-div" v-show="selectedDataIndex >= 0">
     <el-card shadow="hover">
         <el-table
-            :data="selectedDataIndex >= 0 ? dataList[selectedDataIndex].analysis : []"
+            :data="selectedDataIndex >= 0 ? Object.values(dataList[selectedDataIndex].analysis) : []"
         >
             <el-table-column
                 v-for="(property,index) in propertyLabel"
@@ -1293,7 +1077,7 @@ const handleTableClearAll = ()=>{
             <label style="font-weight: 550;width: 20%;text-align: left;">仪器允差</label>
             <input style="text-align: center;width: 80%;" placeholder="选填" v-model="dataList[selectedDataIndex].moreUncer.equipUncer" @change="handleEditEquipUncer">
         </div>
-        <div class="equipment" v-show="dataList[selectedDataIndex].moreUncer.equipUncer !== ''">
+        <div class="equipment" v-show="dataList[selectedDataIndex].moreUncer.bUncer">
             <label style="font-weight: 550;width: 20%;text-align: left;">B类不确定度</label>
             <input
                 style="text-align: center;width: 80%;"
@@ -1323,30 +1107,38 @@ const handleTableClearAll = ()=>{
         <el-card shadow="hover">
             <div class="equipment">
                 <label style="font-weight: 550;width: 10%;text-align: center;">x轴数据</label>
+                <span style="width: 1%;"></span>
                 <el-select
-                    style="width: 10%;text-align: center;min-width: 5.5em"
+                    style="width: 22%;text-align: center;min-width: 5.5em"
                     v-model="xData"
                 >
                     <el-option v-for="title in titleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
-                <span style="width: 5%;"></span>
+                <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">y轴数据</label>
+                <span style="width: 1%;"></span>
                 <el-select
-                    style="width: 10%;text-align: center;min-width: 5.5em"
+                    style="width: 22%;text-align: center;min-width: 5.5em"
                     v-model="yData"
                 >
                     <el-option v-for="title in titleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
-                <span style="width: 5%;"></span>
+                <span style="width: 1%;"></span>
+                <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
+                <span style="width: 1%;"></span>
+                <input placeholder="标题" v-model="graphTitleContent" style="width: 22%; text-align: center;">
+            </div>
+            <div class="equipment">
                 <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
+                <span style="width: 5%;"></span>
                 <el-select
-                    style="width: 10%;text-align: center;min-width: 5.5em"
+                    style="width: 45%;text-align: center;min-width: 5.5em"
                     v-model="graphOption"
                 >
                     <el-option v-for="option in graphOptions" :key="option.value" :label="option.label" :value="option.value"></el-option>
                 </el-select>
                 <span style="width: 5%;"></span>
-                <el-button @click="handleGraphUpdate" style="width: 10%;">刷新</el-button>
+                <el-button @click="handleGraphUpdate" style="width: 35%; text-align: center;">刷新</el-button>
             </div>
         </el-card>
     </div>
@@ -1379,22 +1171,23 @@ const handleTableClearAll = ()=>{
 <!-- 导出为LaTeX图像视图 -->
 <div v-show="isReadme">
     <h2>直接数据</h2>
-    <p>直接数据默认是精度相同的数据集。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）</p>
-    <p>在新数据处输入数据并回车即可添加数据了，各类信息会随着数据的输入自动更新。</p>
-    <p>单位只会影响LaTeX制作图表，不参与计算。斑鸠会自动处理 *，/ 和数字上标，也包括 μ，°，℃ 这几个不常见字符。</p>
-    <p>单位示例：kg*m/s2 。</p>
+    <p>直接数据默认是精度相同的数据集。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）。如果直接数据的精度确实不同，可以通过<em>精度规则-不统一精度</em>调整。</p>
+    <p>在新数据处输入数据并回车即可添加数据，各类信息会随着数据的输入自动更新。</p>
+    <p>单位只会影响 <span class="formula">LaTeX</span> 制作图表，不参与计算。斑鸠会自动处理 <span class="formula">*，/</span> 和数字上标，也包括 <span class="formula">μ，°，℃</span> 这几个不常见字符。</p>
+    <p>单位示例：<span class="formula">kg*m/s2</span> 。</p>
     <h2>间接数据</h2>
-    <p>间接数据通过直接数据计算得到。可以在待填处填入计算式，目前支持 +，-，*，/，^，() 运算符与 ln() 自然对数函数，sqrt() 平方根函数，abs() 绝对值函数。使用直接数据前，需要在侧栏处为直接数据<em>命名(不接受中文命名与带 ; 号的命名)</em>。如果命名成数字，运算时会<em>识别成数字</em>而非数据集，所以不要这么做。同样地，为避免混淆，<em>不要取名为函数名</em>。</p>
-    <p><em>tips:字母后的数字会自动识别成下标，所以 a1，甚至 b1,2 都是合法的命名。</em></p>
-    <p>示例：有直接数据a，b，c，d，可写计算式(a+b)*c/d/9.8。</p>
-    <p>需要注意的是，直接在运算式中输入数字，处理器会默认该数据是<em>精准数据</em>，会按照<em>存疑数字原则</em>保留计算结果的有效数字。如果你需要考虑它的有效数字，请把它<em>作为直接数据</em>输入。</p>
+    <p>间接数据通过直接数据计算得到。可以在待填处填入计算式，目前支持 <span class="formula">+，-, *, /, ^, ()</span>  运算符与 <span class="formula">ln(), lg(), sqrt(), abs()</span> 函数。使用直接数据前，需要在侧栏处为直接数据<em>命名</em>。现在对变量的命名没有严格要求，一般建议把中文部分放在数据的<em>含义</em>内容中。</p>
+    <p>tips:字母后的数字会<em>自动识别成下标</em>， <span class="formula">a1，b1,2</span> 都是合法的命名。</p>
+    <p>示例：有直接数据 <span class="formula">a, b, c, d</span>，可写计算式 <span class="formula">(a+b)*c/d/9.8</span>。</p>
+    <p>需要注意的是，直接在运算式中输入数字，处理器会默认该数据是<em>精准数据</em>，会按照<em>存疑数字原则</em>保留计算结果的有效数字。如果数字拥有有效数字，请把它<em>作为直接数据</em>输入。</p>
     <p>确定计算方式和计算式后，<em>点击刷新</em>，即可获得最新的间接数据。</p>
     <p>斑鸠会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
-    <h2>LaTeX制表</h2>
-    <p>选择表格数据，点击刷新，即生成对应表格的LaTeX代码。点击全选，可以选中当前的所有数据。</p>
-    <p>LaTeX代码的依赖同时包含制表和制图的依赖。因此，<em>只需复制一次</em>即可。</p>
-    <h2>LaTeX制图</h2>
-    <p>为数据命名后，即可通过选择数据与制图方法获得LaTeX代码。在这里，依赖的内容与LaTeX制表处相同。</p>
+    <h2><span class="formula">LaTeX</span> 制表</h2>
+    <p>选择表格数据，点击刷新，即生成对应表格的 <span class="formula">LaTeX</span> 代码。点击全选，可以选中当前的所有数据。</p>
+    <p><span class="formula">LaTeX</span> 代码的依赖同时包含制表和制图的依赖。因此，<em>只需复制一次</em>即可。</p>
+    <p>间接数据的计算公式也会出现在图表中。</p>
+    <h2><span class="formula">LaTeX</span> 制图</h2>
+    <p>为数据命名后，即可通过选择数据与制图方法获得 <span class="formula">LaTeX</span> 代码。在这里，依赖的内容与 <span class="formula">LaTeX</span> 制表处相同。</p>
     <p>在最小二乘直线斜率的有效数字方面，使用 x 数据集中最大的有效位数、 y 数据集中最大的有效位数中的最小者。</p>
     <p>选择好数据后，<em>点击刷新</em>，即可获得最新的代码。</p>
     <h2>参考</h2>
@@ -1405,20 +1198,26 @@ const handleTableClearAll = ()=>{
     <div class="card-div">
         <el-card shadow="hover">
             <div class="equipment">
-                <label style="font-weight: 550;width: 11%;text-align: center;">表格数据</label>
-                <span style="width: 4%;"></span>
+                <label style="font-weight: 550;width: 10%;text-align: center;">表格数据</label>
+                <span style="width: 1%;"></span>
                 <el-cascader
                     :options="dataOptions"
                     :props="props"
                     placeholder="选择数据"
                     v-model="dataValuesSource"
-                    style="width: 50%;"
+                    style="width: 38.5%;"
                 >
                 </el-cascader>
-                <span style="width: 5%;"></span>
-                <el-button @click="handleTableSelectAll" style="width: 10%;">全选</el-button>
-                <el-button @click="handleTableClearAll" style="width: 10%;">清空</el-button>
-                <el-button @click="handleTableUpdate" style="width: 10%;">刷新</el-button>
+                <span style="width: 1%;"></span>
+                <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
+                <span style="width: 1%;"></span>
+                <input placeholder="标题" v-model="tableTitleContent" style="width: 38.5%; text-align: center;">
+
+            </div>
+            <div class="equipment">
+                <el-button @click="handleTableSelectAll" style="width: 32%;">全选</el-button>
+                <el-button @click="handleTableClearAll" style="width: 32%;">清空</el-button>
+                <el-button @click="handleTableUpdate" style="width: 32%;">刷新</el-button>
             </div>
         </el-card>
     </div>
@@ -1485,14 +1284,14 @@ const handleTableClearAll = ()=>{
     <ul>
         <li>
             <strong>加法或减法：</strong>对于 <span class="formula">y = ax<sub>1</sub> + bx<sub>2</sub></span> 或 <span class="formula">y = ax<sub>1</sub> - bx<sub>2</sub></span>，结果的合成不确定度为：
-            <center class="formula">
+            <div style="text-align: center;" class="formula">
                 u<sub>y</sub> = √<span class="custom-overline">a² u<sub>x<sub>1</sub></sub>² + b² u<sub>x<sub>2</sub></sub>²</span>
-            </center>
+            </div>
         </li>
         <li><strong>乘法或除法：</strong>对于 <span class="formula">y = x<sub>1</sub><sup>a</sup> × x<sub>2</sub><sup>b</sup></span> 或 <span class="formula">y = x<sub>1</sub><sup>a</sup> / x<sub>2</sub><sup>b</sup></span>，结果的相对不确定度为：
-            <center class="formula">
+            <div style="text-align: center;" class="formula">
                 u<sub>y</sub>/y = √<span class="custom-overline">a² (u<sub>x<sub>1</sub></sub>/x<sub>1</sub>)² + b² (u<sub>x<sub>2</sub></sub>/x<sub>2</sub>)²</span>
-            </center>
+            </div>
         </li>
         <li>总的来说，就是把微分在不同维度叠加。</li>
     </ul>
@@ -1506,67 +1305,67 @@ const handleTableClearAll = ()=>{
         <li>
             平均值（按有效数字方式保留）
             <br>
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 <span class="overline">x</span> = ∑ x<sub>i</sub> /n
-            </center>
+            </div>
         </li>
         <li>
             相对误差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 ε<sub>r,x</sub> = |x - x<sub>theory</sub>| / x<sub>theory</sub>
-            </center>
+            </div >
         </li>
         <li>
             平均相对误差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 <span class="overline">ε</span><sub>r,x</sub> = ∑ ε<sub>r,x</sub> / n
-            </center>
+            </div >
         </li>
         <li>
             平均值与理论值的相对误差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 Δ<sub>r,x</sub> = |<span class="overline">x</span> - x<sub>theory</sub>| / x<sub>theory</sub>
-            </center>
+            </div >
         </li>
         <li>
             相对平均偏差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 <span class="overline">δ</span><sub>r,x</sub> = Σ|x<sub>i</sub> - <span class="overline">x</span>| / n
-            </center>
+            </div >
         </li>
         <li>
             标准偏差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 s<sub>x</sub> = √<span class="custom-overline">Σ (x<sub>i</sub> - <span class="overline">x</span>)² / (n - 1)</span>
-            </center>
+            </div >
         </li>
         <li>
             相对标准偏差（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 s<sub>r,x</sub> = s<sub>x</sub> / <span class="overline">x</span>
-            </center>
+            </div >
         </li>
         <li>
             A类不确定度（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 u<sub>A,x</sub> = s<sub>x</sub> / √<span class="custom-overline">n</span>
-            </center>
+            </div >
         </li>
         <li>
             B类不确定度（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 u<sub>B,x</sub> = Δ<sub>equip_x</sub> / √<span class="custom-overline">3</span>
-            </center>
+            </div >
         </li>
         <li>
             不确定度（按不确定度方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 u<sub>x</sub> = √<span class="custom-overline">u<sub>A,x</sub>² + u<sub>B,x</sub>²</span>
-            </center>
+            </div >
         </li>
         <li>
             最小二乘直线（按有效数字方式保留）
-            <center class="formula">
+            <div style="text-align: center;"  class="formula">
                 y = ax + b
                 <br>
                 <br>
@@ -1577,7 +1376,7 @@ const handleTableClearAll = ()=>{
                 <br>
                 <br>
                 R² = ( ∑ (x<sub>i</sub> - <span class="overline">x</span>)(y<sub>i</sub> - <span class="overline">y</span>) )² / ( ∑ (x<sub>i</sub> - <span class="overline">x</span>)² ∑ (y<sub>i</sub> - <span class="overline">y</span>)² )
-            </center>
+            </div >
         </li>
     </ul>
  </div>

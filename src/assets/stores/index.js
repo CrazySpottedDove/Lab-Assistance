@@ -1,6 +1,10 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import {calc} from 'a-calc'
+import { create, all, typed } from 'mathjs';
+
+//Don't import { ElMessage } from 'element-plus'
+
 function initState(){
     return{
         dataList:[],
@@ -13,841 +17,1006 @@ function initState(){
         isPropertyDoc:false,
     }
 }
-import { create, all, typed, exp } from 'mathjs';
-//Don't import { ElMessage } from 'element-plus'
+// 初始状态
+
 const config = {
   // 可以选择在这里添加其他配置，如处理大数等
 };
-// 不要删除这里！！！
-const math = create(all, config)
-const math1 = create(all, config)
-const math3 = create(all, config)
+// 对math.js的配置
+
+const valueMath = create(all, config)
+const uncerMath = create(all, config)
 // 导入自定义运算
-math1.import({
-  // 自定义乘法
-  multiply: typed('multiply', {
-    'Array, Array': function (a, b) {
-      let length1 = a.length
-      let length2 = b.length
-      let c = []
-      if(length1 === 0 || length2 === 0){
-        return []
-      }
-      if(length1 === 1){
-        for(let i = 0; i<length2;i++){
-            let tmpBit = Math.min(a[0].bit,b[i].bit)
-            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) * (${b[i].rawData})`),tmpBit+1)
-            let tmpLevel = getLevel(standardByBit(calc(`(${a[0].rawData}) * (${b[i].rawData})`),tmpBit))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
+
+class Check{
+    static bothEmptyArray(len1, len2){
+        if(len1 === 0 && len2 === 0){
+            ElMessage.error('有的数组长度为空！')
+            throw new Error('有的数组长度为空，计算终止。')
         }
-      }
-      else if(length2 === 1){
-        for(let i = 0; i<length1;i++){
-            let tmpBit = Math.min(b[0].bit,a[i].bit)
-            let tmpRawData = standardByBit(calc(`(${b[0].rawData}) * (${a[i].rawData})`),tmpBit+1)
-            let tmpLevel = getLevel(standardByBit(calc(`(${b[0].rawData}) * (${a[i].rawData})`),tmpBit))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
+    }
+    // 检查两个数组存空的错误情况
+
+    static emptyArray(len){
+        if(len === 0){
+            ElMessage.error('有的数组长度为空！')
+            throw new Error('有的数组长度为空，计算终止。')
         }
-      }
-      else{
-        if(length1 === length2){
-            for(let i = 0; i<length1;i++){
-                let tmpBit = Math.min(a[i].bit,b[i].bit)
-                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) * (${b[i].rawData})`),tmpBit+1)
-                let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) * (${b[i].rawData})`),tmpBit))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
+    }
+    // 检查单个数组存空的错误情况
+
+    static lengthInEqual(len1, len2){
+        if(len1 !== len2){
+            ElMessage.error('数组的长度不一致！')
+            throw new Error('数组的长度不一致！')
+        }
+    }
+    // 检查两个长度非1的数组长度不一致的错误情况
+
+    static divisorZero(divisor){
+        if(divisor === 0){
+            ElMessage.error('除数不能为零！')
+            throw new Error('除数不能为零！')
+        }
+    }
+    // 检查分母为0的错误情况
+
+    static naturalInpositive(natural){
+        if(natural === 0){
+            ElMessage.error('对数的真数不能为0！')
+            throw new Error('对数的真数不能为0！')
+        }
+        else if(natural < 0){
+            ElMessage.error('对数的真数不能为负数！')
+            throw new Error('对数的真数不能为负数！')
+        }
+    }
+    // 检查真数非正的错误情况
+
+    static radicandNegative(radicand){
+        if(radicand < 0){
+            ElMessage.error('被开方数不能为负数！')
+            throw new Error('被开方数不能为负数！')
+        }
+    }
+    // 检查被开方数为负数的错误情况
+
+    static invalidPow(base, exp){
+        if(base < 0 && !Number.isInteger(exp)){
+            ElMessage.error('不能对负数取非整数次方！')
+            throw new Error('不能对负数取非整数次方！')
+        }
+    }
+}
+// 检查错误情况的静态方法类
+
+class ValueCalc{
+    static createObj(tmpBit, tmpLevel, tmpRawData){
+        return {
+            bit: tmpBit,
+            level: tmpLevel,
+            rawData: tmpRawData
+        }
+    }
+    // 创建valueMath运算对象
+
+    static multiply(a, b){
+        if(typeof a === 'object' && typeof b === 'object'){
+            let bit1 = a.bit
+            let bit2 = b.bit
+            let rawData1 = a.rawData
+            let rawData2 = b.rawData
+            let tmpBit = Math.min(bit1, bit2)
+            let tmpRawData = calc(`(${rawData1}) * (${rawData2})`)
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof a === 'number' && typeof b === 'number'){
+            return a*b
         }
         else{
-            ElMessage.error('数组的长度不一致！')
-            return []
+            function valueMultiplyObjAndNum(obj, num){
+                let numExp = Math.floor(Math.log10(Math.abs(num)))
+                let tmpLevel = obj.level + numExp
+                let tmpRawData = calc(`(${obj.rawData}) * (${String(num)})`)
+                let tmpBit = levelToBit(tmpRawData, tmpLevel)
+                return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+            }
+            if(typeof a === 'object'){
+                return valueMultiplyObjAndNum(a, b)
+            }
+            else{
+                return valueMultiplyObjAndNum(b, a)
+            }
+        }
+    }
+    // valueMath中的单位乘法
+
+    static divide(a, b){
+        if(typeof a === 'object' && typeof b === 'object'){
+            let bit1 = a.bit
+            let bit2 = b.bit
+            let rawData1 = a.rawData
+            let rawData2 = b.rawData
+            let tmpBit = Math.min(bit1, bit2)
+            let tmpRawData = calc(`(${rawData1}) / (${rawData2})`)
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof a === 'number' && typeof b === 'number'){
+            return a/b
+        }
+        else{
+            if(typeof a === 'object'){
+                let obj = a
+                let num = b
+                let numExp = Math.floor(Math.log10(Math.abs(num)))
+                let tmpLevel = obj.level - numExp
+                let tmpRawData = calc(`(${obj.rawData}) / (${String(num)})`)
+                let tmpBit = levelToBit(tmpRawData, tmpLevel)
+                return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+            }
+            else{
+                let obj = b
+                let num = a
+                let tmpBit = obj.bit
+                let tmpRawData = calc(`(${String(num)}) / (${obj.rawData})`)
+                let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+                return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+            }
+        }
+    }
+    // valueMath中的单位除法
+
+    static add(a, b){
+        if(typeof a === 'object' && typeof b === 'object'){
+            let level1 = a.level
+            let level2 = b.level
+            let rawData1 = a.rawData
+            let rawData2 = b.rawData
+            let tmpLevel = Math.max(level1, level2)
+            let tmpRawData = calc(`(${rawData1}) + (${rawData2})`)
+            let tmpBit = levelToBit(tmpRawData, tmpLevel)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof a === 'number' && typeof b === 'number'){
+            return a+b
+        }
+        else{
+            function valueAddObjAndNum(obj, num){
+                let tmpLevel = obj.level
+                let tmpRawData = calc(`(${obj.rawData}) + ${String(num)}`)
+                let tmpBit = levelToBit(tmpRawData, tmpLevel)
+                return ValueCalc.createObj(tmpBit, tmpLevel ,tmpRawData)
+            }
+            if(typeof a === 'object'){
+                return valueAddObjAndNum(a, b)
+            }
+            else{
+                return valueAddObjAndNum(b, a)
+            }
+        }
+    }
+    // valueMath中的单位加法
+
+    static subtract(a, b){
+        if(typeof a === 'object' && typeof b === 'object'){
+            let level1 = a.level
+            let level2 = b.level
+            let rawData1 = a.rawData
+            let rawData2 = b.rawData
+            let tmpLevel = Math.max(level1, level2)
+            let tmpRawData = calc(`(${rawData1}) - (${rawData2})`)
+            let tmpBit = levelToBit(tmpRawData, tmpLevel)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof a === 'number' && typeof b === 'number'){
+            return a - b
+        }
+        else{
+            if(typeof a === 'object'){
+                let obj = a
+                let num = b
+                let tmpLevel = obj.level
+                let tmpRawData = calc(`(${obj.rawData}) - ${String(num)}`)
+                let tmpBit = levelToBit(tmpRawData, tmpLevel)
+                return ValueCalc.createObj(tmpBit, tmpLevel ,tmpRawData)
+            }
+            else{
+                let obj = b
+                let num = a
+                let tmpLevel = obj.level
+                let tmpRawData = calc(`(${String(num)}) - ${obj.rawData}`)
+                let tmpBit = levelToBit(tmpRawData, tmpLevel)
+                return ValueCalc.createObj(tmpBit, tmpLevel ,tmpRawData)
+            }
+        }
+    }
+    // valueMath中的单位减法
+
+    static ln(x){
+        if(typeof x === 'object'){
+            let tmpLevel = -x.bit
+            let tmpRawData = String(Math.log(Number(x.rawData)))
+            let tmpBit = levelToBit(tmpRawData, tmpLevel)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else{
+            return Math.log(x)
+        }
+    }
+    // valueMath中的单位ln函数
+
+    static sqrt(x){
+        if(typeof x === 'object'){
+            let tmpBit = x.bit
+            let tmpRawData = String(Math.sqrt(Number(x.rawData)))
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel ,tmpRawData)
+        }
+        else{
+            return Math.sqrt(x)
+        }
+    }
+    // valueMath中的单位sqrt函数
+
+    static abs(x){
+        if(typeof x === 'object'){
+            let tmpBit = x.bit
+            let tmpLevel = x.level
+            let tmpRawData = String(Math.abs(Number(x.rawData)))
+            return ValueCalc.createObj(tmpBit, tmpLevel ,tmpRawData)
+        }
+        else{
+            return Math.abs(x)
+        }
+    }
+    // valueMath中的单位Abs函数
+
+    static pow(a, b){
+        if(typeof a === 'object' && typeof b === 'object'){
+            let rawData1 = a.rawData
+            let rawData2 = b.rawData
+            let tmpBit = a.bit
+            let tmpRawData = String(Math.pow(Number(rawData1), Number(rawData2)))
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof a === 'object'){
+            let tmpBit = a.bit
+            let tmpRawData = String(Math.pow(Number(a.rawData), b))
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else if(typeof b === 'object'){
+            let tmpBit = b.bit
+            let tmpRawData = String(Math.pow(a, Number(b.rawData)))
+            let tmpLevel = bitToLevel(tmpRawData, tmpBit)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else{
+            return Math.pow(a, b)
+        }
+    }
+
+    static lg(x){
+        if(typeof x === 'object'){
+            let tmpLevel = -x.bit
+            let tmpRawData = String(Math.log10(Number(x.rawData)))
+            let tmpBit = levelToBit(tmpRawData, tmpLevel)
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else{
+            return Math.log10(x)
+        }
+    }
+
+    static unaryMinus(x){
+        if(typeof x === 'object'){
+            let tmpLevel = x.level
+            let tmpBit = x.bit
+            let tmpRawData = String(-Number(x.rawData))
+            return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
+        }
+        else{
+            return -x
+        }
+    }
+}
+// valueMath的单位计算静态方法类
+
+function bitToLevel(str, bit){
+    let stdStr = standardByBit(str, bit)
+    return getLevel(stdStr)
+}
+// 给数据，位数，得到精度
+
+function levelToBit(str, level){
+    let stdStr = standardByLevel(str, level)
+    return getBit(stdStr)
+}
+// 给数据，精度，得到位数
+
+function dimensionalAdd(a, b){
+    let x = typeof a === 'string' ? Number(a) : a
+    let y = typeof b === 'string' ? Number(b) : b
+    return String(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)))
+}
+// 维度和
+
+valueMath.import({
+  multiply: typed('multiply', {
+    'Array, Array': function (arr1, arr2) {
+      let length1 = arr1.length
+      let length2 = arr2.length
+      let result = []
+      Check.bothEmptyArray(length1, length2)
+      if(length1 === 1){
+        arr2.forEach(item => {
+            result.push(ValueCalc.multiply(arr1[0], item))
+        })
+      }
+      else if(length2 === 1){
+        arr1.forEach(item => {
+            result.push(ValueCalc.multiply(item, arr2[0]))
+        })
+      }
+      else{
+        Check.lengthInEqual(length1, length2)
+        for(let i = 0; i < length1; i++){
+            result.push(ValueCalc.multiply(arr1[i], arr2[i]))
         }
       }
-      return c
+      return result
     },
-    'Array, number': function (a, b) {
-      let length = a.length
-      if(length === 0){
-        return []
-      }
-      let c = []
-      for(let i =0;i<length;i++){
-        let maxLevel = Math.floor(Math.log10(Math.abs(b)))
-        let tmpLevel = a[i].level + maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel-1)
-        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})*(${String(b)})`),tmpLevel))
-        c[i] = {
-            bit:tmpBit,
-            rawData:tmpRawData,
-            level:tmpLevel
-        }
-      }
-      return c
+    'Array, number': function (arr, num) {
+      let length = arr.length
+      Check.emptyArray(length)
+      let result = []
+      arr.forEach(item => {
+        result.push(ValueCalc.multiply(item, num))
+      })
+      return result
     },
-    'number, Array': function (b, a) {
-      let length = a.length
-      if(length === 0){
-        return []
-      }
-      let c = []
-      for(let i =0;i<length;i++){
-        let maxLevel = Math.floor(Math.log10(Math.abs(b)))
-        let tmpLevel = a[i].level + maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})*(${String(b)})`),tmpLevel-1)
-        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})*(${String(b)})`),tmpLevel))
-        c[i] = {
-            bit:tmpBit,
-            rawData:tmpRawData,
-            level:tmpLevel
-        }
-      }
-      return c
+    'number, Array': function (num , arr) {
+      let length = arr.length
+      Check.emptyArray(length)
+      let result = []
+      arr.forEach(item => {
+        result.push(ValueCalc.multiply(num, item))
+      })
+      return result
     },
-    'any, any': function (a, b) {
-      return math.multiply(a, b);
+    'number, number': function (num1, num2) {
+      return ValueCalc.multiply(num1, num2)
     }
   }),
-  // 自定义除法
   divide: typed('divide', {
-    'Array, Array': function (a, b) {
-      let length1 = a.length
-      let length2 = b.length
-      let c = []
-      if(length1 === 0 || length2 === 0){
-        return []
-      }
+    'Array, Array': function (arr1, arr2) {
+      let length1 = arr1.length
+      let length2 = arr2.length
+      let result = []
+      Check.bothEmptyArray(length1, length2)
       if(length1 === 1){
-        for(let i = 0; i<length2;i++){
-            let tmpBit = Math.min(a[0].bit,b[i].bit)
-            let tmpRawData = standardByBit(calc(`(${a[0].rawData}) / (${b[i].rawData})`),tmpBit+1)
-            let tmpLevel = getLevel(standardByBit(calc(`(${a[0].rawData}) / (${b[i].rawData})`),tmpBit))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
+        arr2.forEach(item => {
+            Check.divisorZero(Number(item.rawData))
+            result.push(ValueCalc.divide(arr1[0], item))
+        })
       }
       else if(length2 === 1){
-        for(let i = 0; i<length1;i++){
-            let tmpBit = Math.min(b[0].bit,a[i].bit)
-            let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[0].rawData})`),tmpBit+1)
-            let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) / (${b[0].rawData})`),tmpBit))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
+        Check.divisorZero(Number(arr2[0].rawData))
+        arr1.forEach(item => {
+            result.push(ValueCalc.divide(item, arr2[0]))
+        })
       }
       else{
-        if(length1 === length2){
-            for(let i = 0; i<length1;i++){
-                console.log(a[i])
-                console.log(b[i])
-                let tmpBit = Math.min(a[i].bit,b[i].bit)
-                let tmpRawData = standardByBit(calc(`(${a[i].rawData}) / (${b[i].rawData})`),tmpBit+1)
-                let tmpLevel = getLevel(standardByBit(calc(`(${a[i].rawData}) / (${b[i].rawData})`),tmpBit))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
-        }
-        else{
-            ElMessage.error('数组的长度不一致！')
-            return []
+        Check.lengthInEqual(length1, length2)
+        for(let i = 0; i < length1; i++){
+            Check.divisorZero(arr2[i])
+            result.push(ValueCalc.divide(arr1[i], arr2[i]))
         }
       }
-      return c
+      return result
     },
-    'Array, number': function (a, b) {
-      let length = a.length
-      if(length === 0){
-        return []
-      }
-      let c = []
-      for(let i =0;i<length;i++){
-        let maxLevel = Math.floor(Math.log10(Math.abs(b)))
-        let tmpLevel = a[i].level - maxLevel
-        let tmpRawData = standardByLevel(calc(`(${a[i].rawData})/(${String(b)})`),tmpLevel-1)
-        let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByBit(a[i].rawData,a[i].bit)})/(${String(b)})`),tmpLevel))
-        c[i] = {
-            bit:tmpBit,
-            rawData:tmpRawData,
-            level:tmpLevel
-        }
-      }
-      return c
+    'Array, number': function (arr, num) {
+      let length = arr.length
+      Check.emptyArray(length)
+      Check.divisorZero(num)
+      let result = []
+      arr.forEach(item => {
+        result.push(ValueCalc.divide(item, num))
+      })
+      return result
     },
-    'number, Array': function (b, a) {
-      let length = a.length
-      if(length === 0){
-        return []
-      }
-      let c = []
-      for(let i =0;i<length;i++){
-        let tmpBit = a[i].bit
-        let tmpRawData = standardByBit(calc(`(${String(b)})/(${a[i].rawData})`),tmpBit+1)
-        let tmpLevel = getLevel(standardByBit(calc(`(${String(b)})/(${standardByBit(a[i].rawData,tmpBit)})`),tmpBit))
-        c[i] = {
-            bit:tmpBit,
-            rawData:tmpRawData,
-            level:tmpLevel
-        }
-      }
-      return c
+    'number, Array': function (num, arr) {
+      let length = arr.length
+      Check.emptyArray(length)
+      let result = []
+      arr.forEach(item => {
+        Check.divisorZero(Number(item.rawData))
+        result.push(num, item)
+      })
+      return result
     },
-    'any, any': function (a, b) {
-      return math.divide(a, b);
+    'number, number': function (num1, num2) {
+        Check.divisorZero(num2)
+        return ValueCalc.divide(num1, num2)
     }
   }),
   add: typed('add', {
-    'Array,Array': function(a,b){
-        let length1 = a.length
-        let length2 = b.length
-        if(length1 === 0 || length2 === 0){
-            return []
-        }
-        let c = []
+    'Array,Array': function(arr1, arr2){
+        let length1 = arr1.length
+        let length2 = arr2.length
+        Check.bothEmptyArray(length1, length2)
+        let result = []
         if(length1 === 1){
-            for(let i = 0;i<length2;i++){
-                let tmpLevel = Math.max(a[0].level,b[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})+(${b[i].rawData})`),tmpLevel-1)
-                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[0].rawData})+(${b[i].rawData})`),tmpLevel))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
+            arr2.forEach(item => {
+                result.push(ValueCalc.add(arr1[0], item))
+            })
         }
         else if(length2 === 1){
-            for(let i = 0;i<length1;i++){
-                let tmpLevel = Math.max(b[0].level,a[i].level)
-                let tmpRawData = standardByLevel(calc(`(${b[0].rawData})+(${a[i].rawData})`),tmpLevel-1)
-                let tmpBit = countSignificantDigits(tmpRawDatstandardByLevel(calc(`(${b[0].rawData})+(${a[i].rawData})`),tmpLevel))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
+            arr1.forEach(item => {
+                result.push(ValueCalc.add(item, arr2[0]))
+            })
         }
         else{
-            if(length1 === length2){
-                for(let i = 0;i<length1;i++){
-                    let tmpLevel = Math.max(b[i].level,a[i].level)
-                    let tmpRawData = standardByLevel(calc(`(${b[i].rawData})+(${a[i].rawData})`),tmpLevel-1)
-                    let tmpBit = countSignificantDigits(standardByLevel(calc(`(${b[i].rawData})+(${a[i].rawData})`),tmpLevel))
-                    c[i] = {
-                        bit:tmpBit,
-                        rawData:tmpRawData,
-                        level:tmpLevel
-                    }
-                }
-            }
-            else{
-                ElMessage.error('数组长度不一致！')
-                return []
+            Check.lengthInEqual(length1, length2)
+            for(let i = 0; i < length1; i++){
+                result.push(ValueCalc.add(arr1[i], arr2[i]))
             }
         }
-        return c
+        return result
     },
-    'Array,number': function(a,b){
-        let length = a.length
-        if(length === 0){
-            return []
-        }
-        let c = []
-        for(let i = 0;i<length;i++){
-            let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel-1)
-            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})+(${String(b)})`),tmpLevel))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
-        return c
+    'Array,number': function(arr, num){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            result.push(ValueCalc.add(item, num))
+        })
+        return result
     },
-    'number,Array': function(b,a){
-        let length = a.length
-        if(length === 0){
-            return []
-        }
-        let c = []
-        for(let i = 0;i<length;i++){
-            let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})+(${String(b)})`),tmpLevel-1)
-            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})+(${String(b)})`),tmpLevel))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
-        return c
+    'number,Array': function(num, arr){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            result.push(ValueCalc.add(num, item))
+        })
+        return result
     },
-    'number, number':function(obj1, obj2){
-        return obj1 + obj2
+    'number, number':function(num1, num2){
+        return ValueCalc.add(num1, num2)
     },
   }),
   subtract: typed('subtract', {
-    'Array,Array': function(a,b){
-        let length1 = a.length
-        let length2 = b.length
-        if(length1 === 0 || length2 === 0){
-            return []
-        }
-        let c = []
+    'Array,Array': function(arr1, arr2){
+        let length1 = arr1.length
+        let length2 = arr2.length
+        Check.bothEmptyArray(length1, length2)
+        let result = []
         if(length1 === 1){
-            for(let i = 0;i<length2;i++){
-                let tmpLevel = Math.max(a[0].level,b[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[0].rawData})-(${b[i].rawData})`),tmpLevel-1)
-                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[0].rawData})-(${b[i].rawData})`),tmpLevel))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
+            arr2.forEach(item => {
+                result.push(ValueCalc.subtract(arr1[0], item))
+            })
         }
         else if(length2 === 1){
-            for(let i = 0;i<length1;i++){
-                let tmpLevel = Math.max(b[0].level,a[i].level)
-                let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[0].rawData})`),tmpLevel-1)
-                let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[i].rawData})-(${b[0].rawData})`),tmpLevel))
-                c[i] = {
-                    bit:tmpBit,
-                    rawData:tmpRawData,
-                    level:tmpLevel
-                }
-            }
+            arr1.forEach(item => {
+                result.push(ValueCalc.subtract(item, arr2[0]))
+            })
         }
         else{
-            if(length1 === length2){
-                for(let i = 0;i<length1;i++){
-                    let tmpLevel = Math.max(b[i].level,a[i].level)
-                    let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${b[i].rawData})`),tmpLevel-1)
-                    let tmpBit = countSignificantDigits(standardByLevel(calc(`(${a[i].rawData})-(${b[i].rawData})`),tmpLevel))
-                    c[i] = {
-                        bit:tmpBit,
-                        rawData:tmpRawData,
-                        level:tmpLevel
-                    }
-                }
-            }
-            else{
-                ElMessage.error('数组长度不一致！')
-                return []
+            Check.lengthInEqual(length1, length2)
+            for(let i = 0; i < length1; i++){
+                result.push(ValueCalc.subtract(arr1[i], arr2[i]))
             }
         }
-        return c
+        return result
     },
-    'Array,number': function(a,b){
-        let length = a.length
-        if(length === 0){
-            return []
-        }
-        let c = []
-        for(let i = 0;i<length;i++){
-            let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${a[i].rawData})-(${String(b)})`),tmpLevel-1)
-            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${standardByLevel(a[i].rawData,tmpLevel)})-(${String(b)})`),tmpLevel))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
-        return c
+    'Array,number': function(arr, num){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            result.push(ValueCalc.subtract(item, num))
+        })
+        return result
     },
-    'number,Array': function(b,a){
-        let length = a.length
-        if(length === 0){
-            return []
-        }
-        let c = []
-        for(let i = 0;i<length;i++){
-            let tmpLevel = a[i].level
-            let tmpRawData = standardByLevel(calc(`(${String(b)})-(${a[i].rawData})`),tmpLevel-1)
-            let tmpBit = countSignificantDigits(standardByLevel(calc(`(${String(b)})-(${standardByLevel(a[i].rawData,tmpLevel)})`),tmpLevel))
-            c[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
-        return c
+    'number,Array': function(num, arr){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            result.push(ValueCalc.subtract(num, item))
+        })
+        return result
     },
-    'number, number': function (obj1, obj2) {
-        return obj1-obj2
+    'number, number':function(num1, num2){
+        return ValueCalc.subtract(num1, num2)
     },
   }),
   ln:typed('ln',{
-    'Array':function(x){
-        let length = x.length
-        if(length === 0){
-            return []
-        }
+    'Array':function(arr){
+        let length = arr.length
+        Check.emptyArray(length)
         let result = []
-        for(let i = 0; i<length;i++){
-            if(Number(x[i].rawData)<=0){
-                ElMessage.error('不可对非正数取对数！')
-                return []
-            }
-            let tmpLevel = -x[i].bit
-            let tmpRawData = standardByLevel(String(Math.log(Number(x[i].rawData))),tmpLevel-1)
-            let tmpBit = countSignificantDigits(standardByLevel(String(Math.log(Number(x[i].rawData))),tmpLevel))
-            result[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
+        arr.forEach(item => {
+            Check.naturalInpositive(Number(item.rawData))
+            result.push(ValueCalc.ln(item))
+        })
         return result
     },
-    'number':function(x){
-        if(x <= 0){
-            ElMessage.error('不可对非正数取对数！')
-            return []
-        }
-        return Math.log(x)
+    'number':function(num){
+        Check.naturalInpositive(num)
+        return ValueCalc.ln(num)
     }
   }),
   sqrt:typed('sqrt',{
-    'Array':function (x) {
-        let length = x.length
-        if(length === 0){
-            ElMessage.error('有的数组为空！')
-            return []
-        }
+    'Array':function (arr) {
+        let length = arr.length
+        Check.emptyArray(length)
         let result = []
-        for(let i = 0; i<length; i++){
-            if(Number(x[i].rawData)<0){
-                ElMessage.error('不可对负数取根号！')
-                return []
-            }
-            let tmpBit = x[i].bit
-            let tmpRawData = standardByBit(String(Math.sqrt(Number(x[i].rawData))),tmpBit+1)
-            let tmpLevel = getLevel(standardByBit(String(Math.sqrt(Number(x[i].rawData))),tmpBit))
-            result[i] = {
-                bit:tmpBit,
-                rawData:tmpRawData,
-                level:tmpLevel
-            }
-        }
+        arr.forEach(item => {
+            Check.radicandNegative(Number(item.rawData))
+            result.push(ValueCalc.sqrt(item))
+        })
         return result
     },
-    'number':function(x){
-        if(x < 0 ){
-            ElMessage.error('不可对负数取平方根！')
-            return []
-        }
-        return Math.sqrt(x)
+    'number':function(num){
+        Check.radicandNegative(num)
+        return Math.sqrt(num)
     }
   }),
   abs:typed('abs',{
     'Array':function(arr){
         let length = arr.length
-        if(length === 0){
-            ElMessage.error('有的数组为空！')
-            return []
-        }
+        Check.emptyArray(length)
         let result = []
         arr.forEach(item => {
-            result.push({
-                bit:item.bit,
-                rawData:standardByBit(String(Math.abs(Number(item.rawData))),item.bit + 1),
-                level: item.level
-            })
+            result.push(ValueCalc.abs(item))
         })
         return result
     },
-    'number':function(x){
-        return Math.abs(x)
+    'number':function(num){
+        return ValueCalc.abs(num)
     }
   }),
   pow:typed('pow',{
-    'Array,Array':function(arr1,arr2){
+    'Array,Array':function(arr1, arr2){
         let length1 = arr1.length
         let length2 = arr2.length
-        if(length1 === 0 || length2 === 0){
-            ElMessage.error('有的数组为空！')
-            return []
-        }
+        Check.bothEmptyArray(length1, length2)
         let result = []
         if(length1 === 1){
             arr2.forEach(item => {
-                if(Number(arr1[0].rawData) < 0 && Number(item.rawData) > 0 && Number(item.rawData) < 1){
-                    ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-                    return []
-                }
-                result.push({
-                    bit:arr1[0].bit,
-                    rawData:standardByBit(String(Math.pow(Number(arr1[0].rawData),Number(item.rawData))),arr1[0].bit + 1),
-                    level:getLevel(standardByBit(String(Math.pow(Number(arr1[0].rawData),Number(item.rawData))),arr1[0].bit))
-                })
+                Check.invalidPow(Number(arr1[0].rawData), Number(item.rawData))
+                result.push(ValueCalc.pow(arr1[0], item))
             })
-            return result
         }
-        if(length2 === 1){
+        else if(length2 === 1){
             arr1.forEach(item => {
-                if(Number(item.rawData) < 0 && Number(arr2[0].rawData) > 0 && Number(arr2[0].rawData) < 1){
-                    ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-                    return []
-                }
-                result.push({
-                    bit:item.bit,
-                    rawData:standardByBit(String(Math.pow(Number(item.rawData),Number(arr2[0].rawData))),item.bit + 1),
-                    level:getLevel(standardByBit(String(Math.pow(Number(item.rawData),Number(arr2[0].rawData))),item.bit))
-                })
+                Check.invalidPow(Number(item.rawData), Number(arr2[0].rawData))
+                result.push(ValueCalc.pow(item, arr2[0]))
             })
-            return result
         }
-        if(length1 !== length2){
-            ElMessage.error('数组长度不一致！')
-            return []
-        }
-        for(let i = 0 ; i < length1 ; i++){
-            if(Number(arr1[i].rawData) < 0 && Number(arr2[i].rawData) > 0 && Number(arr2[i].rawData) < 1){
-                ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-                return []
+        else{
+            Check.lengthInEqual(length1, length2)
+            for(let i = 0 ; i < length1 ; i++){
+                Check.invalidPow(Number(arr1[i].rawData, Number(arr2[i].rawData)))
+                result.push(ValueCalc.pow(arr1[i], arr2[i]))
             }
-            result.push({
-                bit:arr1[i].bit,
-                rawData:standardByBit(String(Math.pow(Number(arr1[i].rawData), Number(arr2[i].rawData))), arr1[i].bit+1),
-                level: getLevel(standardByBit(String(Math.pow(Number(arr1[i].rawData), Number(arr2[i].rawData))), arr1[i].bit))
-            })
         }
         return result
     },
-  'Array,number':function(arr,num){
-    if(arr.length === 0){
-        ElMessage.error('有的数组为空！')
-        return []
-    }
-    let result = []
-    arr.forEach(item => {
-        if(Number(item.rawData) < 0 && num > 0 && num < 1){
-            ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-            return []
-        }
-        result.push({
-            bit:item.bit,
-            rawData:standardByBit(String(Math.pow(Number(item.rawData), num)), item.bit+1),
-            level:getLevel(standardByBit(String(Math.pow(Number(item.rawData), num)), item.bit))
+    'Array,number':function(arr, num){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            Check.invalidPow(Number(item.rawData), num)
+            result.push(ValueCalc.pow(item, num))
         })
-    })
-    return result
-  },
-  'number,Array':function(num,arr){
-    if(arr.length === 0){
-        ElMessage.error('有的数组为空！')
-        return []
-    }
-    let result = []
-    arr.forEach(item => {
-        if(num < 0 && Number(item.rawData) > 0 && Number(item.rawData) < 1){
-            ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-            return []
-        }
-        result.push({
-            bit:item.bit,
-            rawData: standardByBit(String(Math.pow(num, Number(item.rawData))), item.bit+1),
-            level: getLevel(standardByBit(String(Math.pow(num, Number(item.rawData))), item.bit))
+        return result
+    },
+    'number,Array':function(num,arr){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            Check.invalidPow(num, Number(item.rawData))
+            result.push(ValueCalc.pow(num, item))
         })
-    })
-    return result
-  },
-  'number,number':function(num1,num2){
-    if(num1 < 0 && 0 < num2 && num2 < 1){
-        ElMessage.error('不能对负数取介于 0 到 1 的指数！')
-        return []
+        return result
+    },
+    'number,number':function(num1,num2){
+        Check.invalidPow(num1, num2)
+        return ValueCalc.pow(num1, num2)
     }
-    return Math.pow(num1,num2)
-  }
- })
+  }),
+  lg: typed('lg', {
+        'Array':function(arr){
+            let length = arr.length
+            Check.emptyArray(length)
+            let result = []
+            arr.forEach(item => {
+                Check.naturalInpositive(Number(item.rawData))
+                result.push(ValueCalc.lg(item))
+            })
+            return result
+        },
+        'number':function(num){
+            Check.naturalInpositive(num)
+            return ValueCalc.lg(num)
+        }
+  }),
+  unaryMinus: typed('unaryMinus', {
+    'Array':function(arr){
+        let length = arr.length
+        Check.emptyArray(length)
+        let result = []
+        arr.forEach(item => {
+            result.push(ValueCalc.unaryMinus(item))
+        })
+        return result
+    },
+    'number':function(num){
+        return ValueCalc.unaryMinus(num)
+    }
+  })
 }, { override: true });
 // 数值计算规则
-math3.import({
+
+uncerMath.import({
   // 自定义乘法
   multiply: typed('multiply', {
     'Object, Object':function(obj1, obj2){
         return {
-            data:calc(`(${obj1.data})*(${obj2.data})`),
-            uncer:String(math.sqrt(math.pow(Number(obj1.data)*Number(obj2.uncer),2)+math.pow(Number(obj1.uncer)*Number(obj2.data),2)))
+            data: calc(`(${obj1.data}) * (${obj2.data})`),
+            uncer: dimensionalAdd(Number(obj1.data) * Number(obj2.uncer), Number(obj1.uncer) * Number(obj2.data))
         }
     },
-    'number, number':function(obj1, obj2){
+    'number, number':function(num1, num2){
         return{
-            data: String(obj1*obj2),
-            uncer:'0'
+            data: String(num1 * num2),
+            uncer: '0'
         }
     },
-    'Object, number':function(obj1, obj2){
+    'Object, number':function(obj, num){
         return {
-            data:String(Number(obj1.data)*obj2),
-            uncer:toPositive(String(Number(obj1.uncer)*obj2))
+            data: String(Number(obj.data) * num),
+            uncer: toPositive(String(Number(obj.uncer) * num))
         }
     },
-    'number, Object':function(obj1, obj2){
+    'number, Object':function(num, obj){
         return {
-            data:String(Number(obj2.data)*obj1),
-            uncer:toPositive(String(Number(obj2.uncer)*obj1))
+            data: String(Number(obj.data) * num),
+            uncer: toPositive(String(Number(obj.uncer) * num))
         }
     },
   }),
   // 自定义除法
   divide: typed('divide', {
     'Object, Object':function(obj1, obj2){
+        Check.divisorZero(Number(obj2.data))
         return {
-            data:calc(`(${obj1.data}) / (${obj2.data})`),
-            uncer:String(math.sqrt(math.pow(Number(obj1.uncer)/Number(obj2.data),2)+math.pow(Number(obj1.data)/Number(obj2.data)/Number(obj2.data)*Number(obj2.uncer),2)))
+            data: calc(`(${obj1.data}) / (${obj2.data})`),
+            uncer: dimensionalAdd(Number(obj1.uncer) / Number(obj2.data), Number(obj1.data) / Number(obj2.data) / Number(obj2.data) * Number(obj2.uncer))
         }
     },
-    'number, number':function(obj1, obj2){
+    'number, number':function(num1, num2){
+        Check.divisorZero(num2)
         return{
-            data: String(obj1/obj2),
-            uncer:'0'
+            data: String(num1 / num2),
+            uncer: '0'
         }
     },
-    'Object, number':function(obj1, obj2){
+    'Object, number':function(obj, num){
+        Check.divisorZero(num)
         return {
-            data:String(Number(obj1.data)/obj2),
-            uncer:toPositive(String(Number(obj1.uncer)/obj2))
+            data: String(Number(obj.data) / num),
+            uncer: String(Math.abs((Number(obj.uncer) / num)))
         }
     },
-    'number, Object':function(obj1, obj2){
+    'number, Object':function(num, obj){
+        Check.divisorZero(Number(obj.data))
         return {
-            data:String(obj1/Number(obj2.data)),
-            uncer:toPositive(calc(`(${obj2.uncer})*(${String(obj1)})/(${obj2.data})/(${obj2.data})`))
+            data: String(num / Number(obj.data)),
+            uncer: toPositive(calc(`(${obj.uncer}) * (${String(num)}) / (${obj.data}) / (${obj.data})`))
         }
     }
   }),
   add: typed('add', {
     'Object, Object': function (obj1, obj2) {
         return{
-            data:String(Number(obj1.data)+Number(obj2.data)),
-            uncer:String(math.sqrt(math.pow(Number(obj1.uncer),2)+math.pow(Number(obj2.uncer),2)))
+            data: String(Number(obj1.data) + Number(obj2.data)),
+            uncer: dimensionalAdd(obj1.uncer, obj2.uncer)
         }
     },
-    'number, Object': function (obj1, obj2){
+    'number, Object': function (num, obj){
         return{
-            data:String(obj1+Number(obj2.data)),
-            uncer:obj2.uncer
+            data: String(num + Number(obj.data)),
+            uncer: obj.uncer
         }
     },
-    'Object, number': function (obj1, obj2){
+    'Object, number': function (obj, num){
         return{
-            data:String(Number(obj1.data)+obj2),
-            uncer:obj1.uncer
+            data: String(num + Number(obj.data)),
+            uncer: obj.uncer
         }
     },
-    'number, number':function(obj1, obj2){
+    'number, number':function(num1, num2){
         return{
-            data:obj1+obj2,
-            uncer:'0'
+            data: num1 + num2,
+            uncer: '0'
         }
     },
   }),
   subtract: typed('subtract', {
     'Object, Object': function (obj1, obj2) {
         return{
-            data:String(Number(obj1.data)-Number(obj2.data)),
-            uncer:String(math.sqrt(math.pow(Number(obj1.uncer),2)+math.pow(Number(obj2.uncer),2)))
+            data: String(Number(obj1.data) - Number(obj2.data)),
+            uncer: dimensionalAdd(obj1.uncer, obj2.uncer)
         }
     },
-    'number, Object': function (obj1, obj2){
+    'number, Object': function (num, obj){
         return{
-            data:String(obj1-Number(obj2.data)),
-            uncer:obj2.uncer
+            data: String(num - Number(obj.data)),
+            uncer: obj.uncer
         }
     },
-    'Object, number': function (obj1, obj2){
+    'Object, number': function (obj, num){
         return{
-            data:String(Number(obj1.data)-obj2),
-            uncer:obj1.uncer
+            data: String(Number(obj.data) - num),
+            uncer: obj.uncer
         }
     },
-    'number, number':function(obj1, obj2){
+    'number, number': function(num1, num2){
         return{
-            data:obj1-obj2,
-            uncer:'0'
+            data: num1 - num2,
+            uncer: '0'
         }
     },
   }),
   ln:typed('ln',{
-    'Object':function(x){
+    'Object': function(obj){
+        Check.naturalInpositive(Number(obj.data))
         return{
-            data:String(Math.log(Math.abs(Number(x.data)))),
-            uncer:calc(`(${x.uncer})/(${x.data})`)
+            data: String(Math.log(Number(obj.data))),
+            uncer: calc(`(${obj.uncer}) / (${obj.data})`)
         }
     },
-    'number':function(x){
-        if(x<=0){
-            ElMessage.error('不确定度运算：不可对非正数取对数！已修正为绝对值！')
-            x = -x
-        }
-        if(x === 0){
-            return{
-                data:'0',
-                uncer:'0'
-            }
-        }
+    'number': function(num){
+        Check.naturalInpositive(num)
         return{
-            data:String(Math.log(x)),
+            data:String(Math.log(num)),
             uncer:'0'
         }
     }
   }),
-  sqrt:typed('sqrt',{
-    'Object':function(x){
+  sqrt: typed('sqrt',{
+    'Object': function(obj){
+        Check.radicandNegative(Number(obj.data))
         return{
-            data:String(Math.sqrt(Math.abs(Number(x.data)))),
-            uncer:calc(`(${x.uncer})/(${String(Math.sqrt(Math.abs(Number(x.data))))})/2`)
+            data: String(Math.sqrt(Number(obj.data))),
+            uncer: calc(`(${obj.uncer}) / (${String(Math.sqrt(Number(obj.data)))}) / 2`)
         }
     },
-    'number':function(x){
-        if(x<0){
-            ElMessage.error('不确定度运算：不可对负数取平方根！已修正为绝对值！')
-            x = -x
-        }
+    'number': function(num){
+        Check.radicandNegative(num)
         return{
-            data:String(Math.sqrt(x)),
-            uncer:'0'
+            data: String(Math.sqrt(num)),
+            uncer: '0'
         }
     }
   }),
   abs:typed('abs',{
-    'Object':function(x){
+    'Object': function(obj){
         return{
-            data:String(Math.abs(Number(x.data))),
-            uncer:x.uncer
+            data: String(Math.abs(Number(obj.data))),
+            uncer: obj.uncer
         }
     },
-    'number':function(x){
+    'number': function(num){
         return{
-            data:String(Math.abs(x)),
-            uncer:'0'
+            data: String(Math.abs(num)),
+            uncer: '0'
         }
     }
   }),
   pow:typed('pow',{
-    'Object, Object':function(x1, x2){
-        let y1 = Number(x1.data)
-        let y2 = Number(x2.data)
+    'Object, Object': function(obj1, obj2){
+        let y1 = Number(obj1.data)
+        let y2 = Number(obj2.data)
+        Check.invalidPow(y1, y2)
         return{
             data:String(Math.pow(y1, y2)),
-            uncer:String(Math.sqrt(Math.pow(Math.pow(y1, y2) * Math.log(y1) * Number(x2.uncer), 2) + Math.pow(y2 * Math.pow(y1, y2-1) * Number(x1.uncer), 2)))
+            uncer: dimensionalAdd(Math.pow(y1, y2) * Math.log(y1) * Number(obj2.uncer), y2 * Math.pow(y1, y2 - 1) * Number(obj1.uncer))
         }
     },
-    'Object, number':function(x1, x2){
+    'Object, number': function(obj, num){
+        Check.invalidPow(Number(obj.data), num)
         return{
-            data:String(Math.pow(Number(x1.data), x2)),
-            uncer:String(Math.abs(x2 * Math.pow(Number(x1.data) , x2-1) * Number(x1.data)))
+            data:String(Math.pow(Number(obj.data), num)),
+            uncer:String(Math.abs(num * Math.pow(Number(obj.data) , num - 1) * Number(obj.data)))
         }
     },
-    'number, Object':function(x1, x2){
+    'number, Object':function(num, obj){
+        Check.invalidPow(num, Number(obj.data))
         return{
-            data:String(Math.pow(x1, Number(x2.data))),
-            uncer:String(Math.log(Number(x2.data)) * Math.pow(x1, Number(x2.data)))
+            data:String(Math.pow(num, Number(obj.data))),
+            uncer:String(Math.log(Number(obj.data)) * Math.pow(num, Number(obj.data)))
         }
     },
-    'number, number':function(x1, x2){
+    'number, number':function(num1, num2){
+        Check.invalidPow(num1, num2)
         return{
-            data:String(Math.pow(x1, x2)),
+            data:String(Math.pow(num1, num2)),
             uncer:'0'
         }
     }
-  })
+  }),
+  lg:typed('lg',{
+    'Object': function(obj){
+        Check.naturalInpositive(Number(obj.data))
+        return{
+            data: String(Math.log10(Number(obj.data))),
+            uncer: calc(`(${obj.uncer}) / (${obj.data}) * (${String(Math.LN10)})`)
+        }
+    },
+    'number': function(num){
+        Check.naturalInpositive(num)
+        return{
+            data:String(Math.log10(num)),
+            uncer:'0'
+        }
+    }
+  }),
+  unaryMinus: typed('unaryMinus', {
+    'Object': function(obj) {
+      return{
+        data: String(-Number(obj.data)),
+        uncer: obj.uncer
+      }
+    },
+    'number': function(num) {
+      return{
+        data: String(-num),
+        uncer: '0'
+      }
+    }
+  }),
 }, { override: true });
 // 不确定度计算规则
+
+
 function escapeVariableName(variableName) {
     if(!variableName){
         return ''
     }
+    function replaceChineseWithUnicode(str) {
+        // 匹配中文字符的正则表达式
+        const chineseRegex = /[\u4e00-\u9fa5]/g
+
+        // 使用 replace 逐个替换匹配到的中文字符
+        return str.replace(chineseRegex, (ch) => {
+            // 将中文字符转换为 Unicode 编码格式
+            return 'u' + ch.charCodeAt(0).toString(16).padStart(4, '0')
+        })
+    }
+    // 将中文转成编码，防止数学解析器无法识别中文
+
     // 用双引号包裹变量名，防止撇号引起解析错误
-    let tmp = variableName.includes("'") ? variableName.replace(/'/g, "_apostrophe_") : variableName
-    tmp = tmp.includes(",") ? tmp.replace(/,/g,"_comma_") : tmp
+    let tmp = variableName;
+    tmp = tmp.replace(/'/g, "_APOSTROPHE_");
+    tmp = tmp.replace(/,/g, "_COMMA_");
+    tmp = tmp.replace(/\+/g, "_ADD_");
+    tmp = tmp.replace(/\-/g, "_SUBTRACT_");
+    tmp = tmp.replace(/\*/g, "_MULTIPLY_");
+    tmp = tmp.replace(/\//g, "_DIVIDE_");
+    tmp = tmp.replace(/\^/g, "_POW_");
+    tmp = tmp.replace(/ln/g, "_LN_");
+    tmp = tmp.replace(/log/g, "_LOG_");
+    tmp = tmp.replace(/lg/g, "_LG_");
+    tmp = tmp.replace(/{/g, "_LEFTBRACE_");
+    tmp = tmp.replace(/}/g, "_RIGHTBRACE_");
+    tmp = tmp.replace(/;/g, "_SEMICOLON_");
+    tmp = tmp.replace(/\./g, "_PERIOD_");
+    tmp = replaceChineseWithUnicode(tmp);
+    tmp = tmp.replace(/\(/g, "_LEFTPARENTHESIS_");
+    tmp = tmp.replace(/\)/g, "_RIGHTPARENTHESIS_");
+    tmp = tmp.replace(/\\/g, "_BACKSLASH_")
     return tmp
 }
-// 处理变量名规范
-function escapeExpression(expression) {
-    return escapeVariableName(expression)
+// 处理变量名规范，以便数学解析器解析
+function escapeExpression(expression, variables) {
+    return preprocessExpression(expression, variables)
 }
-// 处理表达式规范
-function evaluateUncer(dataList, expression){
-    const parser = math3.parser()
+// 处理表达式规范，以便数学解析器解析
+function preprocessExpression(expression, variables) {
+    let preprocessed = expression;
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    Object.keys(variables).forEach(key => {
+        const value = variables[key];
+        const escapedKey = escapeRegExp(key); // 转义键
+        const regex = new RegExp(escapedKey, 'g'); // 创建全局正则表达式
+        preprocessed = preprocessed.replace(regex, value); // 替换匹配的部分
+    });
+
+    return preprocessed;
+}
+// 预处理，替换变量名使变量名合法
+
+function evaluateUncer(dataList, expression, currentTitle){
+    const parser = uncerMath.parser()
+    let variables = {}
     dataList.forEach(item =>{
-        parser.set(escapeVariableName(item.title),{data:item.analysis[0].propertyValue,uncer:item.moreUncer.wholeUncer})
+        if(item.title !== currentTitle){
+            variables[item.title] = escapeVariableName(item.title)
+            parser.set(escapeVariableName(item.title), {data: item.analysis['avg'].propertyValue, uncer: item.moreUncer.wholeUncer})
+        }
+        // 防止该数据的命名与算式有冲突
     })
     try {
-        // 直接使用 mathjs 解析器评估整个表达式
-        //console.log(`Escaped expression: ${escapeExpression(expression)}`); // 调试输出
-        let result = parser.evaluate(escapeExpression(expression));
-        // 确保结果是数组
-        // 返回计算结果
-        return errorMode(result.uncer)
-    } catch (error) {
+        let result = parser.evaluate(escapeExpression(expression, variables))
+        if(typeof result === 'number'){
+            return '0'
+        }
+        else{
+            return errorMode(result.uncer)
+        }
+    }
+    catch (error) {
         ElMessage.error('计算过程中出错！')
-        console.error("Error evaluating expression:", error);
-        return '0';  // 错误处理，返回空数组
+        console.error("Error evaluating expression:", error)
+        return '0'  // 错误处理
     }
 }
 // 依据计算式计算不确定度
-function evaluateExpression(dataList, expression, option) {
-    const parser = math1.parser();  // 使用 math1 实例创建解析器
-    // 为每个数据集加载其 rawData 数组到解析器环境
+function evaluateExpression(dataList, expression, option, currentTitle) {
+    const parser = valueMath.parser();
+    let variables = {}
     if(option === 'forAll'){
         dataList.forEach(item => {
-            // let rawDataArray = item.dataSet.map(obj => obj.rawData)
-            // parser.set(item.title, rawDataArray)
-            //console.log(escapeVariableName(item.title))
-            parser.set(escapeVariableName(item.title),item.dataSet)
+            if(item.title !== currentTitle){
+                variables[item.title] = escapeVariableName(item.title)
+                parser.set(escapeVariableName(item.title), item.dataSet)
+            }
         })
     }
     else if(option === 'forAvg'){
         dataList.forEach(item => {
-            // parser.set(item.title, Number(item.analysis[0].propertyValue))
-            let tmpRawData = item.analysis[0].propertyValue
+            variables[item.title] = escapeVariableName(item.title)
+            let tmpRawData = item.analysis['avg'].propertyValue
             parser.set(escapeVariableName(item.title),[
                 {
                     rawData:tmpRawData,
                     level:getLevel(tmpRawData),
-                    bit:countSignificantDigits(tmpRawData)
+                    bit:getBit(tmpRawData)
                 }
             ])
         })
     }
     try {
-        // 直接使用 mathjs 解析器评估整个表达式
-        let result = parser.evaluate(escapeExpression(expression));
+        let result = parser.evaluate(escapeExpression(expression, variables));
         // 确保结果是数组
         if (!Array.isArray(result)) {
             result = [result];
         }
         // 返回计算结果
-        result.forEach(item=>{
-            item.rawData = standardByBit(item.rawData,item.bit)
-        })
-        return result
-    } catch (error) {
+        if(typeof result[0] === 'number'){
+            ElMessage.success(`计算结果为 ${result[0]}`)
+            return []
+        }
+        else{
+            result.forEach(item=>{
+                item.rawData = standardByBit(item.rawData,item.bit)
+            })
+            return result
+        }
+    }
+    catch (error) {
         ElMessage.error('计算过程中出错！')
         console.error("Error evaluating expression:", error);
         return [];  // 错误处理，返回空数组
@@ -971,7 +1140,7 @@ function getLevel(str){
     // 除去加减符号
     if (/e/i.test(trimmedStr)) {
         let parts = trimmedStr.split(/e/i);
-        //return Number(parts[1])-countSignificantDigits(parts[0]) + 1
+        //return Number(parts[1])-getBit(parts[0]) + 1
         return Number(parts[1])+getLevel(parts[0])
     }
     // 处理科学计数法数字
@@ -991,7 +1160,7 @@ function toScientific(str){
     if(/e/i.test(str)){
         return str
     }
-    let bit = countSignificantDigits(str)
+    let bit = getBit(str)
     let length = str.length
     let index = -1
     for (let i = 0 ; i < length; i++){
@@ -1050,7 +1219,7 @@ function toPercent(str){
     if(str === '0'){
         return str
     }
-    let bit = countSignificantDigits(str)
+    let bit = getBit(str)
     return standardByBit(calc(str +'* 100'),bit)+'%'
 }
 // 不损失有效数字地用百分数表示数据
@@ -1072,7 +1241,7 @@ function insertString(original, index, stringToInsert) {
     return original.substring(0, index) + stringToInsert + original.substring(index);
 }
 // 在某位插入数据
-function countSignificantDigits(str) {
+function getBit(str) {
     // 去掉字符串前后的空格并检查是否为有效数字
     str = String(str)
     let trimmedStr = str.trim();
@@ -1086,7 +1255,7 @@ function countSignificantDigits(str) {
     // 处理科学记数法
     if (/e/i.test(trimmedStr)) {
         let parts = trimmedStr.split(/e/i);
-        let significantDigits = countSignificantDigits(parts[0]);
+        let significantDigits = getBit(parts[0]);
         return significantDigits; // 返回科学记数法前的部分的有效数字位数
     }
 
@@ -1112,7 +1281,7 @@ function standardByLevel(str,level){
     let result = ''
     parts[0] = calc(parts[0] + '| ~6 , =' + String(Number(parts[1])-level))
     result = parts[0] + 'e' + parts[1]
-    let bit = countSignificantDigits(parts[0])
+    let bit = getBit(parts[0])
     // 保留位数工作结束
     if((Number(parts[1]) <= -3 && Number(parts[1]) - bit < -4)|| Number(parts[1]) >= bit){
         return result
@@ -1132,7 +1301,7 @@ function errorMode(str){
             eStr = parts[0] +'.0e' + parts[1]
         }
         let level = getLevel(eStr)
-        let bit = countSignificantDigits(parts[0])
+        let bit = getBit(parts[0])
         if(Number(parts[1]) <= -3 || Number(parts[1]) >= bit){
             return eStr
         }
@@ -1303,7 +1472,7 @@ function errorMode(str){
             }
         }
         // 处理特殊情况
-        let resultBit = countSignificantDigits(result)
+        let resultBit = getBit(result)
         result = result + 'e' + parts[1]
         if(Number(parts[1]) > resultBit || (Number(parts[1]) <= -3 && Number(parts[1]) - resultBit < -4)){
             return result
@@ -1322,41 +1491,43 @@ export const useAllDataStore = defineStore('allData',()=>{
             state.value.selectedDataIndex--
         }
     }
-    function addData(type){
-        if(type === 'direct'){
+    function addData(flag){
+        if(flag){
             state.value.dataList.push({
                 dataSet:[],
                 named:false,
                 theoData:'',
-                analysis:[
-                    {
+                analysis:{
+                    avg:{
                         propertyName:'平均值',
                         propertyValue:''
                     },
-                    {
+                    relAvgDev: {
                         propertyName:'相对平均偏差',
                         propertyValue:''
                     },
-                    {
+                    stdDev: {
                         propertyName:'标准偏差',
                         propertyValue:''
                     },
-                    {
+                    relStdDev: {
                         propertyName:'相对标准偏差',
                         propertyValue:''
                     },
-                    {
+                    aUncer: {
                         propertyName:'A类不确定度',
                         propertyValue:'0'
                     }
-                ],
+                },
                 type:'direct',
                 moreUncer:{
                     equipUncer:'',
                     bUncer:'',
                     wholeUncer:''
                 },
-                unit:''
+                unit:'',
+                levelRule: true,
+                doc:''
             })
         }
         else{
@@ -1364,250 +1535,281 @@ export const useAllDataStore = defineStore('allData',()=>{
                 dataSet:[],
                 named:false,
                 theoData:'',
-                analysis:[],
+                analysis:{
+                    avg:{
+                        propertyName:'平均值',
+                        propertyValue:'0'
+                    },
+                    relAvgDev:{
+                        propertyName:'相对平均偏差',
+                        propertyValue:'0'
+                    },
+                    stdDev:{
+                        propertyName:'标准偏差',
+                        propertyValue:'0'
+                    },
+                    relStdDev:{
+                        propertyName:'相对标准偏差',
+                        propertyValue:'0'
+                    },
+                },
                 type:'indirect',
                 computeMethod:'',
-                computeOption:'',
+                computeOption:'forAll',
                 moreUncer:{
                     wholeUncer:''
                 },
                 unit:'',
-                dataMethod:false
+                dataMethod:false,
+                doc:''
             })
         }
         state.value.selectedDataIndex = state.value.dataList.length - 1
     }
     function refresh(){
-        let selectedList = state.value.dataList[state.value.selectedDataIndex]
-        if(selectedList.type === 'direct' || (selectedList.type ==='indirect' && selectedList.computeOption === 'forAll')){
+        try{
+            let selectedList = state.value.dataList[state.value.selectedDataIndex]
             let length = selectedList.dataSet.length
-            let dataLevel = 100
-            let dataLev = -100
-            let sum =  '0'
-            if(length !== 0){
-                for(let i = 0; i < length; i++){
-                    let rawDataNum = Number(selectedList.dataSet[i].rawData)
-                    if(!isNaN(rawDataNum) && typeof rawDataNum === 'number'){
-                        if(selectedList.dataSet[i].rawData){
-                            sum = calc(`(${sum}) + (${selectedList.dataSet[i].rawData})`)
-                            // 求和
-                            let tmp = getLevel(selectedList.dataSet[i].rawData)
-                            dataLevel = tmp < dataLevel ? tmp : dataLevel
-                            dataLev = tmp > dataLev ? tmp : dataLev
-                            // 取最小level
-                        }
-                        else{
-                            ElMessage.error('数据不能为空！如果要删除，尝试点击右边的删除图标。')
-                            return
-                        }
-                    }
-                    else{
-                        ElMessage.error('无效的数据！是否包含了字母或百分号？')
-                        return
-                    }
+            let selectedDataSet = selectedList.dataSet
+            let selectedAnalysis = selectedList.analysis
+            let selectedTheoData = selectedList.theoData
+            let selectedType = selectedList.type
+            function checkInvalidData(rawData){
+                if(rawData === ''){
+                    ElMessage.error('数据不能为空！如果要删除，尝试点击右边的删除图标。')
+                    throw new Error('数据不能为空！如果要删除，尝试点击右边的删除图标。')
                 }
-                if(selectedList.type === 'direct'){
-                    for(let i = 0; i<length;i++){
-                        selectedList.dataSet[i].rawData = standardByLevel(selectedList.dataSet[i].rawData,dataLevel)
-                        selectedList.dataSet[i].bit = countSignificantDigits(selectedList.dataSet[i].rawData)
-                        selectedList.dataSet[i].level = dataLevel
-                    }
+                let rawDataNum = Number(rawData)
+                if(typeof rawDataNum !== 'number' || isNaN(rawDataNum)){
+                    ElMessage.error('无效的数据！是否包含了字母或百分号？')
+                    throw new Error('无效的数据！是否包含了字母或百分号？')
                 }
-                let avgvalue = standardByLevel(calc('sum / length',{sum:sum,length:length}),dataLevel-1)
-                if(selectedList.type === 'direct'){
-                    selectedList.analysis[0].propertyValue = standardByLevel(calc('sum / length',{sum:sum,length:length}),dataLevel)
-                }
-                else{
-                    selectedList.analysis[0].propertyValue = standardByLevel(calc('sum / length',{sum:sum,length:length}),dataLev)
-                }
-                // 均值
-                let relErrValue = '0'
-                if(selectedList.theoData !== ''){
-                    if(!isNaN(Number(selectedList.theoData))&& typeof Number(selectedList.theoData) === 'number'){
-                        for(let i = 0; i < length; i++){
-                            selectedList.dataSet[i].relErr = calc('('+selectedList.dataSet[i].rawData + '-' + selectedList.theoData + ')/' + selectedList.theoData )
-                            selectedList.dataSet[i].relErr = toPositive(selectedList.dataSet[i].relErr)
-                            relErrValue = calc(relErrValue + '+' + standardByBit(selectedList.dataSet[i].relErr,3) )
-                            selectedList.dataSet[i].relErr = errorMode(selectedList.dataSet[i].relErr)
-                            selectedList.dataSet[i].relErr = toPercent(selectedList.dataSet[i].relErr)
-                            // 相对误差
-                        }
-                        if(selectedList.type === 'direct'){
-                            selectedList.analysis[5] ={
-                                propertyName:'平均相对误差',
-                                propertyValue:''
-                            },
-                            selectedList.analysis[6]={
-                                propertyName:'平均值与理论值的相对误差',
-                                propertyValue:''
-                            }
-                            selectedList.analysis[6].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
-                            selectedList.analysis[6].propertyValue = errorMode(selectedList.analysis[6].propertyValue)
-                            selectedList.analysis[6].propertyValue = toPositive(selectedList.analysis[6].propertyValue)
-                            selectedList.analysis[6].propertyValue = toPercent(selectedList.analysis[6].propertyValue)
-                            // 平均值与理论值的相对误差
-                            selectedList.analysis[5].propertyValue = calc(relErrValue + '/' + String(length))
-                            selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
-                            selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
-                            // 平均相对误差
-                        }
-                        else{
-                            selectedList.analysis[4] ={
-                                propertyName:'平均相对误差',
-                                propertyValue:''
-                            },
-                            selectedList.analysis[5]={
-                                propertyName:'平均值与理论值的相对误差',
-                                propertyValue:''
-                            }
-                            selectedList.analysis[5].propertyValue = calc('(' + avgvalue + '-' + selectedList.theoData + ')/' + selectedList.theoData)
-                            selectedList.analysis[5].propertyValue = errorMode(selectedList.analysis[5].propertyValue)
-                            selectedList.analysis[5].propertyValue = toPositive(selectedList.analysis[5].propertyValue)
-                            selectedList.analysis[5].propertyValue = toPercent(selectedList.analysis[5].propertyValue)
-                            // 平均值与理论值的相对误差
-                            selectedList.analysis[4].propertyValue = calc(relErrValue + '/' + String(length))
-                            selectedList.analysis[4].propertyValue = errorMode(selectedList.analysis[4].propertyValue)
-                            selectedList.analysis[4].propertyValue = toPercent(selectedList.analysis[4].propertyValue)
-                            // 平均相对误差
-                        }
-                    }
-                    else{
-                        ElMessage.error('无效的理论值！')
-                        if(selectedList.type === 'direct'){
-                            delete selectedList.analysis[5]
-                            delete selectedList.analysis[6]
-                        }
-                        else{
-                            delete selectedList.analysis[4]
-                            delete selectedList.analysis[5]
-                        }
-                    }
-                }
-                else{
-                    if(selectedList.type === 'direct'){
-                        delete selectedList.analysis[5]
-                        delete selectedList.analysis[6]
-                    }
-                    else{
-                        delete selectedList.analysis[4]
-                        delete selectedList.analysis[5]
-                    }
-                }
-                let shiftValue = '0'
-                let stdShiftValue = '0'
-                for(let i = 0; i<length; i++){
-                    let tmp = calc(selectedList.dataSet[i].rawData + '-' + avgvalue)
-                    shiftValue = calc(shiftValue + '+' +toPositive(tmp))
-                    stdShiftValue = calc(stdShiftValue + '+' + calc(tmp + '*' + tmp))
-                }
-                selectedList.analysis[1].propertyValue = calc(shiftValue + '/' + String(length) + '/' + avgvalue)
-                selectedList.analysis[1].propertyValue = errorMode(selectedList.analysis[1].propertyValue)
-                selectedList.analysis[1].propertyValue = toPercent(selectedList.analysis[1].propertyValue)
-                if(length > 1){
-                    selectedList.analysis[2].propertyValue = calc(stdShiftValue + '/' + String(length-1))
-                }
-                else{
-                    selectedList.analysis[2].propertyValue = '0'
-                }
-                if(selectedList.type === 'direct'){
-                    if(length > 1){
-                        selectedList.analysis[4].propertyValue = calc(selectedList.analysis[2].propertyValue + '/' +String(length))
-                        selectedList.analysis[4].propertyValue = String(Math.sqrt(Number(selectedList.analysis[4].propertyValue)))
-                        selectedList.analysis[4].propertyValue = errorMode(selectedList.analysis[4].propertyValue)
-                    }
-                    else{
-                        selectedList.analysis[4].propertyValue = '0'
-                    }
-                }
-                selectedList.analysis[2].propertyValue = String(Math.sqrt(Number(selectedList.analysis[2].propertyValue)))
-                selectedList.analysis[3].propertyValue = calc(selectedList.analysis[2].propertyValue + '/' + avgvalue)
-                selectedList.analysis[2].propertyValue = errorMode(selectedList.analysis[2].propertyValue)
-                selectedList.analysis[3].propertyValue = errorMode(selectedList.analysis[3].propertyValue)
-                selectedList.analysis[3].propertyValue = toPercent(selectedList.analysis[3].propertyValue)
             }
-            if(selectedList.type == 'direct'){
-                if(selectedList.moreUncer.equipUncer){
-                    let equipUncerNum = Number(selectedList.moreUncer.equipUncer)
-                    if(!isNaN(equipUncerNum) && typeof equipUncerNum === 'number'){
-                        selectedList.moreUncer.bUncer = calc(selectedList.moreUncer.equipUncer + '/' + String(Math.sqrt(3)))
-                        selectedList.moreUncer.bUncer = errorMode(selectedList.moreUncer.bUncer)
-                    }
-                    else{
-                        ElMessage.error('无效的仪器允差！')
-                        selectedList.moreUncer.bUncer = ''
-                    }
+            // 检测rawData不合法的错误情况
+            function createAnalysis(key, name, value){
+                selectedAnalysis[key] = {
+                    propertyName: name,
+                    propertyValue: value
                 }
-                else{
-                    selectedList.moreUncer.bUncer = ''
-                }
-                if(selectedList.analysis[4].propertyValue !== '0'){
-                    if(selectedList.moreUncer.bUncer !== ''){
-                        selectedList.moreUncer.wholeUncer = calc(selectedList.moreUncer.bUncer +'*'+ selectedList.moreUncer.bUncer +'+'+ selectedList.analysis[4].propertyValue +'*'+ selectedList.analysis[4].propertyValue)
-                        selectedList.moreUncer.wholeUncer = errorMode(String(Math.sqrt(Number(selectedList.moreUncer.wholeUncer))))
-                    }
-                    else{
-                        selectedList.moreUncer.wholeUncer = selectedList.analysis[4].propertyValue
-                    }
-                }
-                else{
-                    if(selectedList.moreUncer.bUncer !== ''){
-                        selectedList.moreUncer.wholeUncer = selectedList.moreUncer.bUncer
-                    }
-                    else{
-                        if(selectedList.dataSet.length === 1){
-                            if(selectedList.moreUncer.wholeUncer === ''){
-                                selectedList.moreUncer.wholeUncer = '0'
-                            }
-                            else{
-                                selectedList.moreUncer.wholeUncer = errorMode(selectedList.moreUncer.wholeUncer)
-                            }
+            }
+            // 创造某个analysis
+            function initAnalysis(key){
+                selectedAnalysis[key].propertyValue = '0'
+            }
+            // 将某个analysis置0
+            function editAnalysis(key, value){
+                selectedAnalysis[key].propertyValue = value
+            }
+            if(selectedType === 'direct' || (selectedType ==='indirect' && selectedList.computeOption === 'forAll')){
+                let dataMaxLevel = -100
+                let dataMinLevel = 100
+                let sum =  '0'
+                if(length !== 0){
+                    selectedDataSet.forEach(item => {
+                        checkInvalidData(item.rawData)
+                        sum = calc(`(${sum}) + (${item.rawData})`)
+                        let tmpLevel = getLevel(item.rawData)
+                        dataMaxLevel = Math.max(dataMaxLevel, tmpLevel)
+                        dataMinLevel = Math.min(dataMinLevel, tmpLevel)
+                    })
+                    // 取最大level和最小level
+
+                    if(selectedType === 'direct'){
+                        if(selectedList.levelRule === false){
+                            selectedDataSet.forEach(item => {
+                                item.rawData = standardByLevel(item.rawData, dataMinLevel)
+                                item.bit = getBit(item.rawData)
+                                item.level = dataMinLevel
+                            })
                         }
                         else{
-                            selectedList.moreUncer.wholeUncer = '0'
+                            selectedDataSet.forEach(item => {
+                                item.bit = getBit(item.rawData)
+                                item.level = getLevel(item.rawData)
+                            })
                         }
                     }
+                    // 规范化direct数据
+
+                    let avgValue = calc(`(${sum}) / (${length})`)
+                    if(selectedType === 'direct'){
+                        editAnalysis('avg', standardByLevel(avgValue, dataMinLevel))
+                    }
+                    else{
+                        editAnalysis('avg', standardByLevel(avgValue, dataMaxLevel))
+                    }
+                    // 将均值依照level赋值
+
+                    let relErrSum = '0'
+                    if(selectedTheoData !== ''){
+                        // 当理论值不为空时，处理相关数据
+                        checkInvalidData(selectedTheoData)
+                        if(selectedTheoData === '0'){
+                            ElMessage.warning('理论值为 0，不计算相对误差、平均相对误差与平均值与理论值的相对误差！')
+                            createAnalysis('relErr', '相对误差', '0')
+                            createAnalysis('avgRelErr', '平均相对误差', '0')
+                            createAnalysis('avgOverallRelErr', '平均值与理论值的相对误差', '0')
+                        }
+                        else{
+                            selectedDataSet.forEach(item => {
+                                let tmpRelErr = calc(`((${item.rawData}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                                tmpRelErr = toPositive(tmpRelErr)
+                                relErrSum = calc(`(${relErrSum}) + (${tmpRelErr})`)
+                                tmpRelErr = toPercent(errorMode(tmpRelErr))
+                                item.relErr = tmpRelErr
+                            })
+                            // 添加相对误差
+                            let tmpAvgRelErr = calc(`(${relErrSum}) / ${String(length)}`)
+                            tmpAvgRelErr = toPercent(errorMode(tmpAvgRelErr))
+                            createAnalysis('avgRelErr', '平均相对误差', tmpAvgRelErr)
+                            // 添加平均相对误差
+                            let tmpOverallRelErr = calc(`((${avgValue}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                            tmpOverallRelErr = toPositive(tmpOverallRelErr)
+                            tmpOverallRelErr = toPercent(errorMode(tmpOverallRelErr))
+                            createAnalysis('avgOverallRelErr', '平均值与理论值的相对误差', tmpOverallRelErr)
+                            // 添加平均值与理论值的相对误差
+                        }
+                    }
+                    else{
+                        delete selectedAnalysis['avgRelErr']
+                        delete selectedAnalysis['avgOverallRelErr']
+                    }
+                    // 处理理论值相关
+
+                    let devSum = '0'
+                    let devSquareSum = '0'
+                    selectedDataSet.forEach(item => {
+                        let tmpDev = toPositive(calc(`(${item.rawData}) - (${avgValue})`))
+                        devSum = calc(`(${devSum}) + (${tmpDev})`)
+                        devSquareSum = calc(`(${devSquareSum}) + (${tmpDev}) * (${tmpDev})`)
+                    })
+                    // 计算偏差的和、平方偏差的和
+
+                    if(avgValue === '0'){
+                        ElMessage.warning('平均值为 0，不计算相对平均偏差！')
+                        initAnalysis('relAvgDev')
+                    }
+                    else{
+                        let tmpRelAvgDev = toPositive(calc(`(${devSum}) / (${String(length)}) / (${avgValue})`))
+                        tmpRelAvgDev = toPercent(errorMode(tmpRelAvgDev))
+                        editAnalysis('relAvgDev', tmpRelAvgDev)
+                    }
+                    // 计算相对平均偏差
+
+                    if(length > 1){
+                        let tmpStdDev = String(Math.sqrt(Number(devSquareSum) / (length - 1)))
+
+                        editAnalysis('stdDev', errorMode(tmpStdDev))
+                        if(avgValue === '0'){
+                            ElMessage.warning('平均值为 0，不计算相对标准偏差！')
+                            initAnalysis('relStdDev')
+                        }
+                        else{
+                            let tmpRelStdDev = toPositive(calc(`(${tmpStdDev}) / (${avgValue})`))
+                            tmpRelStdDev = toPercent(errorMode(tmpRelStdDev))
+                            editAnalysis('relStdDev', tmpRelStdDev)
+                        }
+                        if(selectedType === 'direct'){
+                            let tmpAUncer = String(Number(tmpStdDev) / Math.sqrt(length))
+                            editAnalysis('aUncer', errorMode(tmpAUncer))
+                        }
+                        else{
+                            delete selectedAnalysis['aUncer']
+                        }
+                    }
+                    else{
+                        initAnalysis('stdDev')
+                        initAnalysis('relStdDev')
+                        if(selectedType === 'direct'){
+                            initAnalysis('aUncer')
+                        }
+                        else{
+                            delete selectedAnalysis['aUncer']
+                        }
+                    }
+                    // 计算标准偏差，相对标准偏差和A类不确定度
+
+                    if(selectedType === 'direct'){
+                        let selectedUncers = selectedList.moreUncer
+                        if(selectedUncers.equipUncer){
+                            checkInvalidData(selectedUncers.equipUncer)
+                            let tmpBUncer = calc(`(${selectedUncers.equipUncer}) / (${String(Math.sqrt(3))})`)
+                            selectedUncers.bUncer = errorMode(tmpBUncer)
+                        }
+                        else{
+                            delete selectedUncers.bUncer
+                        }
+                        // 解决B类不确定度
+                        if(selectedUncers.bUncer){
+                            let tmpWholeUncer = dimensionalAdd(selectedAnalysis['aUncer'].propertyValue, selectedUncers.bUncer)
+                            selectedUncers.wholeUncer = errorMode(tmpWholeUncer)
+                        }
+                        else{
+                            selectedUncers.wholeUncer = selectedAnalysis['aUncer'].propertyValue
+                        }
+                        // 解决总不确定度
+                    }
+                    // 计算direct数据的不确定度
                 }
+                // 长度不为0情况
+                else{
+                    initAnalysis('avg')
+                    initAnalysis('relAvgDev')
+                    initAnalysis('stdDev')
+                    initAnalysis('relStdDev')
+                    if(selectedType === 'direct'){
+                        initAnalysis('aUncer')
+                        if(selectedList.moreUncer.equipUncer){
+                            checkInvalidData(selectedList.moreUncer.equipUncer)
+                            let tmpBUncer = calc(`(${selectedList.moreUncer.equipUncer}) / (${String(Math.sqrt(3))})`)
+                            selectedList.moreUncer.bUncer = errorMode(tmpBUncer)
+                            selectedList.moreUncer.wholeUncer = selectedList.moreUncer.bUncer
+                        }
+                    }
+                    delete selectedAnalysis['relErr']
+                    delete selectedAnalysis['avgRelErr']
+                    delete selectedAnalysis['avgOverallRelErr']
+                }
+                // 长度为0情况
+            }
+            // 多数据情况
+            else if(selectedType === 'indirect' && selectedList.computeOption === 'forAvg'){
+                createAnalysis('avg', '实验值', selectedDataSet[0].rawData)
+                if(selectedTheoData !== ''){
+                    checkInvalidData(selectedTheoData)
+                    let tmpRelErr = calc(`((${selectedDataSet[0].rawData}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                    tmpRelErr = toPositive(tmpRelErr)
+                    tmpRelErr = toPercent(errorMode(tmpRelErr))
+                    createAnalysis('relErr', '相对误差', tmpRelErr)
+                }
+                else{
+                    delete selectedAnalysis['relErr']
+                }
+            }
+            // 单数据情况
+            if(selectedType === 'indirect'){
+                ElMessage.success('刷新成功！')
             }
         }
-        else if(selectedList.type === 'indirect' && selectedList.computeOption === 'forAvg'){
-            selectedList.analysis[0].propertyValue=selectedList.dataSet[0].rawData
-            if(selectedList.theoData !== ''){
-                let theoDataNum = Number(selectedList.theoData)
-                if(!isNaN(theoDataNum) && typeof theoDataNum === 'number'){
-                    selectedList.analysis[1] ={
-                        propertyName:'相对误差',
-                        propertyValue:''
-                    }
-                    selectedList.analysis[1].propertyValue = calc(`((${selectedList.analysis[0].propertyValue})-(${selectedList.theoData}))/(${selectedList.theoData})`)
-                    selectedList.analysis[1].propertyValue = toPositive(selectedList.analysis[1].propertyValue)
-                    selectedList.analysis[1].propertyValue = toPercent(errorMode(selectedList.analysis[1].propertyValue))
-                }
-                else{
-                    ElMessage.error('无效的理论值！')
-                    delete selectedList.analysis[1]
-                }
-            }
-            else{
-                delete selectedList.analysis[1]
-            }
+        catch(error){
+            ElMessage.error('在刷新时出错！')
+            console.error('Error during refresh', error)
         }
     }
+    // 刷新当前选中数据
     function editIndirectData(){
         let selectedList = state.value.dataList[state.value.selectedDataIndex]
         if(selectedList.computeMethod === ''){
-            return
-        }
-        if(selectedList.computeOption === ''){
-            ElMessage.error('还未选择计算方式！')
+            ElMessage.warning('还未填写算式！')
             return
         }
         let resultDataSet
         if(selectedList.computeOption === 'forAll'){
-            resultDataSet = evaluateExpression(state.value.dataList , selectedList.computeMethod, 'forAll')
+            resultDataSet = evaluateExpression(state.value.dataList , selectedList.computeMethod, 'forAll', selectedList.title)
             // 数值计算
         }
         else if(selectedList.computeOption === 'forAvg'){
-            resultDataSet = evaluateExpression(state.value.dataList , selectedList.computeMethod, 'forAvg')
+            resultDataSet = evaluateExpression(state.value.dataList , selectedList.computeMethod, 'forAvg', selectedList.title)
             // 数值计算
         }
         selectedList.dataSet = resultDataSet
@@ -1617,32 +1819,32 @@ export const useAllDataStore = defineStore('allData',()=>{
     function analysisChange(){
         let selectedList = state.value.dataList[state.value.selectedDataIndex]
         if(selectedList.computeOption === 'forAll'){
-            selectedList.analysis = [
-                {
+            selectedList.analysis = {
+                avg:{
                     propertyName:'平均值',
-                    propertyValue:''
+                    propertyValue:'0'
                 },
-                {
+                relAvgDev:{
                     propertyName:'相对平均偏差',
-                    propertyValue:''
+                    propertyValue:'0'
                 },
-                {
+                stdDev:{
                     propertyName:'标准偏差',
-                    propertyValue:''
+                    propertyValue:'0'
                 },
-                {
+                relStdDev:{
                     propertyName:'相对标准偏差',
-                    propertyValue:''
+                    propertyValue:'0'
                 },
-            ]
+            }
         }
         else{
-            selectedList.analysis = [
-                {
+            selectedList.analysis = {
+                avg: {
                     propertyName:'实验值',
-                    propertyValue:''
+                    propertyValue:'0'
                 }
-            ]
+            }
         }
     }
     function evaluateLine(xData,yData){
