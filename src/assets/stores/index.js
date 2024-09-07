@@ -1023,6 +1023,7 @@ function evaluateExpression(dataList, expression, option, currentTitle) {
     }
 }
 // 依据计算式计算值
+
 function calculateLeastSquares(x, y) {
     if (x.length !== y.length) {
         ElMessage.error('数组长度不一致！')
@@ -1241,39 +1242,81 @@ function insertString(original, index, stringToInsert) {
     return original.substring(0, index) + stringToInsert + original.substring(index);
 }
 // 在某位插入数据
-function getBit(str) {
-    // 去掉字符串前后的空格并检查是否为有效数字
+// function getBit(str) {
+//     // 去掉字符串前后的空格并检查是否为有效数字
+//     str = String(str)
+//     let trimmedStr = str.trim();
+//     if (isNaN(Number(trimmedStr))) {
+//         return 0; // 不是有效数字，返回0
+//     }
+
+//     // 去掉数字前的正负号
+//     trimmedStr = trimmedStr.replace(/^[+-]/, '');
+
+//     // 处理科学记数法
+//     if (/e/i.test(trimmedStr)) {
+//         let parts = trimmedStr.split(/e/i);
+//         let significantDigits = getBit(parts[0]);
+//         return significantDigits; // 返回科学记数法前的部分的有效数字位数
+//     }
+
+//     // 分离整数部分和小数部分
+//     let [integerPart, decimalPart] = trimmedStr.split('.');
+//     if(integerPart === '0'){
+//         integerPart = ''
+//         if(decimalPart !== undefined){
+//             decimalPart = decimalPart.replace(/^0+/, '')
+//         }
+//     }
+//     if (decimalPart === undefined) {
+//         decimalPart = ''
+//     }
+//     // 计算有效数字位数
+//     return integerPart.length + decimalPart.length;
+// }
+// // 获取数据的有效位数
+function getBit(str){
     str = String(str)
     let trimmedStr = str.trim();
     if (isNaN(Number(trimmedStr))) {
         return 0; // 不是有效数字，返回0
     }
 
-    // 去掉数字前的正负号
-    trimmedStr = trimmedStr.replace(/^[+-]/, '');
-
-    // 处理科学记数法
-    if (/e/i.test(trimmedStr)) {
-        let parts = trimmedStr.split(/e/i);
-        let significantDigits = getBit(parts[0]);
-        return significantDigits; // 返回科学记数法前的部分的有效数字位数
+    function isHead(str){
+        return (str === '-' || str === '+' || str === '0' || str === '.') ? 0 : 1
     }
+    // 判断是不是有效数字的开头
 
-    // 分离整数部分和小数部分
-    let [integerPart, decimalPart] = trimmedStr.split('.');
-    if(integerPart === '0'){
-        integerPart = ''
-        if(decimalPart !== undefined){
-            decimalPart = decimalPart.replace(/^0+/, '')
+    function isTail(str){
+        return (str === 'e' || str === 'E' || str === '%') ? 1 : 0
+    }
+    // 判断是不是有效数字的末尾
+
+    let len = trimmedStr.length
+    let validLen = 0
+    let startFlag = false
+    for(let i = 0; i < len; i++){
+        if(startFlag === false){
+            if(isHead(trimmedStr[i])){
+                startFlag = true
+                validLen++
+            }
+        }
+        else{
+            if(!isTail(trimmedStr[i])){
+                if(trimmedStr[i] !== '.'){
+                    validLen++
+                }
+            }
+            else{
+                break
+            }
         }
     }
-    if (decimalPart === undefined) {
-        decimalPart = ''
-    }
-    // 计算有效数字位数
-    return integerPart.length + decimalPart.length;
+    return validLen
 }
-// 获取数据的有效位数
+// 返回数据的有效位数
+
 function standardByLevel(str,level){
     let eStr = calc(str + '| !e')
     let parts = eStr.split(/e/i)
@@ -1526,7 +1569,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                     wholeUncer:''
                 },
                 unit:'',
-                levelRule: true,
+                levelRule: false,
                 doc:''
             })
         }
