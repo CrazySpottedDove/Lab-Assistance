@@ -23,65 +23,12 @@ const isOutput = computed(()=>store.state.isOutput)
 const isNumberDoc = computed(()=>store.state.isNumberDoc)
 const isUncerDoc = computed(()=>store.state.isUncerDoc)
 const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
+// 基本参数
+
 const tableOneColumns = computed(()=>{
     return selectedDataIndex.value >= 0 ? (dataList.value[selectedDataIndex.value].theoData === undefined || dataList.value[selectedDataIndex.value].theoData === ''? [{label:dataList.value[selectedDataIndex.value].title , prop:'rawData'}] : [{label:dataList.value[selectedDataIndex.value].title, prop:'rawData'},{label:'相对误差',prop:'relErr'}]) : []
 })
 const graphData = ref('')
-function handleChange() {
-  store.refresh()
-}
-const dataInput = ref('')
-const handleAddRawData = ()=>{
-    dataList.value[selectedDataIndex.value].dataSet.push({rawData:dataInput.value})
-    dataInput.value = ''
-    store.refresh()
-}
-const handleEditTheoData = ()=>{
-    store.refresh()
-}
-const handleDeleteRawData = (index) =>{
-    dataList.value[selectedDataIndex.value].dataSet.splice(index,1)
-    store.refresh()
-}
-const handleEditEquipUncer = ()=>{
-    store.refresh()
-}
-const handleCompute = ()=>{
-    store.editIndirectData()
-}
-const handleComputeOptionChange =()=>{
-    store.analysisChange()
-}
-const computeOptions = [
-    {
-        value:'forAll',
-        label:'遍历元素'
-    },
-    {
-        value:'forAvg',
-        label:'对平均值'
-    },
-]
-const graphOptions = [
-    {
-        value:'line',
-        label:'线性拟合'
-    },
-    {
-        value:'square',
-        label:'二次拟合'
-    },
-    {
-        value:'simple',
-        label:'折线'
-    },
-    {
-        value:'smooth',
-        label:'曲线'
-    }
-]
-const graphOption = ref('line')
-
 const rely =
 `\\documentclass{ctexart}
 \\usepackage{geometry}
@@ -176,14 +123,63 @@ const rely =
 \\begin{document}
 
 \\end{document}`
-const xData = ref('')
-const yData = ref('')
-const titleList = computed(()=>{
-    return dataList.value.map(data => ({value:data.title,label:data.title}))
-})
 
-const graphContent = ref('')
-function titleFormat(input) {
+const handleChange = () => {
+    store.refresh()
+}
+const dataInput = ref('')
+const handleAddRawData = ()=>{
+    dataList.value[selectedDataIndex.value].dataSet.push({rawData:dataInput.value})
+    dataInput.value = ''
+    store.refresh()
+}
+const handleEditTheoData = ()=>{
+    store.refresh()
+}
+const handleDeleteRawData = (index) =>{
+    dataList.value[selectedDataIndex.value].dataSet.splice(index,1)
+    store.refresh()
+}
+const handleEditEquipUncer = ()=>{
+    store.refresh()
+}
+const handleCompute = ()=>{
+    store.editIndirectData()
+}
+const handleComputeOptionChange =()=>{
+    store.analysisChange()
+}
+const computeOptions = [
+    {
+        value:'forAll',
+        label:'遍历元素'
+    },
+    {
+        value:'forAvg',
+        label:'对平均值'
+    },
+]
+const graphOptions = [
+    {
+        value:'line',
+        label:'线性拟合'
+    },
+    {
+        value:'square',
+        label:'二次拟合'
+    },
+    {
+        value:'simple',
+        label:'折线'
+    },
+    {
+        value:'smooth',
+        label:'曲线'
+    }
+]
+const graphOption = ref('line')
+
+const titleFormat = (input) => {
     if (!input) {
         return '';
     }
@@ -234,8 +230,6 @@ function titleFormat(input) {
     // 使用正则表达式匹配字母后面直接跟随的数字或逗号隔开的数字
     return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
 }
-// 把表格数据的头按LaTeX格式化
-
 const unitFormat = ((str) => {
     if (str === '') {
         return str
@@ -253,8 +247,6 @@ const unitFormat = ((str) => {
     }
     return '/\\mathrm{' + str + '}'
 })
-// 把单位按LaTeX格式化
-
 const commentFormat = (str) => {
     if (str === '') {
         return str;
@@ -418,8 +410,6 @@ const commentFormat = (str) => {
 
     return str;
 };
-//表格注释按LaTeX格式化
-
 const docFormat = (str) => {
     if(str === ''){
         return ''
@@ -428,9 +418,27 @@ const docFormat = (str) => {
         return `(\\text{${str}})`
     }
 }
-// 含义按LaTeX格式化
-
 const dataFormat = ((str) =>{
+    function formatScientificToLatex(str) {
+        // 正则表达式匹配科学计数法
+        const scientificRegex = /^([-+]?\d+(\.\d+)?)([eE][-+]?\d+)$/;
+        const match = str.match(scientificRegex);
+
+        if (match) {
+            // 分解匹配结果
+            const base = match[1]; // 基数部分
+            let exponent = match[3].substring(1); // 指数部分，移除'e'或'E'
+
+            // 移除指数部分的正号
+            exponent = exponent.replace(/^\+/, "");
+
+            // 转换为LaTeX格式
+            return `${base} \\times 10^{${exponent}}`;
+        }
+        else {
+            return str; // 不是科学计数法的情况
+        }
+    }
     if(typeof str === 'string'){
         return formatScientificToLatex(str.replace(/%/g, '\\%'))
     }
@@ -438,154 +446,9 @@ const dataFormat = ((str) =>{
         return ''
     }
 })
-// 表格中的非运算数据
+// 格式化函数
 
-const headContent = computed(()=>{
-    let head = ''
-    let hlength = 1
-    let vlength = 0
-    let flag = true
-    for(let i = 0; i<result.value.length;i++){
-        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
-        if(theItem && theItem.dataSet.length !== 1){
-            if(theItem && flag){
-                head = ''
-                flag = false
-                hlength = theItem.dataSet.length
-                vlength++
-            }
-            if(theItem){
-                vlength++
-            }
-        }
-    }
-    if(dataValues.value && dataValues.value.length >0){
-        if(!(dataValues.value.length === 1 && typeof dataValues.value[0].data === 'object')){
-            head = ',cell{'
-        }
-    }
-    for(let i = 0; i < dataValues.value.length; i++){
-        let datavalue = dataValues.value[i]
-        vlength++
-        if(typeof datavalue.data === 'object'){
-            hlength = datavalue.data.length
-            if(i !== dataValues.value.length -1){
-                if(i !== 0){
-                    head = headContent.value + ','
-                }
-            }
-            else{
-                if(!(dataValues.value.length ===1 && typeof dataValues.value[0].data === 'object')){
-                    head += `}{2}={r=1,c=${hlength}}{c}`
-                }
-            }
-        }
-        else{
-            head = head + String(vlength)
-            if(i !== dataValues.value.length - 1){
-                if(typeof dataValues.value[i+1].data !== 'object'){
-                    head += ','
-                }
-            }
-            else{
-                head += `}{2}={r=1,c=${hlength}}{c}`
-            }
-        }
-    }
-    return head
-})
-const commentContent = computed(()=>{
-    let comment = ''
-    for(let i = 0; i<result.value.length;i++){
-        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
-        if(theItem && theItem.dataSet.length !== 1){
-            if(theItem){
-                if(theItem.computeMethod){
-                    comment += ` $\\displaystyle ${titleFormat(theItem.title)} = ${commentFormat(theItem.computeMethod)} $\\qquad`
-                }
-            }
-        }
-    }
-    for(let i = 0; i < dataValues.value.length; i++){
-        let datavalue = dataValues.value[i]
-        if(typeof datavalue.data === 'object'){}
-        else{
-            if(datavalue.formula){
-                comment += ` $\\displaystyle ${titleFormat(datavalue.formulaTitle)} = ${commentFormat(datavalue.formula)} $\\qquad`
-            }
-        }
-    }
-    return comment
-})
-
-const centerContent = computed(()=>{
-    let center = ''
-    let flag = true
-    for(let i = 0; i<result.value.length;i++){
-        let theItem = dataList.value.find(item => item.title === result.value[i] && !(item.type==='indirect' && item.computeOption === 'forAvg' ) )
-        if(theItem && theItem.dataSet.length !== 1){
-            if(theItem && flag){
-                flag = false
-                center += '编号 &'
-                for(let j = 1; j<=theItem.dataSet.length;j++){
-                    if(j!== theItem.dataSet.length){
-                        center += '$'+ String(j) + '$ & '
-                    }
-                    else{
-                        center += '$'+ String(j) + '$ \\\\\n\t\t\t'
-                    }
-                }
-            }
-            if(theItem){
-                center += '$'+ titleFormat(theItem.title) + docFormat(theItem.doc) + unitFormat(theItem.unit) + '$ & '
-                for(let j=0; j<theItem.dataSet.length;j++){
-                    if(j!==theItem.dataSet.length-1){
-                        center += '$'+ dataFormat(theItem.dataSet[j].rawData)+ '$ & '
-                    }
-                    else{
-                        if(i!== result.value.length-1){
-                            center += '$'+ dataFormat(theItem.dataSet[j].rawData)+'$ \\\\'
-                        }
-                        else{
-                            center += '$'+ dataFormat(theItem.dataSet[j].rawData)+'$'
-                            if(dataValues.value && dataValues.value.length >0){
-                                center += ' \\\\'
-                            }
-                        }
-                    }
-                }
-                if(i!==result.value.length-1 || (dataValues.value && dataValues.value.length >0)){
-                    center += '\n\t\t\t'
-                }
-            }
-        }
-    }
-    for(let i = 0; i < dataValues.value.length; i++){
-        let datavalue = dataValues.value[i]
-        if(typeof datavalue.data === 'object'){
-            center += datavalue.title
-            datavalue.data.forEach(metadata =>{
-                center += ' & '+ metadata
-            })
-            if(i !== dataValues.value.length -1){
-                center += ' \\\\\n\t\t\t'
-            }
-        }
-        else{
-            if(i !== dataValues.value.length - 1){
-                center += datavalue.title +' & '+ datavalue.data + ' \\\\' + '\n\t\t\t'
-            }
-            else{
-                center += datavalue.title +' & '+ datavalue.data
-            }
-        }
-    }
-    center += '\n\t\t'
-    return center
-})
-// 表格的中心内容
-
-const tableTitleContent = ref('')
+const tableContent = ref('')
 const props={
     multiple:true,
     checkStrictly: true,
@@ -593,152 +456,262 @@ const props={
     label:'label',
     value:'value',
 }
-const optionMap = (name , title, unit, doc)=>{
-    let tmpunit = unitFormat(unit)
-    let tmpdoc = docFormat(doc)
-    if(title === ''){
-        ElMessage.error('未命名的数据！')
-        return ''
-    }
-    if(name === '平均值'){
-        return `$\\overline{${titleFormat(title)}}`+ tmpdoc + tmpunit +'$'
-    }
-    if(name === '实验值'){
-        return `$${titleFormat(title)}`+ tmpdoc + tmpunit +'$'
-    }
-    if(name === '相对平均偏差'){
-        return `$\\overline{\\delta}_{r,${titleFormat(title)}}$`
-    }
-    if(name === '标准偏差'){
-        return `$s_{${titleFormat(title)}}`+tmpunit+'$'
-    }
-    if(name === '相对标准偏差'){
-        return `$s_{r,${titleFormat(title)}}$`
-    }
-    if(name === 'A类不确定度'){
-        return `$u_{A,${titleFormat(title)}}`+tmpunit+'$'
-    }
-    if(name === `B类不确定度`){
-        return `$u_{B,${titleFormat(title)}}`+tmpunit+'$'
-    }
-    if(name === `不确定度`){
-        return `$u_{${titleFormat(title)}}`+tmpunit+'$'
-    }
-    if(name === '平均相对误差'){
-        return `$\\overline{\\varepsilon}_{r,${titleFormat(title)}}$`
-    }
-    if(name === '平均值与理论值的相对误差'){
-        return `$\\Delta_{r,${titleFormat(title)}}$`
-    }
-    if(name === '理论值'){
-        return `$${titleFormat(title)}_{\\text{theory}}`+ tmpdoc +tmpunit+'$'
-    }
-    if(name === '相对误差'){
-        return `$\\varepsilon_{r,${titleFormat(title)}}$`
-    }
-}
-
+const dataValuesSource = ref([])
+const tableTitleContent = ref('')
 const dataOptions = computed(()=>{
     let tmpDataOptions = []
-    for(let i = 0; i<dataList.value.length; i++){
-        let theItem = dataList.value[i]
-        let unit = theItem.unit
-        let doc = theItem.doc
-        let tmp = {}
-        tmp.label = theItem.title
-        if(theItem.dataSet.length === 1){
-            tmp.value = {
-                title:`$${titleFormat(theItem.title)}`+unitFormat(unit)+'$',
-                data:'$'+dataFormat(theItem.dataSet[0].rawData)+'$'
+    function generateDataOption(item){
+        function childrenValueMap(name, title, unit, doc, data){
+            let fmtUnit = unitFormat(unit)
+            let fmtDoc = docFormat(doc)
+            let fmtTitle = titleFormat(title)
+            if(name === '平均值'){
+                return {
+                    center: `$ \\overline{${fmtTitle}} ${fmtDoc} ${fmtUnit} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
             }
-            if(theItem.type === 'indirect'){
-                tmp.value.formula = theItem.computeMethod
-                tmp.value.formulaTitle = titleFormat(theItem.title)
+            if(name === '相对平均偏差'){
+                return {
+                    center: `$ \\overline{\\delta}_{r,${fmtTitle}} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '标准偏差'){
+                return {
+                    center: `$ s_{${fmtTitle}} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '相对标准偏差'){
+                return {
+                    center: `$ s_{r,${fmtTitle}} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === 'A类不确定度'){
+                return {
+                    center: `$ u_{A,${fmtTitle}} ${fmtUnit} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === 'B类不确定度'){
+                return {
+                    center: `$ u_{B,${fmtTitle}} ${fmtUnit} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '平均相对误差'){
+                return {
+                    center: `$ \\overline{\\varepsilon}_{r,${fmtTitle}} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '平均值与理论值的相对误差'){
+                return {
+                    center: `$ \\Delta_{r,${fmtTitle}} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '理论值'){
+                return {
+                    center: `$ ${fmtTitle}_{\\text{theory}} ${fmtDoc} ${fmtUnit} $ & $ ${dataFormat(data)} $`,
+                    dataLength: 1,
+                }
+            }
+            if(name === '相对误差'){
+                let valData = ''
+                let len = data.length
+                for(let i = 0; i < len; i++){
+                    valData += `$ ${dataFormat(data[i].relErr)} $`
+                    if(i !== len-1){
+                        valData += ' & '
+                    }
+                }
+                return {
+                    center: `$ \\varepsilon_{r,${fmtTitle}} $ & ${valData}`,
+                    dataLength: len,
+                }
+            }
+        }
+        let unit = item.unit
+        let doc = item.doc
+        let len = item.dataSet.length
+        let title = item.title
+        let tmp = {}
+        tmp.label = title
+        let valDataLength = len
+        let valTitle = `$ ${titleFormat(title)} ${docFormat(doc)} ${unitFormat(unit)} $`
+        let valData = ''
+        for(let i = 0; i < len; i++){
+            valData += `$ ${dataFormat(item.dataSet[i].rawData)} $`
+            if(i !== len-1){
+                valData += ' & '
+            }
+        }
+        tmp.value = {
+            center: `${valTitle} & ${valData}`,
+            dataLength: valDataLength,
+        }
+        // center的末尾没有换行符，统一解决
+        if(item.computeMethod){
+            tmp.value.comment = `$ \\displaystyle ${titleFormat(title)} = ${commentFormat(item.computeMethod)} $\\qquad `
+        }
+        // 可能的注释区内容
+        tmp.children = []
+        if(item.theoData && item.theoData !== ''){
+            tmp.children.push({
+                label: '理论值',
+                value: childrenValueMap('理论值', title, unit, doc, item.theoData)
+            })
+            if(item.dataSet[0] && item.dataSet[0].relErr){
+                tmp.children.push({
+                    label:'相对误差',
+                    value: childrenValueMap('相对误差', title, unit, doc, item.dataSet)
+                })
+            }
+        }
+        for(let key in item.analysis){
+            let ana = item.analysis[key]
+            if(ana.propertyValue !== '' && ana.propertyValue !== '0'){
+                tmp.children.push({
+                    label: ana.propertyName,
+                    value: childrenValueMap(ana.propertyName, title, unit, doc, ana.propertyValue)
+                })
+            }
+        }
+        if(item.moreUncer.bUncer && item.moreUncer.bUncer !== '0'){
+            tmp.children.push({
+                label: 'B类不确定度',
+                value: childrenValueMap('B类不确定度', title, unit, doc, item.moreUncer.bUncer)
+            })
+        }
+        if(item.moreUncer.wholeUncer && item.moreUncer.wholeUncer !== '0'){
+            tmp.children.push({
+                label: '不确定度',
+                value: childrenValueMap('不确定度', title, unit, doc, item.moreUncer.wholeUncer)
+            })
+        }
+        return tmp
+    }
+    dataList.value.forEach(item => {
+        tmpDataOptions.push(generateDataOption(item))
+    })
+    return tmpDataOptions
+})
+const dataValue1 = computed(() => {
+    let tmp = []
+    if(dataValuesSource.value && dataValuesSource.value.length){
+        dataValuesSource.value.forEach(item => {
+            if(item.dataLength === 1){
+                tmp.push(item)
+            }
+        })
+    }
+    return tmp
+})
+const dataValueN = computed(() => {
+    let tmp = []
+    if(dataValuesSource.value && dataValuesSource.value.length){
+        dataValuesSource.value.forEach(item => {
+            if(item.dataLength !== 1){
+                tmp.push(item)
+            }
+        })
+    }
+    return tmp
+})
+const centerContent = computed(() => {
+    let center = ''
+    let len1 = dataValue1.value.length
+    let lenN = dataValueN.value.length
+    if(lenN){
+        center += '编号 & '
+        let maxLen = dataValueN.value.reduce((max, data) => {
+            return max > data.dataLength ? max : data.dataLength
+        }, dataValueN.value[0].dataLength)
+        for(let i = 1; i < maxLen + 1; i++){
+            center += `$ ${i} $`
+            if(i !== maxLen){
+                center += ' & '
+            }
+        }
+        center += ' \\\\\n\t\t\t'
+        if(len1){
+            for(let i = 0; i < lenN; i++){
+                center += dataValueN.value[i].center
+                center += ' \\\\\n\t\t\t'
             }
         }
         else{
-            tmp.value = theItem.title
-        }
-        tmp.children=[]
-        if(theItem.theoData && theItem.theoData !== '0'){
-            tmp.children.push({
-                value:{title:optionMap('理论值',theItem.title,unit,doc),data:'$'+dataFormat(theItem.theoData)+'$'},
-                label:'理论值'
-            })
-            let tmpdata = []
-            theItem.dataSet.forEach(item=>{
-                if(item.relErr){
-                    tmpdata.push('$'+item.relErr.replace(/%/g, '\\%')+'$')
+            for(let i = 0; i < lenN; i++){
+                center += dataValueN.value[i].center
+                if(i !== lenN - 1){
+                    center += ' \\\\\n\t\t\t'
                 }
-            })
-            tmp.children.push({
-                value:{title:optionMap('相对误差',theItem.title,unit,doc),data:tmpdata},
-                label:'相对误差'
-            })
-        }
-        for(let key in theItem.analysis){
-            let ana = theItem.analysis[key]
-            if(ana.propertyValue !== '' && ana.propertyValue !== '0'){
-                let tmpChild = {
-                    value:{
-                        title:optionMap(ana.propertyName,theItem.title,unit, doc)
-                    },
-                    label:ana.propertyName
-                }
-                tmpChild.value.data = dataFormat(ana.propertyValue)
-                tmpChild.value.data = '$'+ tmpChild.value.data +'$'
-                tmp.children.push(tmpChild)
             }
+            center += '\n\t\t'
         }
-        if(theItem.moreUncer.bUncer && theItem.moreUncer.bUncer !== '0'){
-            tmp.children.push({
-                value:{title:optionMap('B类不确定度',theItem.title,unit, doc),data:'$'+dataFormat(theItem.moreUncer.bUncer)+'$'},
-                label:'B类不确定度'
-            })
-        }
-        if(theItem.moreUncer.wholeUncer && theItem.moreUncer.wholeUncer !== '0'){
-            tmp.children.push({
-                value:{title:optionMap('不确定度',theItem.title,unit, doc),data:'$'+dataFormat(theItem.moreUncer.wholeUncer)+'$'},
-                label:'不确定度'
-            })
-        }
-        tmpDataOptions.push(tmp)
     }
-    return tmpDataOptions
-})
-const dataValuesSource = ref([])
-const dataValues = computed(()=>{
-    let tmp = []
-    if(dataValuesSource.value && dataValuesSource.value.length){
-        dataValuesSource.value.forEach(item=>{
-            if(typeof item === 'object'){
-
-                tmp.push(item)
+    if(len1){
+        for(let i = 0; i < len1; i++){
+            center += dataValue1.value[i].center
+            if(i !== len1 - 1){
+                center += ' \\\\\n\t\t\t'
             }
+        }
+        center += '\n\t\t'
+    }
+    return center
+})
+const headContent = computed(() => {
+    let head = ''
+    let len1 = dataValue1.value.length
+    let lenN = dataValueN.value.length
+    if(lenN && len1){
+        head += ',cell{'
+        for(let i = lenN + 2; i <= lenN + len1 + 1; i++){
+            head += `${i}`
+            if(i !== lenN + len1 + 1){
+                head += ','
+            }
+        }
+        let maxDataLength = 0
+        dataValueN.value.forEach(item => {
+            maxDataLength = Math.max(maxDataLength, item.dataLength)
         })
+        head += `}{2}={r=1,c=${maxDataLength}}{c}`
     }
-    return tmp
+    return head
 })
-const result = computed(()=>{
-    let tmp = []
-    if(dataValuesSource.value && dataValuesSource.value.length){
-        dataValuesSource.value.forEach(item=>{
-            if(typeof item === 'string'){
-                if(item === ''){
-                    ElMessage.error('未命名的数据！')
-                    return []
-                }
-                tmp.push(item)
-            }
-        })
-    }
-    return tmp
+const commentContent = computed(() => {
+    let comment = ''
+    dataValueN.value.forEach(item => {
+        if(item.comment){
+            comment += item.comment
+        }
+    })
+    return comment
 })
-const code = ref('')
 const handleTableUpdate = (()=>{
-    code.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
     ElMessage.success('刷新成功！')
 })
+const handleTableSelectAll =()=>{
+    let tmpValueSource = []
+    dataOptions.value.forEach(item => {
+        tmpValueSource.push(item.value)
+    })
+    dataValuesSource.value = tmpValueSource
+    handleTableUpdate()
+}
+const handleTableClearAll = ()=>{
+    dataValuesSource.value = []
+    tableTitleContent.value = ''
+    handleTableUpdate()
+}
+// 表格逻辑
+
 const copyToClipboard = (str,type) => {
     navigator.clipboard.writeText(str)
     .then(() => {
@@ -749,122 +722,111 @@ const copyToClipboard = (str,type) => {
 const handleRelyCopy = ()=>{
     copyToClipboard(rely,'rely')
 }
-const handleCodeCopy = ()=>{
-    copyToClipboard(code.value,'code')
+const handleTableCopy = ()=>{
+    copyToClipboard(tableContent.value,'tableContent')
 }
 const handleGraphCopy = ()=>{
-    copyToClipboard(graphContent.value,'graph')
+    copyToClipboard(graphContent.value,'graphContent')
 }
-function formatScientificToLatex(str) {
-    // 正则表达式匹配科学计数法
-    const scientificRegex = /^([-+]?\d+(\.\d+)?)([eE][-+]?\d+)$/;
-    const match = str.match(scientificRegex);
+// 黏贴逻辑
 
-    if (match) {
-        // 分解匹配结果
-        const base = match[1]; // 基数部分
-        let exponent = match[3].substring(1); // 指数部分，移除'e'或'E'
-
-        // 移除指数部分的正号
-        exponent = exponent.replace(/^\+/, "");
-
-        // 转换为LaTeX格式
-        return `${base} \\times 10^{${exponent}}`;
-    }
-    else {
-        return str; // 不是科学计数法的情况
-    }
-}
+const graphContent = ref('')
 const graphTitleContent = ref('')
-const handleGraphUpdate = ()=>{
-    if(graphOption.value === 'line'){
-        graphData.value = store.evaluateLine(xData.value,yData.value)
-        let center1 = ' '
-        let center2 = ' '
-        let x = dataList.value.find(item => item.title === xData.value)
-        let y = dataList.value.find(item => item.title === yData.value)
-        if(x && y){
-            const xMin = x.dataSet.reduce((min, data) => {
-                return min < Number(data.rawData) ? min : Number(data.rawData);
-            },Number(x.dataSet[0].rawData))
-            const xMax = x.dataSet.reduce((max, data) => {
-                return max > Number(data.rawData) ? max : Number(data.rawData);
-            },Number(x.dataSet[0].rawData))
-            const yMin = xMin * Number(graphData.value.slope) + Number(graphData.value.intercept)
-            const yMax = xMax * Number(graphData.value.slope) + Number(graphData.value.intercept)
-            if(x.dataSet.length === y.dataSet.length){
-                for(let i = 0; i<x.dataSet.length;i++){
-                    center1 = center1 +'('+x.dataSet[i].rawData+','+y.dataSet[i].rawData+') '
-                }
-                center2 = center2 + '(' + String(xMin)+','+String(yMin)+') ('+ String(xMax)+','+String(yMax)+') '
-            }
-            else{
-                ElMessage.error('数组长度不一致！')
-            }
-        }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\datapoint[no markers]{` + center2 +'}[拟合直线]\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.slope)+'x'+(graphData.value.intercept[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.intercept)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
+const xData = ref('')
+const yData = ref('')
+const xTitleList = computed(()=>{
+    let tmp = dataList.value.map(data => ({value:data.title,label:data.title}))
+    tmp.push({value:'序号', label: '序号'})
+    return tmp
+})
+const yTitleList = computed(() => {
+    return dataList.value.map(data => ({value:data.title,label:data.title}))
+})
+const handleGraphUpdate = () => {
+    function getDomain(dataSet){
+        let minData = dataSet.reduce((min, data) => {
+            return min < Number(data.rawData) ? min : Number(data.rawData)
+        }, Number(dataSet[0].rawData))
+        let maxData = dataSet.reduce((max, data) => {
+            return max > Number(data.rawData) ? max : Number(data.rawData)
+        }, Number(dataSet[0].rawData))
+        return `${minData} : ${maxData}`
     }
-    else if(graphOption.value === 'square'){
-        graphData.value = store.evaluateSquare(xData.value,yData.value)
-        let center1 = ' '
-        let center2 = ''
-        let x = dataList.value.find(item => item.title === xData.value)
-        let y = dataList.value.find(item => item.title === yData.value)
-        let xMin = ''
-        let xMax = ''
-        if(x && y){
-            xMin = x.dataSet.reduce((min, data) => {
-                return min < Number(data.rawData) ? min : Number(data.rawData);
-            },Number(x.dataSet[0].rawData))
-            xMax = x.dataSet.reduce((max, data) => {
-                return max > Number(data.rawData) ? max : Number(data.rawData);
-            },Number(x.dataSet[0].rawData))
-            if(x.dataSet.length === y.dataSet.length){
-                for(let i = 0; i<x.dataSet.length;i++){
-                    center1 = center1 +'('+x.dataSet[i].rawData+','+y.dataSet[i].rawData+') '
-                }
-                center2 = graphData.value.a + '*x*x' + (graphData.value.b[0]==='-'?'':'+')+graphData.value.b+'*x'+(graphData.value.c[0]==='-'?'':'+')+graphData.value.c
-            }
-            else{
-                ElMessage.error('数组长度不一致！')
-            }
+    // 获取一组数据的最小，最大值
+    let xDataSet = []
+    let yDataSet = []
+    let xUnit = ''
+    let yUnit = ''
+    function initXYDataSetsAndUnits(){
+        const yItem = dataList.value.find(item => item.title === yData.value)
+        if(!yItem){
+            ElMessage.error('变量 y 不存在！')
+            throw new Error('变量 y 不存在！')
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t\\addplot[no markers,domain=`+String(xMin)+':'+String(xMax)+']{' + center2 +'};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{'+center1+'}[实验数据]\n\t\t\\end{plot}\n\t}[$y='+formatScientificToLatex(graphData.value.a) + 'x^2' + (graphData.value.b[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.b)+'x'+(graphData.value.c[0]==='-'?'':'+')+formatScientificToLatex(graphData.value.c)+'\\qquad R^2='+formatScientificToLatex(graphData.value.rSquared)+'$]'+'\n\\end{figure}'
-    }
-    else if(graphOption.value === 'simple'){
-        let center1 = ' '
-        let x = dataList.value.find(item => item.title === xData.value)
-        let y = dataList.value.find(item => item.title === yData.value)
-        if(x && y){
-            if(x.dataSet.length === y.dataSet.length){
-                for(let i = 0; i<x.dataSet.length;i++){
-                    center1 = center1 +'('+x.dataSet[i].rawData+','+y.dataSet[i].rawData+') '
-                }
+        yDataSet = yItem.dataSet
+        yUnit = yItem.unit
+        if(xData.value === '序号'){
+            for(let i = 1; i <= yDataSet.length; i++){
+                xDataSet.push({rawData: i, bit: 100})
             }
-            else{
-                ElMessage.error('数组长度不一致！')
-            }
+            xUnit = ''
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
-    }
-    else if(graphOption.value === 'smooth'){
-        let center1 = ' '
-        let x = dataList.value.find(item => item.title === xData.value)
-        let y = dataList.value.find(item => item.title === yData.value)
-        if(x && y){
-            if(x.dataSet.length === y.dataSet.length){
-                for(let i = 0; i<x.dataSet.length;i++){
-                    center1 = center1 +'('+x.dataSet[i].rawData+','+y.dataSet[i].rawData+') '
-                }
+        else{
+            const xItem = dataList.value.find(item => item.title === xData.value)
+            if(!xItem){
+                ElMessage.error('变量 x 不存在！')
+                throw new Error('变量 y 不存在！')
             }
-            else{
-                ElMessage.error('数组长度不一致！')
-            }
+            xDataSet = xItem.dataSet
+            xUnit = xItem.unit
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[标题]{\n\t\t\\begin{plot}{\\xstyle{$${titleFormat(xData.value)}`+unitFormat(x.unit)+`$}\\ystyle{$${titleFormat(yData.value)}`+unitFormat(y.unit)+`$}}\n\t\t\t`+'\\datapoint[smooth]{'+center1+'}[图例]\n\t\t\\end{plot}\n\t}'+'\n\\end{figure}'
     }
-    ElMessage.success('刷新成功！')
+    // 初始化作图所需的两个dataSet
+    try{
+        initXYDataSetsAndUnits()
+        let xstyleContent = `${titleFormat(xData.value)} ${unitFormat(xUnit)}`
+        let ystyleContent = `${titleFormat(yData.value)} ${unitFormat(yUnit)}`
+        let graphCenterContent = ''
+        let graphCommentContent = ''
+        let datapointContent = ''
+        if(xDataSet.length !== yDataSet.length){
+            ElMessage.error('数组长度不一致！')
+            throw new Error('数组长度不一致！')
+        }
+        for(let i = 0; i < xDataSet.length; i++){
+            datapointContent += `(${xDataSet[i].rawData} , ${yDataSet[i].rawData}) `
+        }
+        let xDomain = ''
+        switch(graphOption.value){
+            case 'line':
+                xDomain = getDomain(xDataSet)
+                graphData.value = store.evaluateLine(xDataSet, yDataSet)
+                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${graphData.value.slope}*x${graphData.value.intercept[0] === '-' ? '' : '+'}${graphData.value.intercept}};\n\t\t\t\\addlegendentry{拟合直线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
+                graphCommentContent = `$ y=${dataFormat(graphData.value.slope)}x${graphData.value.intercept[0] === '-' ? '' : '+'}${dataFormat(graphData.value.intercept)} \\qquad R^2 = ${dataFormat(graphData.value.rSquared)} $`
+                break
+            case 'square':
+                xDomain = getDomain(xDataSet)
+                graphData.value = store.evaluateSquare(xDataSet, yDataSet)
+                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${graphData.value.a}*x*x${graphData.value.b[0] === '-' ? '' : '+'}${graphData.value.b}*x${graphData.value.c[0] === '-' ? '' : '+'}${graphData.value.c}};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
+                graphCommentContent = `$ y=${dataFormat(graphData.value.a)}x^2${graphData.value.b[0] === '-' ? '' : '+'}${dataFormat(graphData.value.b)}x${graphData.value.c[0] === '-' ? '' : '+'}${dataFormat(graphData.value.c)} \\qquad R^2 = ${dataFormat(graphData.value.rSquared)} $`
+                break
+            case 'simple':
+                graphCenterContent = `\\datapoint{${datapointContent}}`
+                break
+            case 'smooth':
+                graphCenterContent = `\\datapoint[smooth]{${datapointContent}}`
+                break
+        }
+        graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        ElMessage.success('作图成功！')
+    }
+    catch(error){
+        ElMessage.error('作图失败！')
+        console.error('Error during plotting', error)
+    }
+
 }
+// 制图逻辑
 const handleUncerEdit = ()=>{
     store.refresh()
 }
@@ -879,19 +841,9 @@ const handleDataMethodChange =()=>{
         store.editIndirectData()
     }
 }
-const handleTableSelectAll =()=>{
-    let tmpValueSource = []
-    dataOptions.value.forEach(item => {
-        tmpValueSource.push(item.value)
-    })
-    dataValuesSource.value = tmpValueSource
-    handleTableUpdate()
-}
-const handleTableClearAll = ()=>{
-    dataValuesSource.value = []
-    tableTitleContent.value = ''
-    handleTableUpdate()
-}
+// 间接数据逻辑
+
+
 </script>
 <template>
 
@@ -1112,7 +1064,7 @@ const handleTableClearAll = ()=>{
                     style="width: 22%;text-align: center;min-width: 5.5em"
                     v-model="xData"
                 >
-                    <el-option v-for="title in titleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
+                    <el-option v-for="title in xTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">y轴数据</label>
@@ -1121,7 +1073,7 @@ const handleTableClearAll = ()=>{
                     style="width: 22%;text-align: center;min-width: 5.5em"
                     v-model="yData"
                 >
-                    <el-option v-for="title in titleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
+                    <el-option v-for="title in yTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
@@ -1231,8 +1183,8 @@ const handleTableClearAll = ()=>{
         <br>
         <el-card shadow="hover">
             <div>
-                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleCodeCopy">内容(点击复制)</el-button></div>
-                <pre>{{code}}</pre>
+                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleTableCopy">内容(点击复制)</el-button></div>
+                <pre>{{tableContent}}</pre>
             </div>
         </el-card>
     </div>

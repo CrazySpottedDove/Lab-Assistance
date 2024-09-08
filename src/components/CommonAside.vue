@@ -48,7 +48,7 @@
                         :class="{'selected':selectedDataIndex === index}"
                         v-show="data ? data.type === 'indirect' : false"
                     >
-                        <el-input v-model="data.title" @change="handleTitleChange(index)"></el-input>
+                        <el-input v-model="data.title" @change="handleTitleChange(index)" @click.stop="handleTitleCopy(index)"></el-input>
                         <span>
                             <el-icon
                                 @click="handleDeleteData(index)"
