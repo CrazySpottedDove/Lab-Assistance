@@ -2,6 +2,7 @@
 import { useAllDataStore } from '../assets/stores';
 import { computed, ref} from 'vue';
 import { CircleClose } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 
 //Don't import { ElMessage } from 'element-plus'!
 const store = useAllDataStore()
@@ -133,8 +134,8 @@ const rely =
 \\begin{document}
 
 \\end{document}`
-const tableNotFramed = ref(false)
-const graphNotFramed = ref(false)
+const tableFramed = ref(false)
+const graphFramed = ref(false)
 const handleChange = () => {
     store.refresh()
 }
@@ -551,18 +552,58 @@ const dataOptions = computed(()=>{
         let title = item.title
         let tmp = {}
         tmp.label = title
-        let valDataLength = len
         let valTitle = `$ ${titleFormat(title)} ${docFormat(doc)} ${unitFormat(unit)} $`
-        let valData = ''
-        for(let i = 0; i < len; i++){
-            valData += `$ ${dataFormat(item.dataSet[i].rawData)} $`
-            if(i !== len-1){
-                valData += ' & '
+        let valData = []
+        let valDataLength = len
+        function draftValData(head, tail, index){
+            valData[index] = ''
+            for(let i = head; i < tail; i++){
+                valData[index] += `$ ${dataFormat(item.dataSet[i].rawData)} $`
+                if(i !== tail - 1){
+                    valData[index] += ' & '
+                }
             }
         }
+        if(len < 10){
+            draftValData(0, len, 0)
+        }
+        else if(len % 2 === 0 && len / 2 <= 10){
+            draftValData(0, len/2, 0)
+            draftValData(len/2, len, 1)
+            valDataLength = len/2
+        }
+        else if(len % 3 === 0 && len / 3 <= 10){
+            draftValData(0, len/3, 0)
+            draftValData(len/3, 2*len/3, 1)
+            draftValData(2*len/3, len, 2)
+            valDataLength = len/3
+        }
+        else if(len % 4 === 0 && len / 4 <= 10){
+            draftValData(0, len/4, 0)
+            draftValData(len/4, len/2, 1)
+            draftValData(len/2, 3*len/4, 2)
+            draftValData(3*len/4, len, 3)
+            valDataLength = len/4
+        }
+        else if(len % 5 === 0 && len / 5 <= 10){
+            draftValData(0, len/5, 0)
+            draftValData(len/5, 2*len/5, 1)
+            draftValData(2*len/5, 3*len/5, 2)
+            draftValData(3*len/5, 4*len/5, 3)
+            draftValData(4*len/5, len, 4)
+            valDataLength = len/5
+        }
+        else{
+            draftValData(0, len, 0)
+        }
+        let tmpCenter = []
+        for(let i = 0; i < valData.length; i++){
+            tmpCenter[i] = `${valTitle} & ${valData[i]}`
+        }
         tmp.value = {
-            center: `${valTitle} & ${valData}`,
+            center: tmpCenter,
             dataLength: valDataLength,
+            dataHeight: tmpCenter.length
         }
         // center的末尾没有换行符，统一解决
         if(item.computeMethod){
@@ -637,32 +678,67 @@ const centerContent = computed(() => {
     let len1 = dataValue1.value.length
     let lenN = dataValueN.value.length
     if(lenN){
-        center += '编号 & '
-        let maxLen = dataValueN.value.reduce((max, data) => {
-            return max > data.dataLength ? max : data.dataLength
-        }, dataValueN.value[0].dataLength)
-        for(let i = 1; i < maxLen + 1; i++){
-            center += `$ ${i} $`
-            if(i !== maxLen){
-                center += ' & '
-            }
-        }
-        center += ' \\\\\n\t\t\t'
-        if(len1){
-            for(let i = 0; i < lenN; i++){
-                center += dataValueN.value[i].center
+        try{
+            let maxLen = dataValueN.value.reduce((max, data) => {
+                if(max === data.dataLength || (max > data.dataLength && data.dataLength === 1)){
+                    return max
+                }
+                else if(max === 1){
+                    return data.dataLength
+                }
+                else{
+                    ElMessage.error('数组的长度不一致！')
+                    throw new Error('数组的长度不一致！')
+                }
+            }, dataValueN.value[0].dataLength)
+            let maxHeight = dataValueN.value.reduce((max, data) => {
+                if(max === data.dataHeight || (max > data.dataHeight && data.dataHeight === 1)){
+                    return max
+                }
+                else if(max === 1){
+                    return data.dataHeight
+                }
+                else{
+                    ElMessage.error('数组的长度不一致！')
+                    throw new Error('数组的长度不一致！')
+                }
+            }, dataValueN.value[0].dataHeight)
+            function draftCenterNumber(length, index){
+                center += '编号 & '
+                for(let i = index * length + 1; i < (index+1) * length + 1; i++){
+                    center += `$ ${i} $`
+                    if(i !== (index+1) * length){
+                        center += ' & '
+                    }
+                }
                 center += ' \\\\\n\t\t\t'
             }
-        }
-        else{
-            for(let i = 0; i < lenN; i++){
-                center += dataValueN.value[i].center
-                if(i !== lenN - 1){
-                    center += ' \\\\\n\t\t\t'
+            for(let i = 0; i < maxHeight; i++){
+                draftCenterNumber(maxLen, i)
+                if(len1){
+                    for(let j = 0; j < lenN; j++){
+                        center += dataValueN.value[j].center[i]
+                        center += ' \\\\\n\t\t\t'
+                    }
+                }
+                else{
+                    for(let j = 0; j < lenN; j++){
+                        center += dataValueN.value[j].center[i]
+                        if(!(j === lenN - 1 && i === maxHeight - 1)){
+                            center += ' \\\\\n\t\t\t'
+                        }
+                    }
+                    if(i === maxHeight - 1){
+                        center += '\n\t\t'
+                    }
                 }
             }
-            center += '\n\t\t'
         }
+        catch(error){
+            ElMessage.error('制表过程中出错！')
+            console.error("Error creating table:", error);
+        }
+
     }
     if(len1){
         for(let i = 0; i < len1; i++){
@@ -678,12 +754,19 @@ const centerContent = computed(() => {
 const headContent = computed(() => {
     let head = ''
     let len1 = dataValue1.value.length
-    let lenN = dataValueN.value.length
+    let lenN = 0
+    let lenNum = 0
+    if(dataValueN.value.length){
+        for(let i = 0 ; i < dataValueN.value.length; i++){
+            lenN += dataValueN.value[i].center.length
+            lenNum = Math.max(lenNum, dataValueN.value[i].center.length)
+        }
+    }
     if(lenN && len1){
         head += ',cell{'
-        for(let i = lenN + 2; i <= lenN + len1 + 1; i++){
+        for(let i = lenN + lenNum + 1; i <= lenN + len1 + lenNum; i++){
             head += `${i}`
-            if(i !== lenN + len1 + 1){
+            if(i !== lenN + len1 + lenNum){
                 head += ','
             }
         }
@@ -705,11 +788,11 @@ const commentContent = computed(() => {
     return comment
 })
 const handleTableUpdate = (()=>{
-    if(tableNotFramed.value){
-        tableContent.value = `\\begin{table}[H]\n\t\\notframed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    if(tableFramed.value){
+        tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
     }
     else{
-        tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+        tableContent.value = `\\begin{table}[H]\n\t\\notframed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
     }
     ElMessage.success('刷新成功！')
 })
@@ -833,11 +916,11 @@ const handleGraphUpdate = () => {
                 graphCenterContent = `\\datapoint[smooth]{${datapointContent}}`
                 break
         }
-        if(graphNotFramed.value){
-            graphContent.value = `\\begin{figure}[H]\n\t\\notframed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        if(graphFramed.value){
+            graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
         }
         else{
-            graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+            graphContent.value = `\\begin{figure}[H]\n\t\\notframed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
         }
         ElMessage.success('作图成功！')
     }
@@ -1137,10 +1220,10 @@ const handleDataMethodChange =()=>{
             <div>
                 <div style="text-align: center;">
                     <el-switch
-                        v-model="graphNotFramed"
+                        v-model="graphFramed"
                         size="large"
-                        inactive-text="带边框"
-                        active-text="不带边框"
+                        inactive-text="不带边框"
+                        active-text="带边框"
                         style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                     />
                     <el-button style="font-weight: bold; font-size: large;" @click="handleGraphCopy">内容(点击复制)</el-button>
@@ -1215,10 +1298,10 @@ const handleDataMethodChange =()=>{
             <div>
                 <div style="text-align: center;">
                     <el-switch
-                        v-model="tableNotFramed"
+                        v-model="tableFramed"
                         size="large"
-                        inactive-text="带边框"
-                        active-text="不带边框"
+                        inactive-text="不带边框"
+                        active-text="带边框"
                         style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                     />
                     <el-button style="font-weight: bold; font-size: large;" @click="handleTableCopy">内容(点击复制)</el-button>
