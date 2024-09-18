@@ -37,6 +37,7 @@ const rely =
 \\geometry{left=0cm,right=0cm,top=0cm,bottom=0cm}
 \\pagestyle{empty}
 \\usepackage{float}
+\\usepackage{upgreek}
 \\usepackage{tabularray}
 \\usepackage{calc}
 \\usepackage{etoolbox}
@@ -49,6 +50,15 @@ const rely =
 			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\em #3}}
 		\\end{minipage}
 	}
+}
+\\NewDocumentCommand{\\notframed}{omo}{%
+	\\begin{center}
+		\\begin{minipage}{\\widthof{#2}+2em}
+			\\quad\\\\[2ex]
+			\\centering #2
+			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\em #3}}
+		\\end{minipage}
+	\\end{center}
 }
 \\usepackage{tikz}
 \\usetikzlibrary{calc}
@@ -123,7 +133,8 @@ const rely =
 \\begin{document}
 
 \\end{document}`
-
+const tableNotFramed = ref(false)
+const graphNotFramed = ref(false)
 const handleChange = () => {
     store.refresh()
 }
@@ -235,7 +246,7 @@ const unitFormat = ((str) => {
         return str
     }
     // 替换常见符号
-    str = str.replace(/μ/g, '\\mu')
+    str = str.replace(/μ/g, '\\upmu ')
              .replace(/°/g, '{}^{\\circ}')
              .replace(/℃/g, '{}^{\\circ}C')
              .replace(/\*/g, '\\cdot ')
@@ -694,7 +705,12 @@ const commentContent = computed(() => {
     return comment
 })
 const handleTableUpdate = (()=>{
-    tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    if(tableNotFramed.value){
+        tableContent.value = `\\begin{table}[H]\n\t\\notframed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    }
+    else{
+        tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    }
     ElMessage.success('刷新成功！')
 })
 const handleTableSelectAll =()=>{
@@ -817,7 +833,12 @@ const handleGraphUpdate = () => {
                 graphCenterContent = `\\datapoint[smooth]{${datapointContent}}`
                 break
         }
-        graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        if(graphNotFramed.value){
+            graphContent.value = `\\begin{figure}[H]\n\t\\notframed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        }
+        else{
+            graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        }
         ElMessage.success('作图成功！')
     }
     catch(error){
@@ -1114,7 +1135,16 @@ const handleDataMethodChange =()=>{
         <br>
         <el-card shadow="hover">
             <div>
-                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleGraphCopy">内容(点击复制)</el-button></div>
+                <div style="text-align: center;">
+                    <el-switch
+                        v-model="graphNotFramed"
+                        size="large"
+                        inactive-text="带边框"
+                        active-text="不带边框"
+                        style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                    />
+                    <el-button style="font-weight: bold; font-size: large;" @click="handleGraphCopy">内容(点击复制)</el-button>
+                </div>
                 <pre>{{graphContent}}</pre>
             </div>
         </el-card>
@@ -1183,7 +1213,16 @@ const handleDataMethodChange =()=>{
         <br>
         <el-card shadow="hover">
             <div>
-                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleTableCopy">内容(点击复制)</el-button></div>
+                <div style="text-align: center;">
+                    <el-switch
+                        v-model="tableNotFramed"
+                        size="large"
+                        inactive-text="带边框"
+                        active-text="不带边框"
+                        style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                    />
+                    <el-button style="font-weight: bold; font-size: large;" @click="handleTableCopy">内容(点击复制)</el-button>
+                </div>
                 <pre>{{tableContent}}</pre>
             </div>
         </el-card>
