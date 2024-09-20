@@ -416,7 +416,7 @@ valueMath.import({
       let result = []
       arr.forEach(item => {
         Check.divisorZero(Number(item.rawData))
-        result.push(num, item)
+        result.push(ValueCalc.divide(num, item))
       })
       return result
     },

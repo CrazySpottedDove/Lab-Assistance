@@ -1,7 +1,7 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed, ref} from 'vue';
-import { CircleClose } from '@element-plus/icons-vue';
+import { computed, ref, nextTick} from 'vue';
+import { CircleClose,FirstAidKit } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 
 //Don't import { ElMessage } from 'element-plus'!
@@ -30,6 +30,7 @@ const tableOneColumns = computed(()=>{
     return selectedDataIndex.value >= 0 ? (dataList.value[selectedDataIndex.value].theoData === undefined || dataList.value[selectedDataIndex.value].theoData === ''? [{label:dataList.value[selectedDataIndex.value].title , prop:'rawData'}] : [{label:dataList.value[selectedDataIndex.value].title, prop:'rawData'},{label:'相对误差',prop:'relErr'}]) : []
 })
 const graphData = ref('')
+const inputRefs = ref([])
 const rely =
 `\\documentclass{ctexart}
 \\usepackage{geometry}
@@ -144,6 +145,16 @@ const handleAddRawData = ()=>{
     dataList.value[selectedDataIndex.value].dataSet.push({rawData:dataInput.value})
     dataInput.value = ''
     store.refresh()
+}
+const handleInsertRawData = (index) => {
+    dataList.value[selectedDataIndex.value].dataSet.splice(index,0,{rawData:'',})
+    nextTick(() => {
+        // 在下一次 DOM 更新后，聚焦到新插入的输入框
+        const inputToFocus = inputRefs.value[index]
+        if (inputToFocus && inputToFocus.$el) {
+            inputToFocus.$el.querySelector('input').focus()
+        }
+    })
 }
 const handleEditTheoData = ()=>{
     store.refresh()
@@ -974,8 +985,19 @@ const handleDataMethodChange =()=>{
                             v-model="scope.row[column.prop]"
                             @change="handleChange() "
                             :disabled = "column.prop === 'relErr'"
+                            :ref="el => inputRefs[scope.$index] = el"
                         >
                         </el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column fixed="right" width="60px">
+                    <template #="scope">
+                        <el-icon
+                            @click="handleInsertRawData(scope.$index)"
+                            class="deleteicon el-icon--right"
+                        >
+                            <first-aid-kit></first-aid-kit>
+                        </el-icon>
                     </template>
                 </el-table-column>
                 <el-table-column fixed="right" width="60px">
