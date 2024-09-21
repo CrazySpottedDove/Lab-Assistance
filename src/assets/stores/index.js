@@ -21,10 +21,12 @@ import {
 function initState(){
     return{
         dataList:[],
+        tableList:[],
+        graphList:[],
         selectedDataIndex : -1,
-        isLine:false,
+        selectedTableIndex: -1,
+        selectedGraphIndex: -1,
         isReadme:true,
-        isOutput:false,
         isNumberDoc:false,
         isUncerDoc:false,
         isPropertyDoc:false,
@@ -39,6 +41,18 @@ export const useAllDataStore = defineStore('allData',()=>{
         state.value.dataList.splice(index,1)
         if(state.value.selectedDataIndex >= index){
             state.value.selectedDataIndex--
+        }
+    }
+    function deleteTable(index){
+        state.value.tableList.splice(index, 1)
+        if(state.value.selectedTableIndex >= index){
+            state.value.selectedTableIndex--
+        }
+    }
+    function deleteGraph(index){
+        state.value.graphList.splice(index, 1)
+        if(state.value.selectedGraphIndex >= index){
+            state.value.selectedGraphIndex--
         }
     }
     function addData(flag){
@@ -115,6 +129,32 @@ export const useAllDataStore = defineStore('allData',()=>{
             })
         }
         state.value.selectedDataIndex = state.value.dataList.length - 1
+    }
+    function addTable(){
+        state.value.tableList.push({
+            centerContent:'',
+            headContent:'',
+            commentContent:'',
+            tableContent:'',
+            tableTitleContent:'',
+            tableFramed:false,
+            dataValue1:[],
+            dataValueN:[],
+            dataValuesSource:[],
+        })
+        state.value.selectedTableIndex = state.value.tableList.length - 1
+    }
+    function addGraph(){
+        state.value.graphList.push({
+            graphData:'',
+            graphFramed:false,
+            graphOption:'line',
+            graphContent:'',
+            graphTitleContent:'',
+            xData:'',
+            yData:'',
+        })
+        state.value.selectedGraphIndex = state.value.graphList.length - 1
     }
     function refresh(){
         try{
@@ -445,7 +485,11 @@ export const useAllDataStore = defineStore('allData',()=>{
     return{
         state,
         deleteData,
+        deleteTable,
+        deleteGraph,
         addData,
+        addTable,
+        addGraph,
         refresh,
         editIndirectData,
         analysisChange,

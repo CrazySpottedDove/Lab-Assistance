@@ -1,12 +1,13 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
 import { computed, ref, nextTick} from 'vue';
-import { CircleClose,FirstAidKit } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { CircleClose,FirstAidKit,DocumentCopy } from '@element-plus/icons-vue';
 
 //Don't import { ElMessage } from 'element-plus'!
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
+const tableList = computed(() => store.state.tableList)
+const graphList = computed(() => store.state.graphList)
 const propertyLabel = [
     {
         prop:'propertyName',
@@ -18,9 +19,9 @@ const propertyLabel = [
     }
 ]
 const selectedDataIndex = computed(()=>store.state.selectedDataIndex)
-const isLine = computed(()=>store.state.isLine)
+const selectedTableIndex = computed(()=>store.state.selectedTableIndex)
+const selectedGraphIndex = computed(()=>store.state.selectedGraphIndex)
 const isReadme = computed(()=>store.state.isReadme)
-const isOutput = computed(()=>store.state.isOutput)
 const isNumberDoc = computed(()=>store.state.isNumberDoc)
 const isUncerDoc = computed(()=>store.state.isUncerDoc)
 const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
@@ -29,7 +30,7 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
 const tableOneColumns = computed(()=>{
     return selectedDataIndex.value >= 0 ? (dataList.value[selectedDataIndex.value].theoData === undefined || dataList.value[selectedDataIndex.value].theoData === ''? [{label:dataList.value[selectedDataIndex.value].title , prop:'rawData'}] : [{label:dataList.value[selectedDataIndex.value].title, prop:'rawData'},{label:'相对误差',prop:'relErr'}]) : []
 })
-const graphData = ref('')
+
 const inputRefs = ref([])
 const rely =
 `\\documentclass{ctexart}
@@ -135,8 +136,7 @@ const rely =
 \\begin{document}
 
 \\end{document}`
-const tableFramed = ref(false)
-const graphFramed = ref(false)
+
 const handleChange = () => {
     store.refresh()
 }
@@ -200,8 +200,6 @@ const graphOptions = [
         label:'曲线'
     }
 ]
-const graphOption = ref('line')
-
 const titleFormat = (input) => {
     if (!input) {
         return '';
@@ -471,7 +469,6 @@ const dataFormat = ((str) =>{
 })
 // 格式化函数
 
-const tableContent = ref('')
 const props={
     multiple:true,
     checkStrictly: true,
@@ -479,8 +476,6 @@ const props={
     label:'label',
     value:'value',
 }
-const dataValuesSource = ref([])
-const tableTitleContent = ref('')
 const dataOptions = computed(()=>{
     let tmpDataOptions = []
     function generateDataOption(item){
@@ -662,148 +657,155 @@ const dataOptions = computed(()=>{
     })
     return tmpDataOptions
 })
-const dataValue1 = computed(() => {
-    let tmp = []
-    if(dataValuesSource.value && dataValuesSource.value.length){
-        dataValuesSource.value.forEach(item => {
-            if(item.dataLength === 1){
-                tmp.push(item)
-            }
-        })
+const handleTableUpdate = (()=>{
+    let selectedTable = tableList.value[selectedTableIndex.value]
+    let tableFramed = selectedTable.tableFramed
+    function updateDataValue1(){
+        let tmp = []
+        if(selectedTable.dataValuesSource && selectedTable.dataValuesSource.length){
+            selectedTable.dataValuesSource.forEach(item => {
+                if(item.dataLength === 1){
+                    tmp.push(item)
+                }
+            })
+        }
+        selectedTable.dataValue1 = tmp
     }
-    return tmp
-})
-const dataValueN = computed(() => {
-    let tmp = []
-    if(dataValuesSource.value && dataValuesSource.value.length){
-        dataValuesSource.value.forEach(item => {
-            if(item.dataLength !== 1){
-                tmp.push(item)
-            }
-        })
+    function updateDataValueN(){
+        let tmp = []
+        if(selectedTable.dataValuesSource && selectedTable.dataValuesSource.length){
+            selectedTable.dataValuesSource.forEach(item => {
+                if(item.dataLength !== 1){
+                    tmp.push(item)
+                }
+            })
+        }
+        selectedTable.dataValueN = tmp
     }
-    return tmp
-})
-const centerContent = computed(() => {
-    let center = ''
-    let len1 = dataValue1.value.length
-    let lenN = dataValueN.value.length
-    if(lenN){
-        try{
-            let maxLen = dataValueN.value.reduce((max, data) => {
-                if(max === data.dataLength || (max > data.dataLength && data.dataLength === 1)){
-                    return max
-                }
-                else if(max === 1){
-                    return data.dataLength
-                }
-                else{
-                    ElMessage.error('数组的长度不一致！')
-                    throw new Error('数组的长度不一致！')
-                }
-            }, dataValueN.value[0].dataLength)
-            let maxHeight = dataValueN.value.reduce((max, data) => {
-                if(max === data.dataHeight || (max > data.dataHeight && data.dataHeight === 1)){
-                    return max
-                }
-                else if(max === 1){
-                    return data.dataHeight
-                }
-                else{
-                    ElMessage.error('数组的长度不一致！')
-                    throw new Error('数组的长度不一致！')
-                }
-            }, dataValueN.value[0].dataHeight)
-            function draftCenterNumber(length, index){
-                center += '编号 & '
-                for(let i = index * length + 1; i < (index+1) * length + 1; i++){
-                    center += `$ ${i} $`
-                    if(i !== (index+1) * length){
-                        center += ' & '
+    function updateCenterContent(){
+        let center = ''
+        let len1 = selectedTable.dataValue1.length
+        let lenN = selectedTable.dataValueN.length
+        if(lenN){
+            try{
+                let maxLen = selectedTable.dataValueN.reduce((max, data) => {
+                    if(max === data.dataLength || (max > data.dataLength && data.dataLength === 1)){
+                        return max
                     }
-                }
-                center += ' \\\\\n\t\t\t'
-            }
-            for(let i = 0; i < maxHeight; i++){
-                draftCenterNumber(maxLen, i)
-                if(len1){
-                    for(let j = 0; j < lenN; j++){
-                        center += dataValueN.value[j].center[i]
-                        center += ' \\\\\n\t\t\t'
+                    else if(max === 1){
+                        return data.dataLength
                     }
+                    else{
+                        ElMessage.error('数组的长度不一致！')
+                        throw new Error('数组的长度不一致！')
+                    }
+                }, selectedTable.dataValueN[0].dataLength)
+                let maxHeight = selectedTable.dataValueN.reduce((max, data) => {
+                    if(max === data.dataHeight || (max > data.dataHeight && data.dataHeight === 1)){
+                        return max
+                    }
+                    else if(max === 1){
+                        return data.dataHeight
+                    }
+                    else{
+                        ElMessage.error('数组的长度不一致！')
+                        throw new Error('数组的长度不一致！')
+                    }
+                }, selectedTable.dataValueN[0].dataHeight)
+                function draftCenterNumber(length, index){
+                    center += '编号 & '
+                    for(let i = index * length + 1; i < (index+1) * length + 1; i++){
+                        center += `$ ${i} $`
+                        if(i !== (index+1) * length){
+                            center += ' & '
+                        }
+                    }
+                    center += ' \\\\\n\t\t\t'
                 }
-                else{
-                    for(let j = 0; j < lenN; j++){
-                        center += dataValueN.value[j].center[i]
-                        if(!(j === lenN - 1 && i === maxHeight - 1)){
+                for(let i = 0; i < maxHeight; i++){
+                    draftCenterNumber(maxLen, i)
+                    if(len1){
+                        for(let j = 0; j < lenN; j++){
+                            center += selectedTable.dataValueN[j].center[i]
                             center += ' \\\\\n\t\t\t'
                         }
                     }
-                    if(i === maxHeight - 1){
-                        center += '\n\t\t'
+                    else{
+                        for(let j = 0; j < lenN; j++){
+                            center += selectedTable.dataValueN[j].center[i]
+                            if(!(j === lenN - 1 && i === maxHeight - 1)){
+                                center += ' \\\\\n\t\t\t'
+                            }
+                        }
+                        if(i === maxHeight - 1){
+                            center += '\n\t\t'
+                        }
                     }
                 }
             }
-        }
-        catch(error){
-            ElMessage.error('制表过程中出错！')
-            console.error("Error creating table:", error);
-        }
+            catch(error){
+                ElMessage.error('制表过程中出错！')
+                console.error("Error creating table:", error);
+            }
 
+        }
+        if(len1){
+            for(let i = 0; i < len1; i++){
+                center += selectedTable.dataValue1[i].center
+                if(i !== len1 - 1){
+                    center += ' \\\\\n\t\t\t'
+                }
+            }
+            center += '\n\t\t'
+        }
+        selectedTable.centerContent = center
     }
-    if(len1){
-        for(let i = 0; i < len1; i++){
-            center += dataValue1.value[i].center
-            if(i !== len1 - 1){
-                center += ' \\\\\n\t\t\t'
+    function updateHeadContent(){
+        let head = ''
+        let len1 = selectedTable.dataValue1.length
+        let lenN = 0
+        let lenNum = 0
+        if(selectedTable.dataValueN.length){
+            for(let i = 0 ; i < selectedTable.dataValueN.length; i++){
+                lenN += selectedTable.dataValueN[i].center.length
+                lenNum = Math.max(lenNum, selectedTable.dataValueN[i].center.length)
             }
         }
-        center += '\n\t\t'
-    }
-    return center
-})
-const headContent = computed(() => {
-    let head = ''
-    let len1 = dataValue1.value.length
-    let lenN = 0
-    let lenNum = 0
-    if(dataValueN.value.length){
-        for(let i = 0 ; i < dataValueN.value.length; i++){
-            lenN += dataValueN.value[i].center.length
-            lenNum = Math.max(lenNum, dataValueN.value[i].center.length)
-        }
-    }
-    if(lenN && len1){
-        head += ',cell{'
-        for(let i = lenN + lenNum + 1; i <= lenN + len1 + lenNum; i++){
-            head += `${i}`
-            if(i !== lenN + len1 + lenNum){
-                head += ','
+        if(lenN && len1){
+            head += ',cell{'
+            for(let i = lenN + lenNum + 1; i <= lenN + len1 + lenNum; i++){
+                head += `${i}`
+                if(i !== lenN + len1 + lenNum){
+                    head += ','
+                }
             }
+            let maxDataLength = 0
+            selectedTable.dataValueN.forEach(item => {
+                maxDataLength = Math.max(maxDataLength, item.dataLength)
+            })
+            head += `}{2}={r=1,c=${maxDataLength}}{c}`
         }
-        let maxDataLength = 0
-        dataValueN.value.forEach(item => {
-            maxDataLength = Math.max(maxDataLength, item.dataLength)
+        selectedTable.headContent = head
+    }
+    function updateCommentContent(){
+        let comment = ''
+        selectedTable.dataValueN.forEach(item => {
+            if(item.comment){
+                comment += item.comment
+            }
         })
-        head += `}{2}={r=1,c=${maxDataLength}}{c}`
+        selectedTable.commentContent = comment
     }
-    return head
-})
-const commentContent = computed(() => {
-    let comment = ''
-    dataValueN.value.forEach(item => {
-        if(item.comment){
-            comment += item.comment
-        }
-    })
-    return comment
-})
-const handleTableUpdate = (()=>{
-    if(tableFramed.value){
-        tableContent.value = `\\begin{table}[H]\n\t\\framed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+    updateDataValue1()
+    updateDataValueN()
+    updateHeadContent()
+    updateCenterContent()
+    updateCommentContent()
+    if(tableFramed){
+        selectedTable.tableContent = `\\begin{table}[H]\n\t\\framed[${selectedTable.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}` + selectedTable.headContent + '}\n\t\t\t'+ selectedTable.centerContent + '\\end{tblr}\n\t}[' + selectedTable.commentContent + ']\n\\end{table}'
     }
     else{
-        tableContent.value = `\\begin{table}[H]\n\t\\notframed[${tableTitleContent.value}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+headContent.value+'}\n\t\t\t'+centerContent.value+'\\end{tblr}\n\t}['+commentContent.value+']\n\\end{table}'
+        selectedTable.tableContent = `\\begin{table}[H]\n\t\\notframed[${selectedTable.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}`+ selectedTable.headContent + '}\n\t\t\t' + selectedTable.centerContent + '\\end{tblr}\n\t}[' + selectedTable.commentContent +']\n\\end{table}'
     }
     ElMessage.success('刷新成功！')
 })
@@ -812,12 +814,12 @@ const handleTableSelectAll =()=>{
     dataOptions.value.forEach(item => {
         tmpValueSource.push(item.value)
     })
-    dataValuesSource.value = tmpValueSource
+    tableList.value[selectedTableIndex.value].dataValuesSource = tmpValueSource
     handleTableUpdate()
 }
 const handleTableClearAll = ()=>{
-    dataValuesSource.value = []
-    tableTitleContent.value = ''
+    tableList.value[selectedTableIndex.value].dataValuesSource = []
+    tableList.value[selectedTableIndex.value].tableTitleContent = ''
     handleTableUpdate()
 }
 // 表格逻辑
@@ -833,17 +835,13 @@ const handleRelyCopy = ()=>{
     copyToClipboard(rely,'rely')
 }
 const handleTableCopy = ()=>{
-    copyToClipboard(tableContent.value,'tableContent')
+    copyToClipboard(tableList.value[selectedTableIndex.value].tableContent,'tableContent')
 }
 const handleGraphCopy = ()=>{
-    copyToClipboard(graphContent.value,'graphContent')
+    copyToClipboard(graphList.value[selectedGraphIndex.value].graphContent,'graphContent')
 }
 // 黏贴逻辑
 
-const graphContent = ref('')
-const graphTitleContent = ref('')
-const xData = ref('')
-const yData = ref('')
 const xTitleList = computed(()=>{
     let tmp = dataList.value.map(data => ({value:data.title,label:data.title}))
     tmp.push({value:'序号', label: '序号'})
@@ -867,25 +865,26 @@ const handleGraphUpdate = () => {
     let yDataSet = []
     let xUnit = ''
     let yUnit = ''
+    let selectedGraph = graphList.value[selectedGraphIndex.value]
     function initXYDataSetsAndUnits(){
-        const yItem = dataList.value.find(item => item.title === yData.value)
+        const yItem = dataList.value.find(item => item.title === selectedGraph.yData)
         if(!yItem){
             ElMessage.error('变量 y 不存在！')
             throw new Error('变量 y 不存在！')
         }
         yDataSet = yItem.dataSet
         yUnit = yItem.unit
-        if(xData.value === '序号'){
+        if(selectedGraph.xData === '序号'){
             for(let i = 1; i <= yDataSet.length; i++){
                 xDataSet.push({rawData: i, bit: 100})
             }
             xUnit = ''
         }
         else{
-            const xItem = dataList.value.find(item => item.title === xData.value)
+            const xItem = dataList.value.find(item => item.title === selectedGraph.xData)
             if(!xItem){
                 ElMessage.error('变量 x 不存在！')
-                throw new Error('变量 y 不存在！')
+                throw new Error('变量 x 不存在！')
             }
             xDataSet = xItem.dataSet
             xUnit = xItem.unit
@@ -894,8 +893,8 @@ const handleGraphUpdate = () => {
     // 初始化作图所需的两个dataSet
     try{
         initXYDataSetsAndUnits()
-        let xstyleContent = `${titleFormat(xData.value)} ${unitFormat(xUnit)}`
-        let ystyleContent = `${titleFormat(yData.value)} ${unitFormat(yUnit)}`
+        let xstyleContent = `${titleFormat(selectedGraph.xData)} ${unitFormat(xUnit)}`
+        let ystyleContent = `${titleFormat(selectedGraph.yData)} ${unitFormat(yUnit)}`
         let graphCenterContent = ''
         let graphCommentContent = ''
         let datapointContent = ''
@@ -907,18 +906,18 @@ const handleGraphUpdate = () => {
             datapointContent += `(${xDataSet[i].rawData} , ${yDataSet[i].rawData}) `
         }
         let xDomain = ''
-        switch(graphOption.value){
+        switch(selectedGraph.graphOption){
             case 'line':
                 xDomain = getDomain(xDataSet)
-                graphData.value = store.evaluateLine(xDataSet, yDataSet)
-                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${graphData.value.slope}*x${graphData.value.intercept[0] === '-' ? '' : '+'}${graphData.value.intercept}};\n\t\t\t\\addlegendentry{拟合直线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
-                graphCommentContent = `$ y=${dataFormat(graphData.value.slope)}x${graphData.value.intercept[0] === '-' ? '' : '+'}${dataFormat(graphData.value.intercept)} \\qquad R^2 = ${dataFormat(graphData.value.rSquared)} $`
+                selectedGraph.graphData = store.evaluateLine(xDataSet, yDataSet)
+                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${selectedGraph.graphData.slope}*x${selectedGraph.graphData.intercept[0] === '-' ? '' : '+'}${selectedGraph.graphData.intercept}};\n\t\t\t\\addlegendentry{拟合直线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
+                graphCommentContent = `$ y=${dataFormat(selectedGraph.graphData.slope)}x${selectedGraph.graphData.intercept[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.intercept)} \\qquad R^2 = ${dataFormat(selectedGraph.graphData.rSquared)} $`
                 break
             case 'square':
                 xDomain = getDomain(xDataSet)
-                graphData.value = store.evaluateSquare(xDataSet, yDataSet)
-                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${graphData.value.a}*x*x${graphData.value.b[0] === '-' ? '' : '+'}${graphData.value.b}*x${graphData.value.c[0] === '-' ? '' : '+'}${graphData.value.c}};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
-                graphCommentContent = `$ y=${dataFormat(graphData.value.a)}x^2${graphData.value.b[0] === '-' ? '' : '+'}${dataFormat(graphData.value.b)}x${graphData.value.c[0] === '-' ? '' : '+'}${dataFormat(graphData.value.c)} \\qquad R^2 = ${dataFormat(graphData.value.rSquared)} $`
+                selectedGraph.graphData = store.evaluateSquare(xDataSet, yDataSet)
+                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${selectedGraph.graphData.a}*x*x${selectedGraph.graphData.b[0] === '-' ? '' : '+'}${selectedGraph.graphData.b}*x${selectedGraph.graphData.c[0] === '-' ? '' : '+'}${selectedGraph.graphData.c}};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
+                graphCommentContent = `$ y=${dataFormat(selectedGraph.graphData.a)}x^2${selectedGraph.graphData.b[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.b)}x${selectedGraph.graphData.c[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.c)} \\qquad R^2 = ${dataFormat(selectedGraph.graphData.rSquared)} $`
                 break
             case 'simple':
                 graphCenterContent = `\\datapoint{${datapointContent}}`
@@ -927,11 +926,11 @@ const handleGraphUpdate = () => {
                 graphCenterContent = `\\datapoint[smooth]{${datapointContent}}`
                 break
         }
-        if(graphFramed.value){
-            graphContent.value = `\\begin{figure}[H]\n\t\\framed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+        if(selectedGraph.graphFramed){
+            selectedGraph.graphContent = `\\begin{figure}[H]\n\t\\framed[${selectedGraph.graphTitleContent}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
         }
         else{
-            graphContent.value = `\\begin{figure}[H]\n\t\\notframed[${graphTitleContent.value}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
+            selectedGraph.graphContent = `\\begin{figure}[H]\n\t\\notframed[${selectedGraph.graphTitleContent}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
         }
         ElMessage.success('作图成功！')
     }
@@ -1180,7 +1179,7 @@ const handleDataMethodChange =()=>{
 </div>
 <!-- 间接数据的不确定度卡片 -->
 
-<div v-show="isLine">
+<div v-if="selectedGraphIndex >= 0">
     <div class="card-div">
         <el-card shadow="hover">
             <div class="equipment">
@@ -1188,7 +1187,7 @@ const handleDataMethodChange =()=>{
                 <span style="width: 1%;"></span>
                 <el-select
                     style="width: 22%;text-align: center;min-width: 5.5em"
-                    v-model="xData"
+                    v-model="graphList[selectedGraphIndex].xData"
                 >
                     <el-option v-for="title in xTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
@@ -1197,21 +1196,21 @@ const handleDataMethodChange =()=>{
                 <span style="width: 1%;"></span>
                 <el-select
                     style="width: 22%;text-align: center;min-width: 5.5em"
-                    v-model="yData"
+                    v-model="graphList[selectedGraphIndex].yData"
                 >
                     <el-option v-for="title in yTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
                 </el-select>
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                 <span style="width: 1%;"></span>
-                <input placeholder="标题" v-model="graphTitleContent" style="width: 22%; text-align: center;">
+                <input placeholder="标题" v-model="graphList[selectedGraphIndex].graphTitleContent" style="width: 22%; text-align: center;">
             </div>
             <div class="equipment">
                 <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
                 <span style="width: 5%;"></span>
                 <el-select
                     style="width: 45%;text-align: center;min-width: 5.5em"
-                    v-model="graphOption"
+                    v-model="graphList[selectedGraphIndex].graphOption"
                 >
                     <el-option v-for="option in graphOptions" :key="option.value" :label="option.label" :value="option.value"></el-option>
                 </el-select>
@@ -1220,20 +1219,25 @@ const handleDataMethodChange =()=>{
             </div>
         </el-card>
     </div>
-    <div class="card-div" v-if="graphData !== ''">
+    <div class="card-div" v-if="graphList[selectedGraphIndex].graphData !== ''">
         <el-card shadow="hover">
-            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphOption === 'line'">
-                拟合结果：{{'y = '+graphData.slope+' x '+(graphData.intercept[0]==='-'?'':'+ ')+graphData.intercept+' '+','+' R² = '+graphData.rSquared}}
+            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphList[selectedGraphIndex].graphOption === 'line'">
+                拟合结果：{{'y = '+graphList[selectedGraphIndex].graphData.slope+' x '+(graphList[selectedGraphIndex].graphData.intercept[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.intercept+' '+','+' R² = '+graphList[selectedGraphIndex].graphData.rSquared}}
             </div>
-            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphOption === 'square'">
-                拟合结果：{{'y = '+ graphData.a + ' x² ' + (graphData.b[0]==='-'?'':'+ ')+graphData.b+' x '+(graphData.c[0]==='-'?'':'+ ')+graphData.c+' , R² = '+graphData.rSquared}}
+            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphList[selectedGraphIndex].graphOption === 'square'">
+                拟合结果：{{'y = '+ graphList[selectedGraphIndex].graphData.a + ' x² ' + (graphList[selectedGraphIndex].graphData.b[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.b+' x '+(graphList[selectedGraphIndex].graphData.c[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.c+' , R² = '+graphList[selectedGraphIndex].graphData.rSquared}}
             </div>
         </el-card>
     </div>
     <div class="card-div">
         <el-card shadow="hover" style="height: 350px; overflow: auto;">
             <div>
-                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleRelyCopy">依赖(点击复制)</el-button></div>
+                <div style="text-align: center;">
+                    <span style="font-weight: bold; font-size: large;">依赖 </span>
+                    <el-icon class="copy el-icon--right" @click="handleRelyCopy">
+                        <document-copy></document-copy>
+                    </el-icon>
+                </div>
                 <pre>{{rely}}</pre>
             </div>
         </el-card>
@@ -1242,15 +1246,18 @@ const handleDataMethodChange =()=>{
             <div>
                 <div style="text-align: center;">
                     <el-switch
-                        v-model="graphFramed"
+                        v-model="graphList[selectedGraphIndex].graphFramed"
                         size="large"
                         inactive-text="不带边框"
                         active-text="带边框"
                         style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                     />
-                    <el-button style="font-weight: bold; font-size: large;" @click="handleGraphCopy">内容(点击复制)</el-button>
+                    <span style="font-weight: bold; font-size: large;"> 内容 </span>
+                    <el-icon class="copy el-icon--right" @click="handleGraphCopy">
+                        <document-copy></document-copy>
+                    </el-icon>
                 </div>
-                <pre>{{graphContent}}</pre>
+                <pre>{{graphList[selectedGraphIndex].graphContent}}</pre>
             </div>
         </el-card>
     </div>
@@ -1277,11 +1284,13 @@ const handleDataMethodChange =()=>{
     <p>为数据命名后，即可通过选择数据与制图方法获得 <span class="formula">LaTeX</span> 代码。在这里，依赖的内容与 <span class="formula">LaTeX</span> 制表处相同。</p>
     <p>在最小二乘直线斜率的有效数字方面，使用 x 数据集中最大的有效位数、 y 数据集中最大的有效位数中的最小者。</p>
     <p>选择好数据后，<em>点击刷新</em>，即可获得最新的代码。</p>
+    <h2>保存与读取</h2>
+    <p>点击标题右侧的第一个图标，可以保存当前内容为一个 json 文件。之后打开时，可以点击标题右侧的第二个图标，打开对应的 json 文件。</p>
     <h2>参考</h2>
     <p>时有忘记各种计算方法的时候，所以留了三个参考，方便查阅。</p>
 </div>
   <!-- readme视图 -->
-<div v-show="isOutput">
+<div v-if="selectedTableIndex >= 0">
     <div class="card-div">
         <el-card shadow="hover">
             <div class="equipment">
@@ -1291,14 +1300,14 @@ const handleDataMethodChange =()=>{
                     :options="dataOptions"
                     :props="props"
                     placeholder="选择数据"
-                    v-model="dataValuesSource"
+                    v-model="tableList[selectedTableIndex].dataValuesSource"
                     style="width: 38.5%;"
                 >
                 </el-cascader>
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                 <span style="width: 1%;"></span>
-                <input placeholder="标题" v-model="tableTitleContent" style="width: 38.5%; text-align: center;">
+                <input placeholder="标题" v-model="tableList[selectedTableIndex].tableTitleContent" style="width: 38.5%; text-align: center;">
 
             </div>
             <div class="equipment">
@@ -1311,7 +1320,12 @@ const handleDataMethodChange =()=>{
     <div class="card-div">
         <el-card shadow="hover" style="height: 350px; overflow: auto;">
             <div>
-                <div style="text-align: center;"> <el-button style="font-weight: bold; font-size: large;" @click="handleRelyCopy">依赖(点击复制)</el-button></div>
+                <div style="text-align: center;">
+                    <span style="font-weight: bold; font-size: large;"> 依赖 </span>
+                    <el-icon class="copy el-icon--right" @click="handleRelyCopy">
+                        <document-copy></document-copy>
+                    </el-icon>
+                </div>
                 <pre>{{rely}}</pre>
             </div>
         </el-card>
@@ -1320,15 +1334,18 @@ const handleDataMethodChange =()=>{
             <div>
                 <div style="text-align: center;">
                     <el-switch
-                        v-model="tableFramed"
+                        v-model="tableList[selectedTableIndex].tableFramed"
                         size="large"
                         inactive-text="不带边框"
                         active-text="带边框"
                         style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                     />
-                    <el-button style="font-weight: bold; font-size: large;" @click="handleTableCopy">内容(点击复制)</el-button>
+                    <span style="font-weight: bold; font-size: large;"> 内容 </span>
+                    <el-icon class="copy el-icon--right" @click="handleTableCopy">
+                        <document-copy></document-copy>
+                    </el-icon>
                 </div>
-                <pre>{{tableContent}}</pre>
+                <pre>{{tableList[selectedTableIndex].tableContent}}</pre>
             </div>
         </el-card>
     </div>
@@ -1603,5 +1620,11 @@ sup{
 }
 .overline{
     text-decoration: overline;
+}
+.copy{
+    cursor: pointer;
+    :hover{
+        color:#3498db
+    }
 }
 </style>

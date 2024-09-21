@@ -962,15 +962,17 @@ function evaluateExpression(dataList, expression, option, currentTitle) {
     }
     else if(option === 'forAvg'){
         dataList.forEach(item => {
-            variables[item.title] = escapeVariableName(item.title)
-            let tmpRawData = item.analysis['avg'].propertyValue
-            parser.set(escapeVariableName(item.title),[
-                {
-                    rawData:tmpRawData,
-                    level:getLevel(tmpRawData),
-                    bit:getBit(tmpRawData)
-                }
-            ])
+            if(item.title !== currentTitle){
+                variables[item.title] = escapeVariableName(item.title)
+                let tmpRawData = item.analysis['avg'].propertyValue
+                parser.set(escapeVariableName(item.title),[
+                    {
+                        rawData:tmpRawData,
+                        level:getLevel(tmpRawData),
+                        bit:getBit(tmpRawData)
+                    }
+                ])
+            }
         })
     }
     try {

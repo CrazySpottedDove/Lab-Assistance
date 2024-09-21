@@ -3,7 +3,7 @@
     <el-aside width="100%">
         <el-menu
             background-color="#626aef"
-            :default-openeds="['1', '1-1','1-2']"
+            :default-openeds="['1', '1-1','1-2','2','3']"
         >
             <el-sub-menu index="1" >
                 <template #title>
@@ -66,8 +66,62 @@
                     </el-menu-item>
                 </el-sub-menu>
             </el-sub-menu>
-            <el-menu-item index="2" @click="handleSwitchToOutput" :class="{'selected':isOutput}">LaTeX制表</el-menu-item>
-            <el-menu-item index="3" @click="handleSwitchToLine" :class="{'selected':isLine}">LaTeX制图</el-menu-item>
+            <el-sub-menu index="2">
+                <template #title>
+                    <span style="color: gainsboro!important;">LaTeX制表</span>
+                </template>
+                <el-menu-item
+                    v-for="(table,index) of tableList"
+                    :key="index"
+                    @click="handleTableSelection(index)"
+                    :class="{'selected':selectedTableIndex === index}"
+                >
+                    表{{ index + 1 }}
+                    <span style="width: 58%;"></span>
+                    <span>
+                        <el-icon
+                            @click="handleDeleteTable(index)"
+                            class="deleteicon el-icon--right"
+                        >
+                            <circle-close></circle-close>
+                        </el-icon>
+                    </span>
+                </el-menu-item>
+                <el-menu-item
+                    class="mybutton"
+                    @click="handleAddTable()"
+                >
+                    添加表格
+                </el-menu-item>
+            </el-sub-menu>
+            <el-sub-menu index="3">
+                <template #title>
+                    <span style="color: gainsboro!important;">LaTeX制图</span>
+                </template>
+                <el-menu-item
+                    v-for="(graph,index) of graphList"
+                    :key="index"
+                    @click="handleGraphSelection(index)"
+                    :class="{'selected':selectedGraphIndex === index}"
+                >
+                    图{{ index + 1 }}
+                    <span style="width: 58%;"></span>
+                    <span>
+                        <el-icon
+                            @click="handleDeleteGraph(index)"
+                            class="deleteicon el-icon--right"
+                        >
+                            <circle-close></circle-close>
+                        </el-icon>
+                    </span>
+                </el-menu-item>
+                <el-menu-item
+                    class="mybutton"
+                    @click="handleAddGraph()"
+                >
+                    添加图
+                </el-menu-item>
+            </el-sub-menu>
             <el-menu-item index="4" @click="handleSwitchToReadme" :class="{'selected':isReadme}">使用指南</el-menu-item>
             <el-sub-menu index="5">
                 <template #title>
@@ -87,18 +141,38 @@ import { useAllDataStore } from '../assets/stores';
 import { computed } from 'vue';
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
+const tableList = computed(()=>store.state.tableList)
+const graphList = computed(()=>store.state.graphList)
 const selectedDataIndex = computed(()=>store.state.selectedDataIndex)
-const isLine = computed(()=>store.state.isLine)
+const selectedTableIndex = computed(()=>store.state.selectedTableIndex)
+const selectedGraphIndex = computed(()=>store.state.selectedGraphIndex)
 const isReadme = computed(()=>store.state.isReadme)
-const isOutput = computed(()=>store.state.isOutput)
 const isNumberDoc = computed(()=>store.state.isNumberDoc)
 const isUncerDoc = computed(()=>store.state.isUncerDoc)
 const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
 const handleDataSelection = (index)=>{
     store.state.selectedDataIndex = index
-    store.state.isLine = false
+    store.state.selectedTableIndex = -1
+    store.state.selectedGraphIndex = -1
     store.state.isReadme = false
-    store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleTableSelection = (index)=>{
+    store.state.selectedTableIndex = index
+    store.state.selectedDataIndex = -1
+    store.state.selectedGraphIndex  = -1
+    store.state.isReadme = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleGraphSelection = (index)=>{
+    store.state.selectedGraphIndex = index
+    store.state.selectedDataIndex = -1
+    store.state.selectedTableIndex  = -1
+    store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
@@ -108,18 +182,54 @@ const handleTitleCopy = (index) =>{
 }
 const handleDeleteData = (index)=>{
     store.deleteData(index)
-    store.state.isLine = false
+    store.state.selectedTableIndex = -1
+    store.state.selectedGraphIndex  = -1
     store.state.isReadme = false
-    store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleDeleteTable = (index) => {
+    store.deleteTable(index)
+    store.state.selectedDataIndex = -1
+    store.state.selectedGraphIndex  = -1
+    store.state.isReadme = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleDeleteGraph = (index) => {
+    store.deleteGraph(index)
+    store.state.selectedDataIndex = -1
+    store.state.selectedTableIndex  = -1
+    store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
 const handleAddData = (flag) =>{
     store.addData(flag)
-    store.state.isLine = false
+    store.state.selectedTableIndex = -1
+    store.state.selectedGraphIndex  = -1
     store.state.isReadme = false
-    store.state.isOutput = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleAddTable = () =>{
+    store.state.selectedDataIndex = -1
+    store.addTable()
+    store.state.selectedGraphIndex  = -1
+    store.state.isReadme = false
+    store.state.isNumberDoc = false
+    store.state.isUncerDoc = false
+    store.state.isPropertyDoc = false
+}
+const handleAddGraph = () =>{
+    store.state.selectedDataIndex = -1
+    store.addGraph()
+    store.state.selectedTableIndex  = -1
+    store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
@@ -127,56 +237,38 @@ const handleAddData = (flag) =>{
 const handleTitleChange = (index)=>{
     store.state.dataList[index].named = true
 }
-const handleSwitchToLine = ()=>{
-    store.state.selectedDataIndex = -1
-    store.state.isLine = true
-    store.state.isReadme = false
-    store.state.isOutput = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
-}
 const handleSwitchToReadme = ()=>{
     store.state.selectedDataIndex = -1
+    store.state.selectedTableIndex = -1
     store.state.isReadme = true
-    store.state.isLine = false
-    store.state.isOutput = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
-}
-const handleSwitchToOutput =()=>{
-    store.state.selectedDataIndex = -1
-    store.state.isOutput = true
-    store.state.isReadme = false
-    store.state.isLine = false
+    store.state.selectedGraphIndex  = -1
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
 const handleSwitchToNumberDoc =()=>{
     store.state.selectedDataIndex = -1
-    store.state.isOutput = false
+    store.state.selectedTableIndex = -1
     store.state.isReadme = false
-    store.state.isLine = false
+    store.state.selectedGraphIndex  = -1
     store.state.isNumberDoc = true
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
 const handleSwitchToUncerDoc =()=>{
     store.state.selectedDataIndex = -1
-    store.state.isOutput = false
+    store.state.selectedTableIndex = -1
     store.state.isReadme = false
-    store.state.isLine = false
+    store.state.selectedGraphIndex  = -1
     store.state.isNumberDoc = false
     store.state.isUncerDoc = true
     store.state.isPropertyDoc = false
 }
 const handleSwitchToPropertyDoc =()=>{
     store.state.selectedDataIndex = -1
-    store.state.isOutput = false
+    store.state.selectedTableIndex = -1
     store.state.isReadme = false
-    store.state.isLine = false
+    store.state.selectedGraphIndex  = -1
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = true
