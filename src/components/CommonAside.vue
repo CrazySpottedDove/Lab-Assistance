@@ -14,16 +14,15 @@
                         <span style="color: gainsboro!important;">直接数据</span>
                     </template>
                     <el-menu-item
-                        v-for="(data,index) of dataList"
-                        :key="index"
-                        @click="handleDataSelection(index)"
-                        :class="{'selected':selectedDataIndex === index}"
-                        v-show="data ? data.type === 'direct' : false"
+                        v-for="(item,displayIndex) of directDataList"
+                        :ref="el => refs[displayIndex] = el"
+                        @click="handleDataSelection(item.index, displayIndex)"
+                        :class="{'selected':selectedDataIndex === item.index}"
                     >
-                        <el-input v-model="data.title" @change="handleTitleChange(index)" @click.stop="handleTitleCopy(index)"></el-input>
+                        <el-input v-model="item.data.title" @change="handleTitleChange(item.index)" @click.stop="handleTitleCopy(item.index)"></el-input>
                         <span>
                             <el-icon
-                                @click="handleDeleteData(index)"
+                                @click.stop="handleDeleteData(item.index, displayIndex)"
                                 class="deleteicon el-icon--right"
                             >
                                 <circle-close></circle-close>
@@ -42,16 +41,15 @@
                         <span style="color: gainsboro!important;">间接数据</span>
                     </template>
                     <el-menu-item
-                        v-for="(data,index) of dataList"
-                        :key="index"
-                        @click="handleDataSelection(index)"
-                        :class="{'selected':selectedDataIndex === index}"
-                        v-show="data ? data.type === 'indirect' : false"
+                        v-for="(item, displayIndex) of indirectDataList"
+                        :ref="el => refs[displayIndex + directDataList.length] = el"
+                        @click="handleDataSelection(item.index, displayIndex + directDataList.length)"
+                        :class="{'selected':selectedDataIndex === item.index}"
                     >
-                        <el-input v-model="data.title" @change="handleTitleChange(index)" @click.stop="handleTitleCopy(index)"></el-input>
+                        <el-input v-model="item.data.title" @change="handleTitleChange(item.index)" @click.stop="handleTitleCopy(item.index)"></el-input>
                         <span>
                             <el-icon
-                                @click="handleDeleteData(index)"
+                                @click.stop="handleDeleteData(item.index, displayIndex + directDataList.length)"
                                 class="deleteicon el-icon--right"
                             >
                                 <circle-close></circle-close>
@@ -72,15 +70,15 @@
                 </template>
                 <el-menu-item
                     v-for="(table,index) of tableList"
-                    :key="index"
-                    @click="handleTableSelection(index)"
+                    :ref="el => refs[index + directDataList.length + indirectDataList.length] = el"
+                    @click="handleTableSelection(index, index + directDataList.length + indirectDataList.length)"
                     :class="{'selected':selectedTableIndex === index}"
                 >
                     表{{ index + 1 }}
                     <span style="width: 58%;"></span>
                     <span>
                         <el-icon
-                            @click="handleDeleteTable(index)"
+                            @click="handleDeleteTable(index, index + directDataList.length + indirectDataList.length)"
                             class="deleteicon el-icon--right"
                         >
                             <circle-close></circle-close>
@@ -100,15 +98,15 @@
                 </template>
                 <el-menu-item
                     v-for="(graph,index) of graphList"
-                    :key="index"
-                    @click="handleGraphSelection(index)"
+                    :ref="el => refs[index + directDataList.length + indirectDataList.length + tableList.length] = el"
+                    @click="handleGraphSelection(index, index + directDataList.length + indirectDataList.length + tableList.length)"
                     :class="{'selected':selectedGraphIndex === index}"
                 >
                     图{{ index + 1 }}
                     <span style="width: 58%;"></span>
                     <span>
                         <el-icon
-                            @click="handleDeleteGraph(index)"
+                            @click="handleDeleteGraph(index, index + directDataList.length + indirectDataList.length + tableList.length)"
                             class="deleteicon el-icon--right"
                         >
                             <circle-close></circle-close>
@@ -138,7 +136,7 @@
 <script setup>
 import { CircleClose } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import { computed } from 'vue';
+import { computed, nextTick, onBeforeMount, onMounted, ref } from 'vue';
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
 const tableList = computed(()=>store.state.tableList)
@@ -150,28 +148,46 @@ const isReadme = computed(()=>store.state.isReadme)
 const isNumberDoc = computed(()=>store.state.isNumberDoc)
 const isUncerDoc = computed(()=>store.state.isUncerDoc)
 const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
-const handleDataSelection = (index)=>{
+const directDataList = computed(() => {
+    return dataList.value.map((data, index) => ({data, index})).filter(item => item.data.type === 'direct')
+})
+const indirectDataList = computed(() => {
+    return dataList.value.map((data, index) => ({data, index})).filter(item => item.data.type === 'indirect')
+})
+const refs = ref([])
+const displayLength = computed(() => {
+    return directDataList.value.length + indirectDataList.value.length + tableList.value.length + graphList.value.length
+})
+const click = (displayIndex) => {
+    if(displayIndex >= 0){
+        refs.value[displayIndex].$el.click()
+    }
+}
+const handleDataSelection = (index, displayIndex)=>{
     store.state.selectedDataIndex = index
     store.state.selectedTableIndex = -1
     store.state.selectedGraphIndex = -1
+    store.state.selectedDisplayIndex = displayIndex
     store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
-const handleTableSelection = (index)=>{
+const handleTableSelection = (index, displayIndex)=>{
     store.state.selectedTableIndex = index
     store.state.selectedDataIndex = -1
     store.state.selectedGraphIndex  = -1
+    store.state.selectedDisplayIndex = displayIndex
     store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
 }
-const handleGraphSelection = (index)=>{
+const handleGraphSelection = (index, displayIndex)=>{
     store.state.selectedGraphIndex = index
     store.state.selectedDataIndex = -1
     store.state.selectedTableIndex  = -1
+    store.state.selectedDisplayIndex = displayIndex
     store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
@@ -180,35 +196,29 @@ const handleGraphSelection = (index)=>{
 const handleTitleCopy = (index) =>{
     navigator.clipboard.writeText(dataList.value[index].title)
 }
-const handleDeleteData = (index)=>{
-    store.deleteData(index)
-    store.state.selectedTableIndex = -1
-    store.state.selectedGraphIndex  = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+const handleDeleteData = async (index, displayIndex)=>{
+    store.deleteData(index, displayIndex)
+    await nextTick()
+    click(store.state.selectedDisplayIndex)
 }
-const handleDeleteTable = (index) => {
-    store.deleteTable(index)
-    store.state.selectedDataIndex = -1
-    store.state.selectedGraphIndex  = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+const handleDeleteTable = async(index, displayIndex) => {
+    store.deleteTable(index, displayIndex)
+    await nextTick()
+    click(store.state.selectedDisplayIndex)
 }
-const handleDeleteGraph = (index) => {
-    store.deleteGraph(index)
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex  = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+const handleDeleteGraph = async(index, displayIndex) => {
+    store.deleteGraph(index, displayIndex)
+    await nextTick()
+    click(store.state.selectedDisplayIndex)
 }
 const handleAddData = (flag) =>{
     store.addData(flag)
+    if(flag){
+        store.state.selectedDisplayIndex = directDataList.value.length - 1
+    }
+    else{
+        store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length - 1
+    }
     store.state.selectedTableIndex = -1
     store.state.selectedGraphIndex  = -1
     store.state.isReadme = false
@@ -217,17 +227,20 @@ const handleAddData = (flag) =>{
     store.state.isPropertyDoc = false
 }
 const handleAddTable = () =>{
-    store.state.selectedDataIndex = -1
     store.addTable()
+    store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length + tableList.value.length - 1
+    store.state.selectedDataIndex = -1
     store.state.selectedGraphIndex  = -1
     store.state.isReadme = false
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
+    console.log(store.state.selectedDisplayIndex)
 }
 const handleAddGraph = () =>{
-    store.state.selectedDataIndex = -1
     store.addGraph()
+    store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length + tableList.value.length + graphList.value.length - 1
+    store.state.selectedDataIndex = -1
     store.state.selectedTableIndex  = -1
     store.state.isReadme = false
     store.state.isNumberDoc = false
@@ -238,6 +251,7 @@ const handleTitleChange = (index)=>{
     store.state.dataList[index].named = true
 }
 const handleSwitchToReadme = ()=>{
+    store.state.selectedDisplayIndex = -1
     store.state.selectedDataIndex = -1
     store.state.selectedTableIndex = -1
     store.state.isReadme = true
@@ -247,6 +261,7 @@ const handleSwitchToReadme = ()=>{
     store.state.isPropertyDoc = false
 }
 const handleSwitchToNumberDoc =()=>{
+    store.state.selectedDisplayIndex = -1
     store.state.selectedDataIndex = -1
     store.state.selectedTableIndex = -1
     store.state.isReadme = false
@@ -256,6 +271,7 @@ const handleSwitchToNumberDoc =()=>{
     store.state.isPropertyDoc = false
 }
 const handleSwitchToUncerDoc =()=>{
+    store.state.selectedDisplayIndex = -1
     store.state.selectedDataIndex = -1
     store.state.selectedTableIndex = -1
     store.state.isReadme = false
@@ -265,6 +281,7 @@ const handleSwitchToUncerDoc =()=>{
     store.state.isPropertyDoc = false
 }
 const handleSwitchToPropertyDoc =()=>{
+    store.state.selectedDisplayIndex = -1
     store.state.selectedDataIndex = -1
     store.state.selectedTableIndex = -1
     store.state.isReadme = false
@@ -273,6 +290,55 @@ const handleSwitchToPropertyDoc =()=>{
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = true
 }
+const handleKeydown = (event) => {
+    if(event.ctrlKey){
+        switch(event.key){
+            case 'd':
+                handleAddData(true)
+                return
+            case 'i':
+                handleAddData(false)
+                return
+            case 't':
+                handleAddTable()
+                return
+            case 'f':
+                handleAddGraph()
+            case 's':
+                store.saveFile()
+        }
+    }
+    switch (event.key) {
+        case 'ArrowDown':
+            if(store.state.selectedDisplayIndex === -1){
+                return
+            }
+            store.state.selectedDisplayIndex++
+            if(store.state.selectedDisplayIndex === displayLength.value){
+                store.state.selectedDisplayIndex = 0
+            }
+            click(store.state.selectedDisplayIndex)
+            break
+        case 'ArrowUp':
+            if(store.state.selectedDisplayIndex === -1){
+                return
+            }
+            store.state.selectedDisplayIndex--
+            if(store.state.selectedDisplayIndex === -1){
+                store.state.selectedDisplayIndex = displayLength.value - 1
+            }
+            click(store.state.selectedDisplayIndex)
+            break
+        default:
+            break;
+    }
+}
+onMounted(() => {
+    document.addEventListener('keydown', handleKeydown)
+})
+onBeforeMount(() => {
+    document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 <style lang="less" scoped>
 .el-menu{

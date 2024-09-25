@@ -33,18 +33,16 @@ const tableOneColumns = computed(()=>{
 
 const inputRefs = ref([])
 const rely =
-`\\documentclass{ctexart}
-\\usepackage{geometry}
+`\\usepackage{geometry}
 \\usepackage{amsmath}
 \\usepackage{bm}
 \\geometry{left=0cm,right=0cm,top=0cm,bottom=0cm}
-\\pagestyle{empty}
 \\usepackage{float}
 \\usepackage{upgreek}
 \\usepackage{tabularray}
 \\usepackage{calc}
 \\usepackage{etoolbox}
-\\newcommand{\\Romannumeral}[1]{\\uppercase\\expandafter{\\romannumeral #1}}
+\\providecommand{\\Romannumeral}[1]{\\uppercase\\expandafter{\\romannumeral #1}}
 \\NewDocumentCommand{\\framed}{omo}{%
 	\\framebox[\\widthof{#2}+4em]{
 		\\begin{minipage}{\\widthof{#2}+2em}
@@ -57,7 +55,7 @@ const rely =
 \\NewDocumentCommand{\\notframed}{omo}{%
 	\\begin{center}
 		\\begin{minipage}{\\widthof{#2}+2em}
-			\\quad\\\\[2ex]
+		\\quad\\\\[2ex]
 			\\centering #2
 			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\em #3}}
 		\\end{minipage}
@@ -94,10 +92,12 @@ const rely =
 	}
 }
 \\newcounter{markstyle}
+\\newcounter{funcstyle}
 \\NewDocumentEnvironment{plot}{mos}{
 	#1%
 	\\begin{tikzpicture}
 		\\setcounter{markstyle}{0}
+		\\setcounter{funcstyle}{0}
 		\\ifbool{xfield}{
 			\\ifbool{yfield}{
 				\\begin{axis}[xlabel={\\xlabel},ylabel={\\ylabel},xmin=\\xmin,xmax=\\xmax,ymin=\\ymin,ymax=\\ymax,\\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\\IfBooleanT{#3}{axis equal,}]
@@ -114,28 +114,42 @@ const rely =
 }{
 	\\end{axis}\\end{tikzpicture}\\setboolean{xfield}{false}\\setboolean{yfield}{false}
 }
-
 \\NewDocumentCommand{\\datapoint}{O{}mo}{
 	\\ifcase\\value{markstyle}
 		\\addplot[mark=*,solid,black,#1] coordinates {#2 };
 		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
 	\\or
-		\\addplot[mark=square*,dashed,green,#1] coordinates {#2 };
+		\\addplot[mark=square*,solid,green,#1] coordinates {#2 };
 		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
 	\\or
-		\\addplot[mark=diamond*,dotted,red,#1] coordinates {#2 };
+		\\addplot[mark=diamond*,solid,red,#1] coordinates {#2 };
 		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
 	\\or
-		\\addplot[mark=triangle*,blue,#1] coordinates {#2 };
+		\\addplot[mark=triangle*,solid,blue,#1] coordinates {#2 };
 		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
 	\\or
-		\\addplot[mark=cross,yellow,#1] coordinates {#2 };
+		\\addplot[mark=cross,solid,yellow,#1] coordinates {#2 };
 		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
 	\\fi
 }
-\\begin{document}
-
-\\end{document}`
+\\NewDocumentCommand{\\functionline}{mmo}{
+	\\ifcase\\value{funcstyle}
+		\\addplot[solid,black,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,green,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,red,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,blue,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,yellow,no markers,domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\fi
+}`
 
 const handleChange = () => {
     store.refresh()
@@ -850,6 +864,12 @@ const xTitleList = computed(()=>{
 const yTitleList = computed(() => {
     return dataList.value.map(data => ({value:data.title,label:data.title}))
 })
+const handleAddSingleGraph = () =>{
+    store.addSingleGraph()
+}
+const handleDeleteSingleGraph = (index) => {
+    store.deleteSingleGraph(index)
+}
 const handleGraphUpdate = () => {
     function getDomain(dataSet){
         let minData = dataSet.reduce((min, data) => {
@@ -866,22 +886,23 @@ const handleGraphUpdate = () => {
     let xUnit = ''
     let yUnit = ''
     let selectedGraph = graphList.value[selectedGraphIndex.value]
-    function initXYDataSetsAndUnits(){
-        const yItem = dataList.value.find(item => item.title === selectedGraph.yData)
+    function initXYDataSetsAndUnits(index){
+        const yItem = dataList.value.find(item => item.title === selectedGraph.singleGraphs[index].yData)
         if(!yItem){
             ElMessage.error('变量 y 不存在！')
             throw new Error('变量 y 不存在！')
         }
         yDataSet = yItem.dataSet
         yUnit = yItem.unit
-        if(selectedGraph.xData === '序号'){
+        if(selectedGraph.singleGraphs[index].xData === '序号'){
+            xDataSet = []
             for(let i = 1; i <= yDataSet.length; i++){
                 xDataSet.push({rawData: i, bit: 100})
             }
             xUnit = ''
         }
         else{
-            const xItem = dataList.value.find(item => item.title === selectedGraph.xData)
+            const xItem = dataList.value.find(item => item.title === selectedGraph.singleGraphs[index].xData)
             if(!xItem){
                 ElMessage.error('变量 x 不存在！')
                 throw new Error('变量 x 不存在！')
@@ -891,40 +912,83 @@ const handleGraphUpdate = () => {
         }
     }
     // 初始化作图所需的两个dataSet
+    let xstyleContent = ''
+    let ystyleContent = ''
+    let graphCenterContent = ''
+    let graphCommentContent = ''
+    let graphs = selectedGraph.singleGraphs
+    let graphLength = selectedGraph.singleGraphs.length
     try{
-        initXYDataSetsAndUnits()
-        let xstyleContent = `${titleFormat(selectedGraph.xData)} ${unitFormat(xUnit)}`
-        let ystyleContent = `${titleFormat(selectedGraph.yData)} ${unitFormat(yUnit)}`
-        let graphCenterContent = ''
-        let graphCommentContent = ''
-        let datapointContent = ''
-        if(xDataSet.length !== yDataSet.length){
-            ElMessage.error('数组长度不一致！')
-            throw new Error('数组长度不一致！')
-        }
-        for(let i = 0; i < xDataSet.length; i++){
-            datapointContent += `(${xDataSet[i].rawData} , ${yDataSet[i].rawData}) `
-        }
-        let xDomain = ''
-        switch(selectedGraph.graphOption){
-            case 'line':
-                xDomain = getDomain(xDataSet)
-                selectedGraph.graphData = store.evaluateLine(xDataSet, yDataSet)
-                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${selectedGraph.graphData.slope}*x${selectedGraph.graphData.intercept[0] === '-' ? '' : '+'}${selectedGraph.graphData.intercept}};\n\t\t\t\\addlegendentry{拟合直线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
-                graphCommentContent = `$ y=${dataFormat(selectedGraph.graphData.slope)}x${selectedGraph.graphData.intercept[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.intercept)} \\qquad R^2 = ${dataFormat(selectedGraph.graphData.rSquared)} $`
-                break
-            case 'square':
-                xDomain = getDomain(xDataSet)
-                selectedGraph.graphData = store.evaluateSquare(xDataSet, yDataSet)
-                graphCenterContent = `\\addplot[no markers, domain = ${xDomain}]{${selectedGraph.graphData.a}*x*x${selectedGraph.graphData.b[0] === '-' ? '' : '+'}${selectedGraph.graphData.b}*x${selectedGraph.graphData.c[0] === '-' ? '' : '+'}${selectedGraph.graphData.c}};\n\t\t\t\\addlegendentry{拟合曲线}\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据]`
-                graphCommentContent = `$ y=${dataFormat(selectedGraph.graphData.a)}x^2${selectedGraph.graphData.b[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.b)}x${selectedGraph.graphData.c[0] === '-' ? '' : '+'}${dataFormat(selectedGraph.graphData.c)} \\qquad R^2 = ${dataFormat(selectedGraph.graphData.rSquared)} $`
-                break
-            case 'simple':
-                graphCenterContent = `\\datapoint{${datapointContent}}`
-                break
-            case 'smooth':
-                graphCenterContent = `\\datapoint[smooth]{${datapointContent}}`
-                break
+        for(let i = 0; i < graphLength; i++){
+            initXYDataSetsAndUnits(i)
+
+            if(i === 0){
+                xstyleContent += `${titleFormat(graphs[i].xData)}`
+                ystyleContent += `${titleFormat(graphs[i].yData)}`
+            }
+            else{
+                if(xstyleContent.indexOf(titleFormat(graphs[i].xData)) === -1){
+                    xstyleContent += `, ${titleFormat(graphs[i].xData)}`
+                }
+                if(ystyleContent.indexOf(titleFormat(graphs[i].yData)) === -1){
+                    ystyleContent += `, ${titleFormat(graphs[i].yData)}`
+                }
+            }
+            if(i === graphLength - 1){
+                xstyleContent += ` ${unitFormat(xUnit)}`
+                ystyleContent += ` ${unitFormat(yUnit)}`
+            }
+            // 处理xstyleContent, ystyleContent
+
+            if(xDataSet.length !== yDataSet.length){
+                ElMessage.error('数组长度不一致！')
+                throw new Error('数组长度不一致！')
+            }
+            // 检测
+
+            let datapointContent = ''
+            for(let i = 0; i < xDataSet.length; i++){
+                datapointContent += `(${xDataSet[i].rawData} , ${yDataSet[i].rawData}) `
+            }
+            let xDomain = ''
+            switch(graphs[i].graphOption){
+                case 'line':
+                    xDomain = getDomain(xDataSet)
+                    graphs[i].graphData = store.evaluateLine(xDataSet, yDataSet)
+                    if(i !== 0){
+                        graphCenterContent += `\n\t\t\t`
+                        if(graphCommentContent !== ''){
+                            graphCommentContent += ` \\\\ `
+                        }
+                    }
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.slope}*x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${graphs[i].graphData.intercept}}[拟合直线：$${titleFormat(graphs[i].yData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}$]`
+                    graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.slope)}x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.intercept)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
+                    break
+                case 'square':
+                    xDomain = getDomain(xDataSet)
+                    graphs[i].graphData = store.evaluateSquare(xDataSet, yDataSet)
+                    if(i !== 0){
+                        graphCenterContent += `\n\t\t\t`
+                        if(graphCommentContent !== ''){
+                            graphCommentContent += ` \\\\ `
+                        }
+                    }
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.a}*x*x${graphs[i].graphData.b[0] === '-' ? '' : '+'}${graphs[i].graphData.b}*x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${graphs[i].graphData.c}}[拟合曲线：$${titleFormat(graphs[i].yData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}$]`
+                    graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.a)}x^2${graphs[i].graphData.b[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.b)}x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.c)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
+                    break
+                case 'simple':
+                    if(i !== 0){
+                        graphCenterContent += `\n\t\t\t`
+                    }
+                    graphCenterContent += `\\datapoint{${datapointContent}}[$${titleFormat(graphs[i].yData)}$]`
+                    break
+                case 'smooth':
+                    if(i !== 0){
+                        graphCenterContent += `\n\t\t\t`
+                    }
+                    graphCenterContent += `\\datapoint[smooth]{${datapointContent}}[$${titleFormat(graphs[i].yData)}$]`
+                    break
+            }
         }
         if(selectedGraph.graphFramed){
             selectedGraph.graphContent = `\\begin{figure}[H]\n\t\\framed[${selectedGraph.graphTitleContent}]{\n\t\t\\begin{plot}{\\xstyle{$ ${xstyleContent} $} \\ystyle{$ ${ystyleContent} $}}\n\t\t\t${graphCenterContent}\n\t\t\\end{plot}\n\t}[ ${graphCommentContent}]\n\\end{figure}`
@@ -938,7 +1002,6 @@ const handleGraphUpdate = () => {
         ElMessage.error('作图失败！')
         console.error('Error during plotting', error)
     }
-
 }
 // 制图逻辑
 const handleUncerEdit = ()=>{
@@ -961,7 +1024,7 @@ const handleDataMethodChange =()=>{
 </script>
 <template>
 
-<div v-show="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'direct' : false">
+<div v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex] ? dataList[selectedDataIndex].type === 'direct' : false">
     <div class="card-div">
         <el-card shadow="hover">
             <el-table
@@ -1037,7 +1100,7 @@ const handleDataMethodChange =()=>{
     </div>
 </div>
 <!-- 直接数据的编辑卡片 -->
-<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' : false">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex] ? dataList[selectedDataIndex].type === 'indirect' : false">
     <el-card shadow="hover">
         <div class="equipment">
             <label style="font-weight: 550;width: 10%;text-align: center;min-width: 4.5em;">计算方式</label>
@@ -1072,7 +1135,7 @@ const handleDataMethodChange =()=>{
     </el-card>
 </div>
 <!-- 间接数据的编辑卡片 -->
-<div class="card-div" v-if="selectedDataIndex >= 0">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex]">
     <el-card shadow="hover">
         <div class="equipment">
             <label style="font-weight: 550;width: 16%;text-align: left;">单位</label>
@@ -1081,7 +1144,7 @@ const handleDataMethodChange =()=>{
     </el-card>
 </div>
 <!-- 公用的单位卡片 -->
-<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAll' : false">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex] ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAll' : false">
     <div class="card-div">
         <el-card shadow="hover">
             <el-table
@@ -1118,7 +1181,7 @@ const handleDataMethodChange =()=>{
         </el-card>
     </div>
 </div>
-<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAvg' : false">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex] ? dataList[selectedDataIndex].type === 'indirect' && dataList[selectedDataIndex].computeOption === 'forAvg' : false">
     <div class="card-div">
         <el-card shadow="hover">
             <div class="edit-one">
@@ -1131,7 +1194,7 @@ const handleDataMethodChange =()=>{
     </div>
 </div>
  <!-- 间接数据的展示卡片 -->
-<div class="card-div" v-show="selectedDataIndex >= 0">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex]">
     <el-card shadow="hover">
         <el-table
             :data="selectedDataIndex >= 0 ? Object.values(dataList[selectedDataIndex].analysis) : []"
@@ -1148,7 +1211,7 @@ const handleDataMethodChange =()=>{
     </el-card>
 </div>
 <!-- 公用的属性卡片 -->
-<div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'direct' : false">
+<div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex]? dataList[selectedDataIndex].type === 'direct' : false">
     <el-card shadow="hover">
         <div class="equipment">
             <label style="font-weight: 550;width: 20%;text-align: left;">仪器允差</label>
@@ -1169,7 +1232,7 @@ const handleDataMethodChange =()=>{
     </el-card>
 </div>
 <!-- 直接数据的不确定度卡片 -->
- <div class="card-div" v-if="selectedDataIndex >= 0 ? dataList[selectedDataIndex].type === 'indirect' : false">
+ <div class="card-div" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex]? dataList[selectedDataIndex].type === 'indirect' : false">
     <el-card shadow="hover">
         <div class="equipment">
             <label style="font-weight: 550;width: 20%;text-align: left;">不确定度</label>
@@ -1179,58 +1242,76 @@ const handleDataMethodChange =()=>{
 </div>
 <!-- 间接数据的不确定度卡片 -->
 
-<div v-if="selectedGraphIndex >= 0">
+<div v-if="selectedGraphIndex >= 0 && graphList[selectedGraphIndex]">
+    <div v-for="(singleGraph, index) in graphList[selectedGraphIndex].singleGraphs">
+        <div class="card-div">
+            <el-card shadow="hover">
+                <div class="equipment" style="font-weight: bold; font-size: large;">
+                    图线 {{ index+1 }}
+                    <el-icon class="el-icon--right deleteicon" @click="handleDeleteSingleGraph(index)">
+                        <circle-close></circle-close>
+                    </el-icon>
+                </div>
+                <div class="equipment">
+                    <div class="equipment" style="width: 60%;">
+                        <label style="font-weight: 550;width: 16%;text-align: center;">x轴数据</label>
+                        <span style="width: 1%;"></span>
+                        <el-select
+                            style="width: 32%;text-align: center;min-width: 5.5em"
+                            v-model="singleGraph.xData"
+                        >
+                            <el-option v-for="title in xTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
+                        </el-select>
+                        <span style="width: 1%;"></span>
+                        <label style="font-weight: 550;width: 16%;text-align: center;">y轴数据</label>
+                        <span style="width: 1%;"></span>
+                        <el-select
+                            style="width: 32%;text-align: center;min-width: 5.5em"
+                            v-model="singleGraph.yData"
+                        >
+                            <el-option v-for="title in yTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
+                        </el-select>
+                        <span style="width: 1%;"></span>
+                    </div>
+                    <div class="equipment" style="width: 40%;">
+                        <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
+                        <span style="width: 5%;"></span>
+                        <el-select
+                            style="width: 45%;text-align: center;min-width: 5.5em"
+                            v-model="singleGraph.graphOption"
+                        >
+                            <el-option v-for="option in graphOptions" :key="option.value" :label="option.label" :value="option.value"></el-option>
+                        </el-select>
+                    </div>
+                </div>
+            </el-card>
+        </div>
+        <div class="card-div" v-if="singleGraph.graphData !== ''">
+            <el-card shadow="hover">
+                <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="singleGraph.graphOption === 'line'">
+                    拟合结果：{{'y = '+singleGraph.graphData.slope+' x '+ (singleGraph.graphData.intercept[0]==='-'?'':'+ ') + singleGraph.graphData.intercept+' ' + ',' + ' R² = '+ singleGraph.graphData.rSquared}}
+                </div>
+                <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphList[selectedGraphIndex].graphOption === 'square'">
+                    拟合结果：{{'y = '+ singleGraph.graphData.a + ' x² ' + (singleGraph.graphData.b[0]==='-'?'':'+ ') + singleGraph.graphData.b+' x '+ (singleGraph.graphData.c[0]==='-'?'':'+ ') + singleGraph.graphData.c + ' , R² = ' + singleGraph.graphData.rSquared}}
+                </div>
+            </el-card>
+        </div>
+    </div>
     <div class="card-div">
         <el-card shadow="hover">
             <div class="equipment">
-                <label style="font-weight: 550;width: 10%;text-align: center;">x轴数据</label>
-                <span style="width: 1%;"></span>
-                <el-select
-                    style="width: 22%;text-align: center;min-width: 5.5em"
-                    v-model="graphList[selectedGraphIndex].xData"
-                >
-                    <el-option v-for="title in xTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
-                </el-select>
-                <span style="width: 1%;"></span>
-                <label style="font-weight: 550;width: 10%;text-align: center;">y轴数据</label>
-                <span style="width: 1%;"></span>
-                <el-select
-                    style="width: 22%;text-align: center;min-width: 5.5em"
-                    v-model="graphList[selectedGraphIndex].yData"
-                >
-                    <el-option v-for="title in yTitleList" :key="title.value" :label="title.label" :value="title.value"></el-option>
-                </el-select>
-                <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                 <span style="width: 1%;"></span>
                 <input placeholder="标题" v-model="graphList[selectedGraphIndex].graphTitleContent" style="width: 22%; text-align: center;">
-            </div>
-            <div class="equipment">
-                <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
                 <span style="width: 5%;"></span>
-                <el-select
-                    style="width: 45%;text-align: center;min-width: 5.5em"
-                    v-model="graphList[selectedGraphIndex].graphOption"
-                >
-                    <el-option v-for="option in graphOptions" :key="option.value" :label="option.label" :value="option.value"></el-option>
-                </el-select>
+                <el-button @click="handleAddSingleGraph" style="width: 35%; text-align: center;">添加图线</el-button>
                 <span style="width: 5%;"></span>
                 <el-button @click="handleGraphUpdate" style="width: 35%; text-align: center;">刷新</el-button>
             </div>
         </el-card>
     </div>
-    <div class="card-div" v-if="graphList[selectedGraphIndex].graphData !== ''">
-        <el-card shadow="hover">
-            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphList[selectedGraphIndex].graphOption === 'line'">
-                拟合结果：{{'y = '+graphList[selectedGraphIndex].graphData.slope+' x '+(graphList[selectedGraphIndex].graphData.intercept[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.intercept+' '+','+' R² = '+graphList[selectedGraphIndex].graphData.rSquared}}
-            </div>
-            <div class="equipment" style="font-size: 15pt;font-weight: bold;" v-if="graphList[selectedGraphIndex].graphOption === 'square'">
-                拟合结果：{{'y = '+ graphList[selectedGraphIndex].graphData.a + ' x² ' + (graphList[selectedGraphIndex].graphData.b[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.b+' x '+(graphList[selectedGraphIndex].graphData.c[0]==='-'?'':'+ ')+graphList[selectedGraphIndex].graphData.c+' , R² = '+graphList[selectedGraphIndex].graphData.rSquared}}
-            </div>
-        </el-card>
-    </div>
     <div class="card-div">
-        <el-card shadow="hover" style="height: 350px; overflow: auto;">
+        <el-card shadow="hover" style="height: 100px; overflow: auto;">
             <div>
                 <div style="text-align: center;">
                     <span style="font-weight: bold; font-size: large;">依赖 </span>
@@ -1241,7 +1322,8 @@ const handleDataMethodChange =()=>{
                 <pre>{{rely}}</pre>
             </div>
         </el-card>
-        <br>
+    </div>
+    <div class="card-div">
         <el-card shadow="hover">
             <div>
                 <div style="text-align: center;">
@@ -1288,9 +1370,12 @@ const handleDataMethodChange =()=>{
     <p>点击标题右侧的第一个图标，可以保存当前内容为一个 json 文件。之后打开时，可以点击标题右侧的第二个图标，打开对应的 json 文件。</p>
     <h2>参考</h2>
     <p>时有忘记各种计算方法的时候，所以留了三个参考，方便查阅。</p>
+    <h2>快捷键</h2>
+    <p>上，下键可以控制选择直接数据、间接数据、表格、图，前提是当前你选中了它们其中的一种。</p>
+    <p>Ctrl + d 可以创建一个新的直接数据；Ctrl + i 可以创建一个新的间接数据；Ctrl + t 可以创建一个新的表格； Ctrl + f 可以创建一个新的图；Ctrl + s 可以保存当前数据； Ctrl + o 可以打开已有数据。</p>
 </div>
   <!-- readme视图 -->
-<div v-if="selectedTableIndex >= 0">
+<div v-if="selectedTableIndex >= 0 && tableList[selectedTableIndex]">
     <div class="card-div">
         <el-card shadow="hover">
             <div class="equipment">

@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import {calc} from 'a-calc'
+import { saveAs } from 'file-saver'
 import {
     dimensionalAdd,
     evaluateExpression,
@@ -26,6 +27,7 @@ function initState(){
         selectedDataIndex : -1,
         selectedTableIndex: -1,
         selectedGraphIndex: -1,
+        selectedDisplayIndex: -1,
         isReadme:true,
         isNumberDoc:false,
         isUncerDoc:false,
@@ -37,22 +39,22 @@ function initState(){
 
 export const useAllDataStore = defineStore('allData',()=>{
     const state = ref(initState())
-    function deleteData(index){
+    function deleteData(index, displayIndex){
         state.value.dataList.splice(index,1)
-        if(state.value.selectedDataIndex >= index){
-            state.value.selectedDataIndex--
+        if(state.value.selectedDisplayIndex >= displayIndex){
+            state.value.selectedDisplayIndex--
         }
     }
-    function deleteTable(index){
+    function deleteTable(index, displayIndex){
         state.value.tableList.splice(index, 1)
-        if(state.value.selectedTableIndex >= index){
-            state.value.selectedTableIndex--
+        if(state.value.selectedDisplayIndex >= displayIndex){
+            state.value.selectedDisplayIndex--
         }
     }
-    function deleteGraph(index){
+    function deleteGraph(index, displayIndex){
         state.value.graphList.splice(index, 1)
-        if(state.value.selectedGraphIndex >= index){
-            state.value.selectedGraphIndex--
+        if(state.value.selectedDisplayIndex >= displayIndex){
+            state.value.selectedDisplayIndex--
         }
     }
     function addData(flag){
@@ -146,15 +148,32 @@ export const useAllDataStore = defineStore('allData',()=>{
     }
     function addGraph(){
         state.value.graphList.push({
-            graphData:'',
+            // graphData:'',
             graphFramed:false,
-            graphOption:'line',
+            // graphOption:'line',
+            singleGraphs:[{
+                graphData:'',
+                graphOption:'',
+                xData:'',
+                yData:''
+            }],
             graphContent:'',
             graphTitleContent:'',
-            xData:'',
-            yData:'',
+            // xData:'',
+            // yData:'',
         })
         state.value.selectedGraphIndex = state.value.graphList.length - 1
+    }
+    function addSingleGraph(){
+        state.value.graphList[state.value.selectedGraphIndex].singleGraphs.push({
+            graphData:'',
+            graphOption:'',
+            xData:'',
+            yData:''
+        })
+    }
+    function deleteSingleGraph(index){
+        state.value.graphList[state.value.selectedGraphIndex].singleGraphs.splice(index, 1)
     }
     function refresh(){
         try{
@@ -482,6 +501,45 @@ export const useAllDataStore = defineStore('allData',()=>{
         computeResult.rSquared = calc(String(computeResult.rSquared)+'|=6')
         return computeResult
     }
+    function saveFile(){
+        if(state.value.dataList.length === 0){
+            ElMessage.error('没有数据，无法保存！')
+        }
+        else{
+            const jsonContent = JSON.stringify(state.value, null, 2)
+            const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+            let filename = ''
+            for(let i = 0 ; i < state.value.dataList.length; i++){
+                if(i !== 0){
+                    filename += '-'
+                }
+                filename += `${state.value.dataList[i].title}`
+            }
+            saveAs(blob, `${filename}.json`); // 使用 FileSaver.js 保存 JSON 文件
+        }
+    }
+    function openFile(event){
+        const file = event.target.files[0];
+        if (file && file.type === 'application/json') {
+            const reader = new FileReader();
+            // 文件读取完成时的回调
+            reader.onload = (e) => {
+                try {
+                    const result = e.target.result; // 获取文件内容
+                    state.value = JSON.parse(result); // 解析 JSON 并存储
+                }
+                catch (error) {
+                    ElMessage.error('读取文件过程出错！')
+                    console.error('Error parsing JSON:', error);
+                }
+            };
+            reader.readAsText(file); // 读取文件内容为文本
+            event.target.value = '';
+        }
+        else {
+            alert('请上传一个 JSON 文件');
+        }
+    }
     return{
         state,
         deleteData,
@@ -490,11 +548,15 @@ export const useAllDataStore = defineStore('allData',()=>{
         addData,
         addTable,
         addGraph,
+        addSingleGraph,
+        deleteSingleGraph,
         refresh,
         editIndirectData,
         analysisChange,
         evaluateLine,
         evaluateSquare,
         errorMode,
+        saveFile,
+        openFile
     }
 })
