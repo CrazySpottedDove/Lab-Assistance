@@ -8,6 +8,14 @@ const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
 const tableList = computed(() => store.state.tableList)
 const graphList = computed(() => store.state.graphList)
+const selectedDataIndex = computed(()=>store.state.selectedDataIndex)
+const selectedTableIndex = computed(()=>store.state.selectedTableIndex)
+const selectedGraphIndex = computed(()=>store.state.selectedGraphIndex)
+const isReadme = computed(()=>store.state.isReadme)
+const isNumberDoc = computed(()=>store.state.isNumberDoc)
+const isUncerDoc = computed(()=>store.state.isUncerDoc)
+const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
+// 基本参数
 const propertyLabel = [
     {
         prop:'propertyName',
@@ -18,20 +26,45 @@ const propertyLabel = [
         label:'值（已保留有效数字）'
     }
 ]
-const selectedDataIndex = computed(()=>store.state.selectedDataIndex)
-const selectedTableIndex = computed(()=>store.state.selectedTableIndex)
-const selectedGraphIndex = computed(()=>store.state.selectedGraphIndex)
-const isReadme = computed(()=>store.state.isReadme)
-const isNumberDoc = computed(()=>store.state.isNumberDoc)
-const isUncerDoc = computed(()=>store.state.isUncerDoc)
-const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
-// 基本参数
-
 const tableOneColumns = computed(()=>{
     return selectedDataIndex.value >= 0 ? (dataList.value[selectedDataIndex.value].theoData === undefined || dataList.value[selectedDataIndex.value].theoData === ''? [{label:dataList.value[selectedDataIndex.value].title , prop:'rawData'}] : [{label:dataList.value[selectedDataIndex.value].title, prop:'rawData'},{label:'相对误差',prop:'relErr'}]) : []
 })
-
 const inputRefs = ref([])
+const greekLetters = {
+    'α': '\\alpha ',
+    'β': '\\beta ',
+    'γ': '\\gamma ',
+    'δ': '\\delta ',
+    'ε': '\\epsilon ',
+    'ζ': '\\zeta ',
+    'η': '\\eta ',
+    'θ': '\\theta ',
+    'ι': '\\iota ',
+    'κ': '\\kappa ',
+    'λ': '\\lambda ',
+    'μ': '\\mu ',
+    'ν': '\\nu ',
+    'ξ': '\\xi ',
+    'ο': '\\omicron ',
+    'π': '\\pi ',
+    'ρ': '\\rho ',
+    'σ': '\\sigma ',
+    'τ': '\\tau ',
+    'υ': '\\upsilon ',
+    'φ': '\\phi ',
+    'χ': '\\chi ',
+    'ψ': '\\psi ',
+    'ω': '\\omega ',
+    'Δ': '\\Delta ',
+    'Θ': '\\Theta ',
+    'Λ': '\\Lambda ',
+    'Ξ': '\\Xi ',
+    'Π': '\\Pi ',
+    'Σ': '\\Sigma ',
+    'Φ': '\\Phi ',
+    'Ψ': '\\Psi ',
+    'Ω': '\\Omega '
+}
 const rely =
 `\\usepackage{geometry}
 \\usepackage{amsmath}
@@ -48,7 +81,7 @@ const rely =
 		\\begin{minipage}{\\widthof{#2}+2em}
 			\\quad\\\\[2ex]
 			\\centering #2
-			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\em #3}}
+			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\quad\\\\[-2ex]\\em #3}}
 		\\end{minipage}
 	}
 }
@@ -57,7 +90,7 @@ const rely =
 		\\begin{minipage}{\\widthof{#2}+2em}
 		\\quad\\\\[2ex]
 			\\centering #2
-			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\em #3}}
+			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\quad\\\\[-2ex]\\em #3}}
 		\\end{minipage}
 	\\end{center}
 }
@@ -218,44 +251,6 @@ const titleFormat = (input) => {
     if (!input) {
         return '';
     }
-
-    // 定义希腊字母的映射
-    const greekLetters = {
-        'α': '\\alpha ',
-        'β': '\\beta ',
-        'γ': '\\gamma ',
-        'δ': '\\delta ',
-        'ε': '\\epsilon ',
-        'ζ': '\\zeta ',
-        'η': '\\eta ',
-        'θ': '\\theta ',
-        'ι': '\\iota ',
-        'κ': '\\kappa ',
-        'λ': '\\lambda ',
-        'μ': '\\mu ',
-        'ν': '\\nu ',
-        'ξ': '\\xi ',
-        'ο': '\\omicron ',
-        'π': '\\pi ',
-        'ρ': '\\rho ',
-        'σ': '\\sigma ',
-        'τ': '\\tau ',
-        'υ': '\\upsilon ',
-        'φ': '\\phi ',
-        'χ': '\\chi ',
-        'ψ': '\\psi ',
-        'ω': '\\omega ',
-        'Δ': '\\Delta ',
-        'Θ': '\\Theta ',
-        'Λ': '\\Lambda ',
-        'Ξ': '\\Xi ',
-        'Π': '\\Pi ',
-        'Σ': '\\Sigma ',
-        'Φ': '\\Phi ',
-        'Ψ': '\\Psi ',
-        'Ω': '\\Omega '
-    };
-
     const chinese = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g
 
     // 处理希腊字母替换
@@ -284,167 +279,562 @@ const unitFormat = ((str) => {
 })
 const commentFormat = (str) => {
     if (str === '') {
-        return str;
+        return str
     }
+    str = str
+            .replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match])
+            .replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}')
+    // 处理希腊字母和数字下标
+    function processAbs(str) {
+        // 定义一个正则表达式来查找 'sqrt', 'ln', 'lg', 'abs'
+        const functionRegex = /abs/g;
+        let result = '';
+        let lastIndex = 0;
+        let match
+        // 查找所有的 'sqrt', 'ln', 'lg', 'abs'
+        while ((match = functionRegex.exec(str)) !== null) {
+            result += str.slice(lastIndex, match.index); // 不添加 'abs'
+            lastIndex = match.index + match[0].length; // 更新 lastIndex 跳过当前匹配
 
-    const greekLetters = {
-        'α': '\\alpha ',
-        'β': '\\beta ',
-        'γ': '\\gamma ',
-        'δ': '\\delta ',
-        'ε': '\\epsilon ',
-        'ζ': '\\zeta ',
-        'η': '\\eta ',
-        'θ': '\\theta ',
-        'ι': '\\iota ',
-        'κ': '\\kappa ',
-        'λ': '\\lambda ',
-        'μ': '\\mu ',
-        'ν': '\\nu ',
-        'ξ': '\\xi ',
-        'ο': '\\omicron ',
-        'π': '\\pi ',
-        'ρ': '\\rho ',
-        'σ': '\\sigma ',
-        'τ': '\\tau ',
-        'υ': '\\upsilon ',
-        'φ': '\\phi ',
-        'χ': '\\chi ',
-        'ψ': '\\psi ',
-        'ω': '\\omega ',
-        'Δ': '\\Delta ',
-        'Θ': '\\Theta ',
-        'Λ': '\\Lambda ',
-        'Ξ': '\\Xi ',
-        'Π': '\\Pi ',
-        'Σ': '\\Sigma ',
-        'Φ': '\\Phi ',
-        'Ψ': '\\Psi ',
-        'Ω': '\\Omega '
-    };
-    // 处理希腊字母替换
-    str = str.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
-
-    // 处理希腊字母或字母后面的数字
-    str = str.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
-
-    // 处理乘法符号
-    str = str.replace(/\*/g, ' ');
-
-    // 处理乘方表达式
-    const processExponentiation = (input) => {
-        let output = '';
-        let i = 0;
-
-        while (i < input.length) {
-            const char = input[i];
-
-            if (char === '^') {
-                let base = output; // 底数部分
-                let exponent = ''; // 指数部分
+            // 找到函数名后面必须是括号，检查括号匹配
+            if (str[lastIndex] === '(') {
                 let stack = [];
-                i++; // 跳过 '^'
+                let firstParenIndex = lastIndex;
+                let lastParenIndex = null;
 
-                // 处理指数部分
-                while (i < input.length && (stack.length > 0 || !/[+\-*/^ {}]/.test(input[i]))) {
-                    if (input[i] === '(') {
-                        stack.push('(');
-                    }
-                    if (input[i] === ')') {
+                // 用来追踪括号匹配
+                for (let i = lastIndex; i < str.length; i++) {
+                    if (str[i] === '(') {
+                        stack.push(i);
+                    } else if (str[i] === ')') {
+                        lastParenIndex = i;
                         stack.pop();
+                        if (stack.length === 0) {
+                            // 匹配到完整的括号
+                            lastIndex = i + 1;
+                            break;
+                        }
                     }
-                    exponent += input[i];
-                    i++;
                 }
 
-                // 移除指数部分的外层括号
-                if (exponent[0] === '(' && exponent[exponent.length - 1] === ')') {
-                    exponent = exponent.slice(1, -1);
-                    exponent = `{${exponent}}`
+                // 替换最开始的 '(' 和最后的 ')'，根据不同函数做不同的替换
+                if (lastParenIndex !== null) {
+                    result += '\\left|@' + str.slice(firstParenIndex + 1, lastParenIndex) + '#\\right|';
                 }
-                else{
-                    exponent = `{${exponent}}`
-                }
-                exponent = processExponentiation(exponent);
-                // 构建 LaTeX 格式的输出
-                output = `${base}^${exponent}`;
-            } else {
-                output += char;
-                i++;
-            }
-        }
-        return output;
-    };
-
-
-    str = processExponentiation(str);
-
-    // 处理分数表达式
-    const processFractions = (input) => {
-        let output = '';
-        let stack = [];
-        let numerator = '';
-        let denominator = '';
-        let inDenominator = false;
-        let lastSlashIndex = -1;
-
-        for (let i = 0; i < input.length; i++) {
-            const char = input[i];
-
-            if (char === '(') {
-                stack.push('(');
-                if (inDenominator) {
-                    denominator += char;
-                } else {
-                    numerator += char;
-                }
-            } else if (char === ')') {
-                stack.pop();
-                if (inDenominator) {
-                    denominator += char;
-                } else {
-                    numerator += char;
-                }
-            } else if (char === '/' && stack.length === 0) {
-                inDenominator = true;
-                lastSlashIndex = i;
-            } else {
-                if (inDenominator) {
-                    denominator += char;
-                } else {
-                    numerator += char;
+                else {
+                    // 如果没有匹配到完整的括号，直接添加剩下的内容
+                    result += str.slice(firstParenIndex);
                 }
             }
         }
 
-        if (lastSlashIndex === -1) {
-            output = numerator;
-        } else {
-            if (numerator.startsWith('(') && numerator.endsWith(')')) {
-                numerator = numerator.slice(1, -1);
+        // 把剩下的字符串部分加到 result 中
+        result += str.slice(lastIndex);
+        return result;
+    }
+    function processMathFunctions(str,target, left, right) {
+        const functionRegex = new RegExp(target, 'g');
+        let result = '';
+        let lastIndex = 0;
+        let match
+        while ((match = functionRegex.exec(str)) !== null) {
+            result += str.slice(lastIndex, match.index) + '\\' + match[0];
+            lastIndex = match.index + match[0].length; // 更新 lastIndex 跳过当前匹配
+            // 找到函数名后面必须是括号，检查括号匹配
+            if (str[lastIndex] === '(') {
+                let stack = [];
+                let firstParenIndex = lastIndex;
+                let lastParenIndex = null;
+
+                // 用来追踪括号匹配
+                for (let i = lastIndex; i < str.length; i++) {
+                    if (str[i] === '(') {
+                        stack.push(i);
+                    } else if (str[i] === ')') {
+                        lastParenIndex = i;
+                        stack.pop();
+                        if (stack.length === 0) {
+                            // 匹配到完整的括号
+                            lastIndex = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                // 替换最开始的 '(' 和最后的 ')'
+                if (lastParenIndex !== null) {
+                    result += left + str.slice(firstParenIndex + 1, lastParenIndex) + right
+                }
+                else {
+                    // 如果没有匹配到完整的括号，直接添加剩下的内容
+                    result += str.slice(firstParenIndex);
+                }
             }
-            if (denominator.startsWith('(') && denominator.endsWith(')')) {
-                denominator = denominator.slice(1, -1);
-            }
-            output = `\\frac{${numerator}}{${denominator}}`;
         }
 
-        return output;
-    };
+        // 把剩下的字符串部分加到 result 中
+        result += str.slice(lastIndex);
+        return result;
+    }
+    function processPow(str) {
+        let result = '';
+        let lastIndex = 0;
+        const operatorstr = '+-*/^'
+        // 扫描字符串
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] === '^') {
+                let currentIndex = i
+                let leftScanIndex = currentIndex - 1;
+                let leftInsertStart = currentIndex - 1; // 记录插入位置
+                let leftParenStack = [];
+                let leftOperatorStack = []
+                // 查找左侧的匹配
+                let leftFlag1 = false
+                // 确定了匹配方式
+                let leftFlag2 = false
+                // 确定了哪种匹配方式
+                while (leftScanIndex >= 0) {
+                    const char = str[leftScanIndex]
+                    if (!leftFlag1) {
+                        if (char === ' ') {
+                            leftInsertStart--
+                            leftScanIndex--
+                        }
+                        else if (char === '(') {
+                            leftParenStack.push(leftScanIndex)
+                            leftFlag1 = true
+                            leftFlag2 = true
+                            leftScanIndex--
+                        }
+                        else {
+                            leftFlag1 = true
+                            leftFlag2 = false
+                            leftScanIndex--
+                        }
+                    }
+                    else {
+                        if (leftFlag2) {
+                            if (char === ')') {
+                                leftParenStack.push(leftScanIndex)
+                            }
+                            else if (char === '(') {
+                                if (leftParenStack.length > 1) {
+                                    leftParenStack.pop()
+                                }
+                                else {
+                                    // 找到最左边的 '('，替换
+                                    result += str.slice(lastIndex, leftScanIndex)
+                                    result += '{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart)
+                                    result += '#}'
+                                    break;
+                                }
+                            }
+                            leftScanIndex--
+                        }
+                        else {
+                            if(char === '#'){
+                                leftOperatorStack.push('#')
+                                leftScanIndex--
+                            }
+                            else if(char === '@'){
+                                if(leftOperatorStack.length === 0){
+                                    result += str.slice(lastIndex, leftScanIndex + 1)
+                                    result += '{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                                else{
+                                    leftOperatorStack.pop()
+                                    leftScanIndex--
+                                }
+                            }
+                            else if(char === ')'){
+                                leftParenStack.push(')')
+                                leftScanIndex--
+                            }
+                            else if(char === '('){
+                                if(leftParenStack.length === 0){
+                                    result += str.slice(lastIndex, leftScanIndex + 1)
+                                    result += '{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                                else{
+                                    leftParenStack.pop()
+                                    leftScanIndex--
+                                }
+                            }
+                            else if (operatorstr.indexOf(char) === -1) {
+                                leftScanIndex--
+                                if (leftScanIndex === -1) {
+                                    result += '{@'
+                                    result += str.slice(0, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                            }
+                            else {
+                                result += str.slice(lastIndex, leftScanIndex + 1)
+                                result += '{@'
+                                result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                result += '#}'
+                                break
+                            }
+                        }
+                    }
+                }
 
-    str = processFractions(str);
+                // 添加 POW
+                result += 'POW';
 
-    // 处理 abs() 形式
-    str = str.replace(/abs\(([^)]+)\)/g, '\\left| $1 \\right|');
+                // 向右扫描
+                let rightScanIndex = currentIndex + 1;
+                let rightInsertStart = currentIndex + 1; // 记录插入位置
+                let rightFlag1 = false
+                let rightFlag2 = false
+                let rightParenStack = [];
+                let rightOperatorStack = []
+                // 查找右侧的匹配
+                while (rightScanIndex < str.length) {
+                    const char = str[rightScanIndex];
+                    if (!rightFlag1) {
+                        if (char === ' ') {
+                            rightScanIndex++
+                            rightInsertStart++
+                        }
+                        else if (char === '(') {
+                            rightParenStack.push(rightScanIndex)
+                            rightScanIndex++
+                            rightFlag1 = true
+                            rightFlag2 = true
+                        }
+                        else {
+                            rightScanIndex++
+                            rightFlag1 = true
+                            rightFlag2 = false
+                        }
+                    }
+                    else {
+                        if (rightFlag2) {
+                            if (char === '(') {
+                                rightParenStack.push(rightScanIndex);
+                            }
+                            else if (char === ')') {
+                                if (rightParenStack.length > 1) {
+                                    rightParenStack.pop();
+                                }
+                                else {
+                                    // 找到最右边的 ')'
+                                    result += '{@' + str.slice(rightInsertStart + 1, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex + 1; // 更新 lastIndex
+                                    break;
+                                }
+                            }
+                            rightScanIndex++
+                        }
+                        else {
+                            if(char === '@'){
+                                rightOperatorStack.push('@')
+                                rightScanIndex++
+                            }
+                            else if(char === '#'){
+                                if(rightOperatorStack.length === 0){
+                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex  // 更新 lastIndex
+                                    break
+                                }
+                                else{
+                                    rightScanIndex++
+                                    rightOperatorStack.pop()
+                                }
+                            }
+                            else if (char === '(') {
+                                leftParenStack.push('(')
+                                leftScanIndex--
+                            }
+                            else if (char === ')') {
+                                if (leftParenStack.length === 0) {
+                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex  // 更新 lastIndex
+                                    break
+                                }
+                                else {
+                                    rightScanIndex++
+                                    rightOperatorStack.pop()
+                                }
+                            }
+                            else if (operatorstr.indexOf(char) === -1) {
+                                rightScanIndex++
+                                if (rightScanIndex === str.length) {
+                                    result += '{@' + str.slice(rightInsertStart, str.length) + '#}'
+                                    break
+                                }
+                            }
+                            else {
+                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                lastIndex = rightScanIndex  // 更新 lastIndex
+                                break
+                            }
+                        }
 
-    // 处理 sqrt() 形式
-    str = str.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+                    }
+                }
+            }
+        }
+        // 添加剩余字符串
+        result += str.slice(lastIndex)
+        return result; // 去除多余空格
+    }
+    function processDivide(str) {
+        let result = '';
+        let lastIndex = 0;
+        const operatorstr = '+-*/'
+        // 扫描字符串
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] === '/') {
+                let currentIndex = i
+                let leftScanIndex = currentIndex - 1;
+                let leftInsertStart = currentIndex - 1; // 记录插入位置
+                let leftParenStack = [];
+                let leftOperatorStack = []
 
-    // 处理 ln() 形式
-    str = str.replace(/ln\(([^)]+)\)/g, '\\ln\\left( $1 \\right)');
+                // 查找左侧的匹配
+                let leftFlag1 = false
+                // 确定了匹配方式
+                let leftFlag2 = false
+                // 确定了哪种匹配方式
+                while (leftScanIndex >= 0) {
+                    const char = str[leftScanIndex]
+                    if (!leftFlag1) {
+                        if (char === ' ') {
+                            leftInsertStart--
+                            leftScanIndex--
+                        }
+                        else if (char === '(') {
+                            leftParenStack.push(leftScanIndex)
+                            leftFlag1 = true
+                            leftFlag2 = true
+                            leftScanIndex--
+                        }
+                        else {
+                            leftFlag1 = true
+                            leftFlag2 = false
+                            leftScanIndex--
+                        }
+                    }
+                    else {
+                        if (leftFlag2) {
+                            if (char === ')') {
+                                leftParenStack.push(leftScanIndex)
+                            }
+                            else if (char === '(') {
+                                if (leftParenStack.length > 1) {
+                                    leftParenStack.pop()
+                                }
+                                else {
+                                    // 找到最左边的 '('，替换
+                                    result += str.slice(lastIndex, leftScanIndex)
+                                    result += '\\frac{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart)
+                                    result += '#}'
+                                    break;
+                                }
+                            }
+                            leftScanIndex--
+                        }
+                        else {
+                            if (char === '#') {
+                                leftOperatorStack.push('#')
+                                leftScanIndex--
+                            }
+                            else if (char === '@') {
+                                if (leftOperatorStack.length === 0) {
+                                    result += str.slice(lastIndex, leftScanIndex + 1)
+                                    result += '{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                                else {
+                                    leftOperatorStack.pop()
+                                    leftScanIndex--
+                                }
+                            }
+                            else if (char === ')') {
+                                leftParenStack.push(')')
+                                leftScanIndex--
+                            }
+                            else if (char === '(') {
+                                if (leftParenStack.length === 0) {
+                                    result += str.slice(lastIndex, leftScanIndex + 1)
+                                    result += '{@'
+                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                                else {
+                                    leftParenStack.pop()
+                                    leftScanIndex--
+                                }
+                            }
+                            else if (operatorstr.indexOf(char) === -1) {
+                                leftScanIndex--
+                                if (leftScanIndex === -1) {
+                                    result += '\\frac{@'
+                                    result += str.slice(0, leftInsertStart + 1)
+                                    result += '#}'
+                                    break
+                                }
+                            }
+                            else {
+                                result += str.slice(lastIndex, leftScanIndex + 1)
+                                result += '\\frac{@'
+                                result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
+                                result += '#}'
+                                break
+                            }
+                        }
+                    }
+                }
 
-    return str;
-};
+                // 向右扫描
+                let rightScanIndex = currentIndex + 1;
+                let rightInsertStart = currentIndex + 1; // 记录插入位置
+                let rightFlag1 = false
+                let rightFlag2 = false
+                let rightParenStack = [];
+                let rightOperatorStack = []
+
+                // 查找右侧的匹配
+                while (rightScanIndex < str.length) {
+                    const char = str[rightScanIndex];
+                    if (!rightFlag1) {
+                        if (char === ' ') {
+                            rightScanIndex++
+                            rightInsertStart++
+                        }
+                        else if (char === '(') {
+                            rightParenStack.push(rightScanIndex)
+                            rightScanIndex++
+                            rightFlag1 = true
+                            rightFlag2 = true
+                        }
+                        else {
+                            rightScanIndex++
+                            rightFlag1 = true
+                            rightFlag2 = false
+                        }
+                    }
+                    else {
+                        if (char === '@') {
+                            rightOperatorStack.push('@')
+                            rightScanIndex++
+                        }
+                        else if (char === '#') {
+                            if (rightOperatorStack.length === 0) {
+                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                lastIndex = rightScanIndex  // 更新 lastIndex
+                                break
+                            }
+                            else {
+                                rightScanIndex++
+                                rightOperatorStack.pop()
+                            }
+                        }
+                        else if (rightFlag2) {
+                            if (char === '(') {
+                                rightParenStack.push(rightScanIndex);
+                            }
+                            else if (char === ')') {
+                                if (rightParenStack.length > 1) {
+                                    rightParenStack.pop();
+                                }
+                                else {
+                                    // 找到最右边的 ')'
+                                    result += '{@' + str.slice(rightInsertStart + 1, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex + 1; // 更新 lastIndex
+                                    break;
+                                }
+                            }
+                            rightScanIndex++
+                        }
+                        else {
+                            if (char === '@') {
+                                rightOperatorStack.push('@')
+                                rightScanIndex++
+                            }
+                            else if (char === '#') {
+                                if (rightOperatorStack.length === 0) {
+                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex  // 更新 lastIndex
+                                    break
+                                }
+                                else {
+                                    rightScanIndex++
+                                    rightOperatorStack.pop()
+                                }
+                            }
+                            else if (char === '(') {
+                                leftParenStack.push('(')
+                                leftScanIndex--
+                            }
+                            else if (char === ')') {
+                                if (leftParenStack.length === 0) {
+                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                    lastIndex = rightScanIndex  // 更新 lastIndex
+                                    break
+                                }
+                                else {
+                                    rightScanIndex++
+                                    rightOperatorStack.pop()
+                                }
+                            }
+                            else if (operatorstr.indexOf(char) === -1) {
+                                rightScanIndex++
+                                if (rightScanIndex === str.length) {
+                                    result += '{@' + str.slice(rightInsertStart, str.length) + '#}'
+                                    break
+                                }
+                            }
+                            else {
+                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
+                                lastIndex = rightScanIndex  // 更新 lastIndex
+                                break
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        // 添加剩余字符串
+        result += str.slice(lastIndex)
+        return result; // 去除多余空格
+    }
+    str = processAbs(str)
+    str = processMathFunctions(str, 'sqrt', '{@', '#}')
+    str = processMathFunctions(str, 'ln', 'LEFTPAREN@', '#RIGHTPAREN')
+    str = processMathFunctions(str, 'lg', 'LEFTPAREN@', '#RIGHTPAREN')
+    str = processPow(str)
+    str = processDivide(str)
+    str = str.replace(/\*/g, ' ')
+    function replaceBracesAndPow(str) {
+        return str
+            .replace(/LEFTPAREN/g, '(')    // 替换 LEFTBRACE 为 (
+            .replace(/RIGHTPAREN/g, ')')   // 替换 RIGHTBRACE 为 )
+            .replace(/POW/g, '^')        // 替换 POW 为 ^
+            .replace(/\(/g, '\\left(')   // 替换 ( 为 \left(
+            .replace(/\)/g, '\\right)')  // 替换 ) 为 \right)
+            .replace(/@/g,'')
+            .replace(/#/g,'');
+    }
+    str = replaceBracesAndPow(str)
+    return str
+}
+
 const docFormat = (str) => {
     if(str === ''){
         return ''
@@ -803,7 +1193,7 @@ const handleTableUpdate = (()=>{
     }
     function updateCommentContent(){
         let comment = ''
-        selectedTable.dataValueN.forEach(item => {
+        selectedTable.dataValue1.forEach(item => {
             if(item.comment){
                 comment += item.comment
             }
@@ -864,6 +1254,20 @@ const xTitleList = computed(()=>{
 const yTitleList = computed(() => {
     return dataList.value.map(data => ({value:data.title,label:data.title}))
 })
+const levelRules = [
+    {
+        value:'unified',
+        label:'统一精度'
+    },
+    {
+        value:'nonUnified',
+        label:'不统一精度'
+    },
+    {
+        value:'precise',
+        label:'确数'
+    }
+]
 const handleAddSingleGraph = () =>{
     store.addSingleGraph()
 }
@@ -961,7 +1365,7 @@ const handleGraphUpdate = () => {
                             graphCommentContent += ` \\\\ `
                         }
                     }
-                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.slope}*x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${graphs[i].graphData.intercept}}[拟合直线：$${titleFormat(graphs[i].yData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}$]`
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.slope}*x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${graphs[i].graphData.intercept}}[拟合直线：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.slope)}x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.intercept)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
                     break
                 case 'square':
@@ -973,20 +1377,20 @@ const handleGraphUpdate = () => {
                             graphCommentContent += ` \\\\ `
                         }
                     }
-                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.a}*x*x${graphs[i].graphData.b[0] === '-' ? '' : '+'}${graphs[i].graphData.b}*x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${graphs[i].graphData.c}}[拟合曲线：$${titleFormat(graphs[i].yData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}$]`
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.a}*x*x${graphs[i].graphData.b[0] === '-' ? '' : '+'}${graphs[i].graphData.b}*x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${graphs[i].graphData.c}}[拟合曲线：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.a)}x^2${graphs[i].graphData.b[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.b)}x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.c)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
                     break
                 case 'simple':
                     if(i !== 0){
                         graphCenterContent += `\n\t\t\t`
                     }
-                    graphCenterContent += `\\datapoint{${datapointContent}}[$${titleFormat(graphs[i].yData)}$]`
+                    graphCenterContent += `\\datapoint{${datapointContent}}[$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     break
                 case 'smooth':
                     if(i !== 0){
                         graphCenterContent += `\n\t\t\t`
                     }
-                    graphCenterContent += `\\datapoint[smooth]{${datapointContent}}[$${titleFormat(graphs[i].yData)}$]`
+                    graphCenterContent += `\\datapoint[smooth]{${datapointContent}}[$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     break
             }
         }
@@ -1085,13 +1489,12 @@ const handleDataMethodChange =()=>{
             </div>
             <div class="equipment" v-if="selectedDataIndex >= 0">
                 <label style="font-weight: 550;width: 10%;text-align: left;min-width: 5em;" >精度规则</label>
-                <el-switch
+                <el-select
+                    style="width: 39%;text-align: center;min-width: 5.5em"
                     v-model="dataList[selectedDataIndex].levelRule"
-                    size="large"
-                    inactive-text="统一精度"
-                    active-text="不统一精度"
-                    style="font-size: large;width: 40%;--el-switch-on-color: #626aef;"
-                />
+                >
+                    <el-option v-for="levelRule in levelRules" :key="levelRule.value" :label="levelRule.label" :value="levelRule.value"></el-option>
+                </el-select>
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 9%;text-align: left;min-width: 5em;" >符号含义</label>
                 <input v-model="dataList[selectedDataIndex].doc" style="text-align: center;width: 40%;" placeholder="选填，仅对 LaTeX 制表/图有影响">

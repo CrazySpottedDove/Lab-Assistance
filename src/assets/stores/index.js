@@ -92,7 +92,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                     wholeUncer:''
                 },
                 unit:'',
-                levelRule: false,
+                levelRule: 'unified',
                 doc:''
             })
         }
@@ -148,26 +148,22 @@ export const useAllDataStore = defineStore('allData',()=>{
     }
     function addGraph(){
         state.value.graphList.push({
-            // graphData:'',
             graphFramed:false,
-            // graphOption:'line',
             singleGraphs:[{
                 graphData:'',
-                graphOption:'',
+                graphOption:'line',
                 xData:'',
                 yData:''
             }],
             graphContent:'',
             graphTitleContent:'',
-            // xData:'',
-            // yData:'',
         })
         state.value.selectedGraphIndex = state.value.graphList.length - 1
     }
     function addSingleGraph(){
         state.value.graphList[state.value.selectedGraphIndex].singleGraphs.push({
             graphData:'',
-            graphOption:'',
+            graphOption:'line',
             xData:'',
             yData:''
         })
@@ -224,17 +220,23 @@ export const useAllDataStore = defineStore('allData',()=>{
                     // 取最大level和最小level
 
                     if(selectedType === 'direct'){
-                        if(selectedList.levelRule === false){
+                        if(selectedList.levelRule === 'unified'){
                             selectedDataSet.forEach(item => {
                                 item.rawData = standardByLevel(item.rawData, dataMinLevel)
                                 item.bit = getBit(item.rawData)
                                 item.level = dataMinLevel
                             })
                         }
-                        else{
+                        else if(selectedList.levelRule === 'nonUnified'){
                             selectedDataSet.forEach(item => {
                                 item.bit = getBit(item.rawData)
                                 item.level = getLevel(item.rawData)
+                            })
+                        }
+                        else if(selectedList.levelRule === 'precise'){
+                            selectedDataSet.forEach(item => {
+                                item.bit = 100
+                                item.level = -100
                             })
                         }
                     }

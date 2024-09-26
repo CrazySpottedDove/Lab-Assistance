@@ -14,7 +14,7 @@
 <script setup>
 import { FolderChecked,FolderOpened } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import {ref, onMounted, onBeforeMount} from 'vue'
+import {ref, onMounted, onBeforeUnmount} from 'vue'
 const store = useAllDataStore()
 const handleFileSave = ()=>{
     store.saveFile()
@@ -43,7 +43,7 @@ const handleKeydown = (event) => {
 onMounted(() => {
     document.addEventListener('keydown', handleKeydown)
 })
-onBeforeMount(() => {
+onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeydown)
 })
 </script>

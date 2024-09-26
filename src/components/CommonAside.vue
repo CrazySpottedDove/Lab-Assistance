@@ -136,7 +136,7 @@
 <script setup>
 import { CircleClose } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import { computed, nextTick, onBeforeMount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
 const tableList = computed(()=>store.state.tableList)
@@ -304,8 +304,6 @@ const handleKeydown = (event) => {
                 return
             case 'f':
                 handleAddGraph()
-            case 's':
-                store.saveFile()
         }
     }
     switch (event.key) {
@@ -336,7 +334,7 @@ const handleKeydown = (event) => {
 onMounted(() => {
     document.addEventListener('keydown', handleKeydown)
 })
-onBeforeMount(() => {
+onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeydown)
 })
 </script>

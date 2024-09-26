@@ -1130,9 +1130,10 @@ function getLevel(str){
     // 处理科学计数法数字
     let [integerPart, decimalPart] = trimmedStr.split('.')
     if(decimalPart === undefined){
-        let length = integerPart.length
-        integerPart = integerPart.replace(/0+$/,'')
-        return length - integerPart.length
+        // let length = integerPart.length
+        // integerPart = integerPart.replace(/0+$/,'')
+        // return length - integerPart.length
+        return 0
     }
     else{
         return -decimalPart.length
