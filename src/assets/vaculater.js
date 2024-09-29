@@ -818,14 +818,14 @@ uncerMath.import({
         Check.invalidPow(Number(obj.data), num)
         return{
             data:String(Math.pow(Number(obj.data), num)),
-            uncer:String(Math.abs(num * Math.pow(Number(obj.data) , num - 1) * Number(obj.data)))
+            uncer:calc(`${String(Math.abs(num * Math.pow(Number(obj.data) , num - 1) * Number(obj.data)))} * ${obj.uncer}`)
         }
     },
     'number, Object':function(num, obj){
         Check.invalidPow(num, Number(obj.data))
         return{
             data:String(Math.pow(num, Number(obj.data))),
-            uncer:String(Math.log(Number(obj.data)) * Math.pow(num, Number(obj.data)))
+            uncer:calc(`${String(Math.abs(Math.log(Math.abs(Number(obj.data))) * Math.pow(num, Number(obj.data))))} * ${obj.uncer}`)
         }
     },
     'number, number':function(num1, num2){
