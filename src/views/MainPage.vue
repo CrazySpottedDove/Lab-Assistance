@@ -1193,6 +1193,11 @@ const handleTableUpdate = (()=>{
     }
     function updateCommentContent(){
         let comment = ''
+        selectedTable.dataValueN.forEach(item => {
+            if(item.comment){
+                comment += item.comment
+            }
+        })
         selectedTable.dataValue1.forEach(item => {
             if(item.comment){
                 comment += item.comment
