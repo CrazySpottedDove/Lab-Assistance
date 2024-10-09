@@ -65,34 +65,40 @@ const greekLetters = {
     'Ψ': '\\Psi ',
     'Ω': '\\Omega '
 }
+const chinese = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g
 const rely =
-`\\usepackage{geometry}
-\\usepackage{amsmath}
+`\\usepackage{amsmath}
 \\usepackage{bm}
-\\geometry{left=0cm,right=0cm,top=0cm,bottom=0cm}
 \\usepackage{float}
 \\usepackage{upgreek}
 \\usepackage{tabularray}
 \\usepackage{calc}
 \\usepackage{etoolbox}
 \\providecommand{\\Romannumeral}[1]{\\uppercase\\expandafter{\\romannumeral #1}}
+\\NewDocumentCommand{\\cmplen}{mmmO{}}{%
+    \\ifdim #1>#2%
+        #3%
+    \\else%
+        #4%
+    \\fi%
+}
+\\newlength{\\labtmplen}
 \\NewDocumentCommand{\\framed}{omo}{%
-	\\framebox[\\widthof{#2}+4em]{
-		\\begin{minipage}{\\widthof{#2}+2em}
+    \\setlength{\\labtmplen}{\\widthof{#2}}%
+	\\framebox[\\labtmplen+4em]{
+		\\begin{minipage}{\\labtmplen+2em}
 			\\quad\\\\[2ex]
 			\\centering #2
-			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\quad\\\\[-2ex]\\em #3}}
+			\\IfNoValueF{#1}{\\caption{#1}}\\IfNoValueF{#3}{\\IfNoValueTF{#1}{\\quad\\\\[2ex]\\em #3}{\\quad\\\\[-2ex]\\em #3}}
 		\\end{minipage}
 	}
 }
 \\NewDocumentCommand{\\notframed}{omo}{%
-	\\begin{center}
-		\\begin{minipage}{\\widthof{#2}+2em}
-		\\quad\\\\[2ex]
-			\\centering #2
-			\\IfNoValueF{#1}{\\caption{#1}\\IfNoValueF{#3}{\\quad\\\\[-2ex]\\em #3}}
-		\\end{minipage}
-	\\end{center}
+    \\setlength{\\labtmplen}{\\widthof{#2}}%
+    \\begin{center}
+        \\cmplen{\\labtmplen}{.94\\textwidth}{\\resizebox{.94\\textwidth}{!}{#2}}[#2]%
+        \\IfNoValueF{#1}{\\caption{#1}}\\IfNoValueF{#3}{\\IfNoValueTF{#1}{\\quad\\\\[2ex]\\em #3}{\\quad\\\\[-2ex]\\em #3}}
+    \\end{center}
 }
 \\usepackage{tikz}
 \\usetikzlibrary{calc}
@@ -249,16 +255,21 @@ const graphOptions = [
 ]
 const titleFormat = (input) => {
     if (!input) {
-        return '';
+        return ''
     }
-    const chinese = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g
+    let tmplen = input.length
 
     // 处理希腊字母替换
-    input = input.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match]);
+    input = input.replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match])
+
+    if(tmplen >= 4 && input.indexOf('\\') === -1){
+        return `\\text{${input}}`
+    }
 
     input = input.replace(chinese, (match) => `\\text{${match}} `)
+
     // 使用正则表达式匹配字母后面直接跟随的数字或逗号隔开的数字
-    return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}');
+    return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}')
 }
 const unitFormat = ((str) => {
     if (str === '') {
@@ -281,10 +292,13 @@ const commentFormat = (str) => {
     if (str === '') {
         return str
     }
-    str = str
-            .replace(/α|β|γ|δ|ε|ζ|η|θ|ι|κ|λ|μ|ν|ξ|ο|π|ρ|σ|τ|υ|φ|χ|ψ|ω|Δ|Θ|Λ|Ξ|Π|Σ|Φ|Ψ|Ω/g, match => greekLetters[match])
-            .replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, '$1_{$2}')
-    // 处理希腊字母和数字下标
+
+    // 使用titleFormat处理所有变量名
+    dataList.value.forEach(item => {
+        const regex = new RegExp(`${item.title}`,'g')
+        str = str.replace(regex, `${titleFormat(item.title)}`)
+    })
+
     function processAbs(str) {
         // 定义一个正则表达式来查找 'sqrt', 'ln', 'lg', 'abs'
         const functionRegex = /abs/g;
@@ -834,7 +848,6 @@ const commentFormat = (str) => {
     str = replaceBracesAndPow(str)
     return str
 }
-
 const docFormat = (str) => {
     if(str === ''){
         return ''
