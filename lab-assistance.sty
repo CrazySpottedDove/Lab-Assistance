@@ -1,0 +1,122 @@
+\RequirePackage{amsmath}
+\RequirePackage{bm}
+\RequirePackage{float}
+\RequirePackage{upgreek}
+\RequirePackage{tabularray}
+\RequirePackage{calc}
+\RequirePackage{etoolbox}
+\providecommand{\Romannumeral}[1]{\uppercase\expandafter{\romannumeral #1}}
+\NewDocumentCommand{\cmplen}{mmmO{}}{%
+    \ifdim #1>#2%
+        #3%
+    \else%
+        #4%
+    \fi%
+}
+\newlength{\labtmplen}
+\NewDocumentCommand{\framed}{omo}{%
+    \setlength{\labtmplen}{\widthof{#2}}%
+	\framebox[\labtmplen+4em]{
+		\begin{minipage}{\labtmplen+2em}
+			\quad\\[2ex]
+			\centering #2
+			\IfNoValueF{#1}{\caption{#1}}\IfNoValueF{#3}{\IfNoValueTF{#1}{\quad\\[2ex]\em #3}{\quad\\[-2ex]\em #3}}
+		\end{minipage}
+	}
+}
+\NewDocumentCommand{\notframed}{omo}{%
+    \setlength{\labtmplen}{\widthof{#2}}%
+    \begin{center}
+        \cmplen{\labtmplen}{.94\textwidth}{\resizebox{.94\textwidth}{!}{#2}}[#2]%
+        \IfNoValueF{#1}{\caption{#1}}\IfNoValueF{#3}{\IfNoValueTF{#1}{\quad\\[2ex]\em #3}{\quad\\[-2ex]\em #3}}
+    \end{center}
+}
+\RequirePackage{tikz}
+\usetikzlibrary{calc}
+\RequirePackage{pgfplots}
+\RequirePackage{ifthen}
+\newcommand{\xlabel}{}
+\newcommand{\xmin}{}
+\newcommand{\xmax}{}
+\newcommand{\ylabel}{}
+\newcommand{\ymin}{}
+\newcommand{\ymax}{}
+\newboolean{xfield}
+\newboolean{yfield}
+\setboolean{xfield}{false}
+\setboolean{yfield}{false}
+\NewDocumentCommand{\xstyle}{moo}{
+	\renewcommand{\xlabel}{#1}
+	\IfNoValueF{#2}{
+		\setboolean{xfield}{true}
+		\renewcommand{\xmin}{#2}
+		\renewcommand{\xmax}{#3}
+	}
+}
+\NewDocumentCommand{\ystyle}{moo}{
+	\renewcommand{\ylabel}{#1}
+	\IfNoValueF{#2}{
+		\setboolean{yfield}{true}
+		\renewcommand{\ymin}{#2}
+		\renewcommand{\ymax}{#3}
+	}
+}
+\newcounter{markstyle}
+\newcounter{funcstyle}
+\NewDocumentEnvironment{plot}{mos}{
+	#1%
+	\begin{tikzpicture}
+		\setcounter{markstyle}{0}
+		\setcounter{funcstyle}{0}
+		\ifbool{xfield}{
+			\ifbool{yfield}{
+				\begin{axis}[xlabel={\xlabel},ylabel={\ylabel},xmin=\xmin,xmax=\xmax,ymin=\ymin,ymax=\ymax,\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\IfBooleanT{#3}{axis equal,}]
+			}{
+				\begin{axis}[xlabel={\xlabel},ylabel={\ylabel},xmin=\xmin,xmax=\xmax,\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\IfBooleanT{#3}{axis equal,}]
+			}
+		}{
+			\ifbool{yfield}{
+				\begin{axis}[xlabel={\xlabel},ylabel={\ylabel},ymin=\ymin,ymax=\ymax,\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\IfBooleanT{#3}{axis equal,}]
+			}{
+				\begin{axis}[xlabel={\xlabel},ylabel={\ylabel},\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\IfBooleanT{#3}{axis equal,}]
+			}
+		}
+}{
+	\end{axis}\end{tikzpicture}\setboolean{xfield}{false}\setboolean{yfield}{false}
+}
+\NewDocumentCommand{\datapoint}{O{}mo}{
+	\ifcase\value{markstyle}
+		\addplot[mark=*,solid,black,#1] coordinates {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{markstyle}
+	\or
+		\addplot[mark=square*,solid,green,#1] coordinates {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{markstyle}
+	\or
+		\addplot[mark=diamond*,solid,red,#1] coordinates {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{markstyle}
+	\or
+		\addplot[mark=triangle*,solid,blue,#1] coordinates {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{markstyle}
+	\or
+		\addplot[mark=cross,solid,yellow,#1] coordinates {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{markstyle}
+	\fi
+}
+\NewDocumentCommand{\functionline}{mmo}{
+	\ifcase\value{funcstyle}
+		\addplot[solid,black,no markers, domain=#1] {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{funcstyle}
+	\or
+		\addplot[solid,green,no markers, domain=#1] {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{funcstyle}
+	\or
+		\addplot[solid,red,no markers, domain=#1] {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{funcstyle}
+	\or
+		\addplot[solid,blue,no markers, domain=#1] {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{funcstyle}
+	\or
+		\addplot[solid,yellow,no markers,domain=#1] {#2 };
+		\IfNoValueF{#3}{\addlegendentry{#3 }}\stepcounter{funcstyle}
+	\fi
+}
