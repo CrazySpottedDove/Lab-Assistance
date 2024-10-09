@@ -923,6 +923,7 @@ function escapeExpression(expression, variables) {
     return preprocessed;
 }
 // 处理表达式规范，以便数学解析器解析
+
 function evaluateUncer(dataList, expression, currentTitle){
     const parser = uncerMath.parser()
     let variables = {}
@@ -949,6 +950,7 @@ function evaluateUncer(dataList, expression, currentTitle){
     }
 }
 // 依据计算式计算不确定度
+
 function evaluateExpression(dataList, expression, option, currentTitle) {
     const parser = valueMath.parser();
     let variables = {}
@@ -993,7 +995,12 @@ function evaluateExpression(dataList, expression, option, currentTitle) {
         }
         else{
             result.forEach(item=>{
-                item.rawData = standardByBit(item.rawData,item.bit)
+                if(item.bit >= 20){
+                    item.rawData = standardByBit(item.rawData, 8);
+                }
+                else{
+                    item.rawData = standardByBit(item.rawData, item.bit);
+                }
             })
             return result
         }

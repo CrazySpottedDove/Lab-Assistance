@@ -288,566 +288,228 @@ const unitFormat = ((str) => {
     }
     return '/\\mathrm{' + str + '}'
 })
+// 表达式树的节点类
+class ExpressionNode {
+  constructor(value) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+  }
+}
+
+// 运算符的优先级
+const precedence = {
+    "+": 1,
+    "-": 1,
+    "*": 2,
+    "/": 2,
+    "^": 3,
+    "abs": 4,
+    "ln": 4,
+    "lg": 4,
+    "sqrt":4,
+    "NEG":5
+}
+
+// 判断是否是运算符
+function isOperator(token){
+    return ["+", "-", "*", "/", "^", "abs", "ln", "lg","NEG", "sqrt"].includes(token)
+}
+
+// 判断是否是一元运算符
+function isUnaryOperator(token){
+    return ['abs', 'ln', 'lg', 'NEG', 'sqrt'].includes(token)
+}
+
+// 判断运算符的优先级
+function hasHigherPrecedence(op1, op2){
+    return precedence[op1] > precedence[op2]
+}
+
+// 将字符串表达式转化成数组表达式
+function tokenize(expression) {
+    // 正则表达式解释:
+    // abs|ln|lg      匹配函数名 abs, ln, lg
+    // [()+\-*/^]     匹配运算符和括号
+    // [^()+\-*/^ ]+  匹配非运算符、非括号、非空格的其他字符
+    // 全局模式 'g' 保证找到所有匹配项
+    const regex = /abs|ln|lg|NEG|sqrt|[()+\-*/^]|[^()+\-*/^ ]+/g;
+
+    // 返回所有匹配的 token 数组
+    return expression.match(regex);
+}
+// 将中缀表达式转化成后缀表达式
+function infixToPostfix(infixTokens) {
+    const outputQueue = [];
+    const operatorStack = [];
+
+    infixTokens.forEach((token, index) => {
+        if (isOperator(token)) {
+            // 处理运算符，考虑运算符优先级
+            while (
+                operatorStack.length > 0 &&
+                isOperator(operatorStack[operatorStack.length - 1]) &&
+                hasHigherPrecedence(operatorStack[operatorStack.length - 1], token)
+            ) {
+                outputQueue.push(operatorStack.pop());
+            }
+            operatorStack.push(token);
+        } else if (token === "(") {
+            operatorStack.push(token);
+        } else if (token === ")") {
+            // 处理右括号，直到找到左括号
+            while (operatorStack.length > 0 && operatorStack[operatorStack.length - 1] !== "(") {
+                outputQueue.push(operatorStack.pop());
+            }
+            operatorStack.pop(); // 弹出左括号
+        } else {
+            // 处理操作数和变量
+            outputQueue.push(token);
+        }
+
+        // 检查是否是单目负号
+        if (token === "-" && (index === 0 || isOperator(infixTokens[index - 1]) || infixTokens[index - 1] === "(")) {
+            operatorStack.pop("-")
+            operatorStack.push("NEG"); // 将单目负号视为单独的操作符
+        }
+    });
+
+    // 将剩余的操作符加入输出队列
+    while (operatorStack.length > 0) {
+        outputQueue.push(operatorStack.pop());
+    }
+
+    return outputQueue;
+}
+
+// 基于后缀表达式构建表达式树
+function constructExpressionTree(postfixTokens) {
+    const stack = [];
+
+    postfixTokens.forEach(token => {
+        if (isOperator(token)) {
+            // 运算符节点，弹出操作数节点作为子节点
+            const node = new ExpressionNode(token);
+
+            if (isUnaryOperator(token)) {
+                node.left = stack.pop(); // 一元运算符只有一个操作数
+            } else {
+                node.right = stack.pop(); // 二元运算符的右子节点
+                node.left = stack.pop(); // 二元运算符的左子节点
+            }
+            stack.push(node);
+        }
+        else{
+            stack.push(new ExpressionNode(token));
+        }
+    });
+
+    return stack.pop(); // 栈中的最后一个节点是表达式树的根节点
+}
+
+function processExpressionTree(node) {
+    if (!node.left && !node.right) {
+        return `${node.value}`
+    }
+
+    const leftValue = node.left ? processExpressionTree(node.left) : '';
+    const rightValue = node.right ? processExpressionTree(node.right) : '';
+
+    switch (node.value) {
+        case "+":
+            return `${leftValue} + ${rightValue}`
+        case "-":
+            if(node.right.value === '+' || node.right.value === '-'){
+                return `${leftValue} - \\left( ${rightValue} \\right)`
+            }
+            return `${leftValue} - ${rightValue}`
+        case "*":
+            let centerOperator = ''
+            let left = `${leftValue}`
+            let right = `${rightValue}`
+            if(!isNaN(Number(rightValue[0]))){
+                centerOperator = '\\cdot'
+            }
+            if(node.left.value === '+' || node.left.value === '-'){
+                left = `\\left( ${left} \\right)`
+            }
+            if(node.right.value === '+' || node.right.value === '-'){
+                right = `\\left( ${right} \\right)`
+            }
+            return `${left} ${centerOperator} ${right}`
+        case "/":
+            return `\\frac{${leftValue}}{${rightValue}}`
+        case "^":
+            return `{${leftValue}}^{${rightValue}}`
+        case "sqrt":
+            return `\\sqrt{${leftValue}}`
+        case "abs":
+            return `\\left| ${leftValue} \\right|`
+        case "ln":
+            return `\\ln\\left( ${leftValue} \\right)`
+        case "lg":
+            return `\\lg\\left( ${leftValue} \\right)`
+        case "NEG":
+            return isOperator(node.left) ? `-\\left( ${leftValue} \\right)` : `-${leftValue}`
+        default:
+            throw new Error("未知运算符: " + node.value);
+    }
+}
+
 const commentFormat = (str) => {
-    if (str === '') {
+    if(str === ''){
         return str
     }
 
-    // 使用titleFormat处理所有变量名
+    // 保护变量名
+    function protectTitle(input) {
+        // 按照给定的符号和函数名称进行部分替换
+        let result = titleFormat(input).replace(/\+/g, '@ADD')
+            .replace(/-/g, '@SUBTRACTION')
+            .replace(/\*/g, '@TIMES')
+            .replace(/\//g, '@DIVIDE')
+            .replace(/\^/g, '@POW')
+            .replace(/\(/g, '@LEFTPAREN')
+            .replace(/\)/g, '@RIGHTPAREN')
+            .replace(/abs/g, '@ABS')
+            .replace(/ln/g, '@LN')
+            .replace(/lg/g, '@LG')
+            .replace(/sqrt/g, '@SQRT');
+        return result;
+    }
+
+    // 还原变量名
+    function restoreTitle(input) {
+        // 按照相反的顺序替换，确保先替换函数和运算符名再替换单字符符号
+        let result = input.replace(/@ABS/g, 'abs')
+            .replace(/@LN/g, 'ln')
+            .replace(/@LG/g, 'lg')
+            .replace(/@SQRT/g, 'sqrt')
+            .replace(/@ADD/g, '+')
+            .replace(/@SUBTRACTION/g, '-')
+            .replace(/@TIMES/g, '*')
+            .replace(/@DIVIDE/g, '/')
+            .replace(/@POW/g, '^')
+            .replace(/@LEFTPAREN/g, '(')
+            .replace(/@RIGHTPAREN/g, ')');
+
+        return result;
+    }
+
+    // 实现保护变量名
     dataList.value.forEach(item => {
-        const regex = new RegExp(`${item.title}`,'g')
-        str = str.replace(regex, `${titleFormat(item.title)}`)
+        const title = item.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`${title}`,'g')
+        str = str.replace(regex, `${protectTitle(item.title)}`)
     })
 
-    function processAbs(str) {
-        // 定义一个正则表达式来查找 'sqrt', 'ln', 'lg', 'abs'
-        const functionRegex = /abs/g;
-        let result = '';
-        let lastIndex = 0;
-        let match
-        // 查找所有的 'sqrt', 'ln', 'lg', 'abs'
-        while ((match = functionRegex.exec(str)) !== null) {
-            result += str.slice(lastIndex, match.index); // 不添加 'abs'
-            lastIndex = match.index + match[0].length; // 更新 lastIndex 跳过当前匹配
-
-            // 找到函数名后面必须是括号，检查括号匹配
-            if (str[lastIndex] === '(') {
-                let stack = [];
-                let firstParenIndex = lastIndex;
-                let lastParenIndex = null;
-
-                // 用来追踪括号匹配
-                for (let i = lastIndex; i < str.length; i++) {
-                    if (str[i] === '(') {
-                        stack.push(i);
-                    } else if (str[i] === ')') {
-                        lastParenIndex = i;
-                        stack.pop();
-                        if (stack.length === 0) {
-                            // 匹配到完整的括号
-                            lastIndex = i + 1;
-                            break;
-                        }
-                    }
-                }
-
-                // 替换最开始的 '(' 和最后的 ')'，根据不同函数做不同的替换
-                if (lastParenIndex !== null) {
-                    result += '\\left|@' + str.slice(firstParenIndex + 1, lastParenIndex) + '#\\right|';
-                }
-                else {
-                    // 如果没有匹配到完整的括号，直接添加剩下的内容
-                    result += str.slice(firstParenIndex);
-                }
-            }
-        }
-
-        // 把剩下的字符串部分加到 result 中
-        result += str.slice(lastIndex);
-        return result;
-    }
-    function processMathFunctions(str,target, left, right) {
-        const functionRegex = new RegExp(target, 'g');
-        let result = '';
-        let lastIndex = 0;
-        let match
-        while ((match = functionRegex.exec(str)) !== null) {
-            result += str.slice(lastIndex, match.index) + '\\' + match[0];
-            lastIndex = match.index + match[0].length; // 更新 lastIndex 跳过当前匹配
-            // 找到函数名后面必须是括号，检查括号匹配
-            if (str[lastIndex] === '(') {
-                let stack = [];
-                let firstParenIndex = lastIndex;
-                let lastParenIndex = null;
-
-                // 用来追踪括号匹配
-                for (let i = lastIndex; i < str.length; i++) {
-                    if (str[i] === '(') {
-                        stack.push(i);
-                    } else if (str[i] === ')') {
-                        lastParenIndex = i;
-                        stack.pop();
-                        if (stack.length === 0) {
-                            // 匹配到完整的括号
-                            lastIndex = i + 1;
-                            break;
-                        }
-                    }
-                }
-
-                // 替换最开始的 '(' 和最后的 ')'
-                if (lastParenIndex !== null) {
-                    result += left + str.slice(firstParenIndex + 1, lastParenIndex) + right
-                }
-                else {
-                    // 如果没有匹配到完整的括号，直接添加剩下的内容
-                    result += str.slice(firstParenIndex);
-                }
-            }
-        }
-
-        // 把剩下的字符串部分加到 result 中
-        result += str.slice(lastIndex);
-        return result;
-    }
-    function processPow(str) {
-        let result = '';
-        let lastIndex = 0;
-        const operatorstr = '+-*/^'
-        // 扫描字符串
-        for (let i = 0; i < str.length; i++) {
-            if (str[i] === '^') {
-                let currentIndex = i
-                let leftScanIndex = currentIndex - 1;
-                let leftInsertStart = currentIndex - 1; // 记录插入位置
-                let leftParenStack = [];
-                let leftOperatorStack = []
-                // 查找左侧的匹配
-                let leftFlag1 = false
-                // 确定了匹配方式
-                let leftFlag2 = false
-                // 确定了哪种匹配方式
-                while (leftScanIndex >= 0) {
-                    const char = str[leftScanIndex]
-                    if (!leftFlag1) {
-                        if (char === ' ') {
-                            leftInsertStart--
-                            leftScanIndex--
-                        }
-                        else if (char === '(') {
-                            leftParenStack.push(leftScanIndex)
-                            leftFlag1 = true
-                            leftFlag2 = true
-                            leftScanIndex--
-                        }
-                        else {
-                            leftFlag1 = true
-                            leftFlag2 = false
-                            leftScanIndex--
-                        }
-                    }
-                    else {
-                        if (leftFlag2) {
-                            if (char === ')') {
-                                leftParenStack.push(leftScanIndex)
-                            }
-                            else if (char === '(') {
-                                if (leftParenStack.length > 1) {
-                                    leftParenStack.pop()
-                                }
-                                else {
-                                    // 找到最左边的 '('，替换
-                                    result += str.slice(lastIndex, leftScanIndex)
-                                    result += '{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart)
-                                    result += '#}'
-                                    break;
-                                }
-                            }
-                            leftScanIndex--
-                        }
-                        else {
-                            if(char === '#'){
-                                leftOperatorStack.push('#')
-                                leftScanIndex--
-                            }
-                            else if(char === '@'){
-                                if(leftOperatorStack.length === 0){
-                                    result += str.slice(lastIndex, leftScanIndex + 1)
-                                    result += '{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                                else{
-                                    leftOperatorStack.pop()
-                                    leftScanIndex--
-                                }
-                            }
-                            else if(char === ')'){
-                                leftParenStack.push(')')
-                                leftScanIndex--
-                            }
-                            else if(char === '('){
-                                if(leftParenStack.length === 0){
-                                    result += str.slice(lastIndex, leftScanIndex + 1)
-                                    result += '{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                                else{
-                                    leftParenStack.pop()
-                                    leftScanIndex--
-                                }
-                            }
-                            else if (operatorstr.indexOf(char) === -1) {
-                                leftScanIndex--
-                                if (leftScanIndex === -1) {
-                                    result += '{@'
-                                    result += str.slice(0, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                            }
-                            else {
-                                result += str.slice(lastIndex, leftScanIndex + 1)
-                                result += '{@'
-                                result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                result += '#}'
-                                break
-                            }
-                        }
-                    }
-                }
-
-                // 添加 POW
-                result += 'POW';
-
-                // 向右扫描
-                let rightScanIndex = currentIndex + 1;
-                let rightInsertStart = currentIndex + 1; // 记录插入位置
-                let rightFlag1 = false
-                let rightFlag2 = false
-                let rightParenStack = [];
-                let rightOperatorStack = []
-                // 查找右侧的匹配
-                while (rightScanIndex < str.length) {
-                    const char = str[rightScanIndex];
-                    if (!rightFlag1) {
-                        if (char === ' ') {
-                            rightScanIndex++
-                            rightInsertStart++
-                        }
-                        else if (char === '(') {
-                            rightParenStack.push(rightScanIndex)
-                            rightScanIndex++
-                            rightFlag1 = true
-                            rightFlag2 = true
-                        }
-                        else {
-                            rightScanIndex++
-                            rightFlag1 = true
-                            rightFlag2 = false
-                        }
-                    }
-                    else {
-                        if (rightFlag2) {
-                            if (char === '(') {
-                                rightParenStack.push(rightScanIndex);
-                            }
-                            else if (char === ')') {
-                                if (rightParenStack.length > 1) {
-                                    rightParenStack.pop();
-                                }
-                                else {
-                                    // 找到最右边的 ')'
-                                    result += '{@' + str.slice(rightInsertStart + 1, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex + 1; // 更新 lastIndex
-                                    break;
-                                }
-                            }
-                            rightScanIndex++
-                        }
-                        else {
-                            if(char === '@'){
-                                rightOperatorStack.push('@')
-                                rightScanIndex++
-                            }
-                            else if(char === '#'){
-                                if(rightOperatorStack.length === 0){
-                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex  // 更新 lastIndex
-                                    break
-                                }
-                                else{
-                                    rightScanIndex++
-                                    rightOperatorStack.pop()
-                                }
-                            }
-                            else if (char === '(') {
-                                leftParenStack.push('(')
-                                leftScanIndex--
-                            }
-                            else if (char === ')') {
-                                if (leftParenStack.length === 0) {
-                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex  // 更新 lastIndex
-                                    break
-                                }
-                                else {
-                                    rightScanIndex++
-                                    rightOperatorStack.pop()
-                                }
-                            }
-                            else if (operatorstr.indexOf(char) === -1) {
-                                rightScanIndex++
-                                if (rightScanIndex === str.length) {
-                                    result += '{@' + str.slice(rightInsertStart, str.length) + '#}'
-                                    break
-                                }
-                            }
-                            else {
-                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                lastIndex = rightScanIndex  // 更新 lastIndex
-                                break
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-        // 添加剩余字符串
-        result += str.slice(lastIndex)
-        return result; // 去除多余空格
-    }
-    function processDivide(str) {
-        let result = '';
-        let lastIndex = 0;
-        const operatorstr = '+-*/'
-        // 扫描字符串
-        for (let i = 0; i < str.length; i++) {
-            if (str[i] === '/') {
-                let currentIndex = i
-                let leftScanIndex = currentIndex - 1;
-                let leftInsertStart = currentIndex - 1; // 记录插入位置
-                let leftParenStack = [];
-                let leftOperatorStack = []
-
-                // 查找左侧的匹配
-                let leftFlag1 = false
-                // 确定了匹配方式
-                let leftFlag2 = false
-                // 确定了哪种匹配方式
-                while (leftScanIndex >= 0) {
-                    const char = str[leftScanIndex]
-                    if (!leftFlag1) {
-                        if (char === ' ') {
-                            leftInsertStart--
-                            leftScanIndex--
-                        }
-                        else if (char === '(') {
-                            leftParenStack.push(leftScanIndex)
-                            leftFlag1 = true
-                            leftFlag2 = true
-                            leftScanIndex--
-                        }
-                        else {
-                            leftFlag1 = true
-                            leftFlag2 = false
-                            leftScanIndex--
-                        }
-                    }
-                    else {
-                        if (leftFlag2) {
-                            if (char === ')') {
-                                leftParenStack.push(leftScanIndex)
-                            }
-                            else if (char === '(') {
-                                if (leftParenStack.length > 1) {
-                                    leftParenStack.pop()
-                                }
-                                else {
-                                    // 找到最左边的 '('，替换
-                                    result += str.slice(lastIndex, leftScanIndex)
-                                    result += '\\frac{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart)
-                                    result += '#}'
-                                    break;
-                                }
-                            }
-                            leftScanIndex--
-                        }
-                        else {
-                            if (char === '#') {
-                                leftOperatorStack.push('#')
-                                leftScanIndex--
-                            }
-                            else if (char === '@') {
-                                if (leftOperatorStack.length === 0) {
-                                    result += str.slice(lastIndex, leftScanIndex + 1)
-                                    result += '{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                                else {
-                                    leftOperatorStack.pop()
-                                    leftScanIndex--
-                                }
-                            }
-                            else if (char === ')') {
-                                leftParenStack.push(')')
-                                leftScanIndex--
-                            }
-                            else if (char === '(') {
-                                if (leftParenStack.length === 0) {
-                                    result += str.slice(lastIndex, leftScanIndex + 1)
-                                    result += '{@'
-                                    result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                                else {
-                                    leftParenStack.pop()
-                                    leftScanIndex--
-                                }
-                            }
-                            else if (operatorstr.indexOf(char) === -1) {
-                                leftScanIndex--
-                                if (leftScanIndex === -1) {
-                                    result += '\\frac{@'
-                                    result += str.slice(0, leftInsertStart + 1)
-                                    result += '#}'
-                                    break
-                                }
-                            }
-                            else {
-                                result += str.slice(lastIndex, leftScanIndex + 1)
-                                result += '\\frac{@'
-                                result += str.slice(leftScanIndex + 1, leftInsertStart + 1)
-                                result += '#}'
-                                break
-                            }
-                        }
-                    }
-                }
-
-                // 向右扫描
-                let rightScanIndex = currentIndex + 1;
-                let rightInsertStart = currentIndex + 1; // 记录插入位置
-                let rightFlag1 = false
-                let rightFlag2 = false
-                let rightParenStack = [];
-                let rightOperatorStack = []
-
-                // 查找右侧的匹配
-                while (rightScanIndex < str.length) {
-                    const char = str[rightScanIndex];
-                    if (!rightFlag1) {
-                        if (char === ' ') {
-                            rightScanIndex++
-                            rightInsertStart++
-                        }
-                        else if (char === '(') {
-                            rightParenStack.push(rightScanIndex)
-                            rightScanIndex++
-                            rightFlag1 = true
-                            rightFlag2 = true
-                        }
-                        else {
-                            rightScanIndex++
-                            rightFlag1 = true
-                            rightFlag2 = false
-                        }
-                    }
-                    else {
-                        if (char === '@') {
-                            rightOperatorStack.push('@')
-                            rightScanIndex++
-                        }
-                        else if (char === '#') {
-                            if (rightOperatorStack.length === 0) {
-                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                lastIndex = rightScanIndex  // 更新 lastIndex
-                                break
-                            }
-                            else {
-                                rightScanIndex++
-                                rightOperatorStack.pop()
-                            }
-                        }
-                        else if (rightFlag2) {
-                            if (char === '(') {
-                                rightParenStack.push(rightScanIndex);
-                            }
-                            else if (char === ')') {
-                                if (rightParenStack.length > 1) {
-                                    rightParenStack.pop();
-                                }
-                                else {
-                                    // 找到最右边的 ')'
-                                    result += '{@' + str.slice(rightInsertStart + 1, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex + 1; // 更新 lastIndex
-                                    break;
-                                }
-                            }
-                            rightScanIndex++
-                        }
-                        else {
-                            if (char === '@') {
-                                rightOperatorStack.push('@')
-                                rightScanIndex++
-                            }
-                            else if (char === '#') {
-                                if (rightOperatorStack.length === 0) {
-                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex  // 更新 lastIndex
-                                    break
-                                }
-                                else {
-                                    rightScanIndex++
-                                    rightOperatorStack.pop()
-                                }
-                            }
-                            else if (char === '(') {
-                                leftParenStack.push('(')
-                                leftScanIndex--
-                            }
-                            else if (char === ')') {
-                                if (leftParenStack.length === 0) {
-                                    result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                    lastIndex = rightScanIndex  // 更新 lastIndex
-                                    break
-                                }
-                                else {
-                                    rightScanIndex++
-                                    rightOperatorStack.pop()
-                                }
-                            }
-                            else if (operatorstr.indexOf(char) === -1) {
-                                rightScanIndex++
-                                if (rightScanIndex === str.length) {
-                                    result += '{@' + str.slice(rightInsertStart, str.length) + '#}'
-                                    break
-                                }
-                            }
-                            else {
-                                result += '{@' + str.slice(rightInsertStart, rightScanIndex) + '#}';
-                                lastIndex = rightScanIndex  // 更新 lastIndex
-                                break
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-        // 添加剩余字符串
-        result += str.slice(lastIndex)
-        return result; // 去除多余空格
-    }
-    str = processAbs(str)
-    str = processMathFunctions(str, 'sqrt', '{@', '#}')
-    str = processMathFunctions(str, 'ln', 'LEFTPAREN@', '#RIGHTPAREN')
-    str = processMathFunctions(str, 'lg', 'LEFTPAREN@', '#RIGHTPAREN')
-    str = processPow(str)
-    str = processDivide(str)
-    str = str.replace(/\*/g, ' ')
-    function replaceBracesAndPow(str) {
-        return str
-            .replace(/LEFTPAREN/g, '(')    // 替换 LEFTBRACE 为 (
-            .replace(/RIGHTPAREN/g, ')')   // 替换 RIGHTBRACE 为 )
-            .replace(/POW/g, '^')        // 替换 POW 为 ^
-            .replace(/\(/g, '\\left(')   // 替换 ( 为 \left(
-            .replace(/\)/g, '\\right)')  // 替换 ) 为 \right)
-            .replace(/@/g,'')
-            .replace(/#/g,'');
-    }
-    str = replaceBracesAndPow(str)
-    return str
+    let infixExpression = tokenize(str)
+    let postfixExpression = infixToPostfix(infixExpression)
+    let expressionTree = constructExpressionTree(postfixExpression)
+    str = processExpressionTree(expressionTree)
+    return restoreTitle(str)
 }
+
 const docFormat = (str) => {
     if(str === ''){
         return ''
