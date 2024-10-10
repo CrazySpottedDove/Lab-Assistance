@@ -3,29 +3,32 @@ const fs = require("fs");
 const path = require("path");
 
 // 获取当前模块的绝对路径
-// const currentFilePath = process.argv[1];
-// if (!currentFilePath) {
-// 	throw new Error("无法获取当前文件路径。请确保你的脚本被正确调用。");
-// }
-// const __dirname = path.dirname(currentFilePath);
-const __dirname = path.resolve()
+
+const __dirname = path.resolve();
+const configDir = path.join(__dirname, "../user/config");
 const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
-let tmpname = ''
+let tmpname = "";
 // 读取用户配置文件
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {
 		const configData = fs.readFileSync(configFilePath, "utf-8");
 		return JSON.parse(configData); // 返回配置文件中的数据
 	} else {
-		console.error("用户配置文件不存在");
-		return null;
+		fs.mkdirSync(configDir, { recursive: true });
+		const initConfig = {
+			autoSaveFile: true,
+			language: "chinese",
+		};
+		const jsonContent = initConfig;
+		fs.writeFileSync(configFilePath, jsonContent, "utf-8");
+		return initConfig;
 	}
 }
 
 // 修改用户配置文件
-function saveUserConfig(userConfig){
-    const jsonContent = JSON.stringify(userConfig, null, 2)
-    fs.writeFileSync(configFilePath, jsonContent, "utf-8")
+function saveUserConfig(userConfig) {
+	const jsonContent = JSON.stringify(userConfig, null, 2);
+	fs.writeFileSync(configFilePath, jsonContent, "utf-8");
 }
 
 // 生成文件名字
@@ -59,18 +62,17 @@ function saveStateOnExit(state) {
 			fs.mkdirSync(saveDir, { recursive: true });
 		}
 		const filename = `${generateFileName(state)}.json`;
-        const filePath = path.join(saveDir, filename);
+		const filePath = path.join(saveDir, filename);
 		const jsonContent = JSON.stringify(state, null, 2);
-        if (tmpname === "") {
+		if (tmpname === "") {
 			tmpname = filename;
-            fs.writeFileSync(filePath, jsonContent, "utf-8")
+			fs.writeFileSync(filePath, jsonContent, "utf-8");
+		} else if (tmpname !== filename) {
+			const lastPath = path.join(saveDir, tmpname);
+			fs.renameSync(lastPath, filePath);
+			tmpname = filename;
+			fs.writeFileSync(filePath, jsonContent, "utf-8");
 		}
-        else if(tmpname !== filename){
-            const lastPath = path.join(saveDir, tmpname)
-            fs.renameSync(lastPath, filePath)
-            tmpname = filename
-            fs.writeFileSync(filePath, jsonContent, "utf-8")
-        }
 	}
 }
 
@@ -85,9 +87,9 @@ function openFile(event, state) {
 				const result = e.target.result; // 获取文件内容
 				const parsedData = JSON.parse(result); // 解析 JSON并存储
 
-                for(const key in parsedData){
-                    state[key] = parsedData[key]
-                }
+				for (const key in parsedData) {
+					state[key] = parsedData[key];
+				}
 			} catch (error) {
 				ElMessage.error("读取文件过程出错！");
 				console.error("Error parsing JSON:", error);
@@ -101,9 +103,4 @@ function openFile(event, state) {
 }
 
 // 导出函数
-export {
-	readUserConfig,
-    saveUserConfig,
-	saveStateOnExit,
-	openFile,
-};
+export { readUserConfig, saveUserConfig, saveStateOnExit, openFile };
