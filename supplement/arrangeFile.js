@@ -1,0 +1,109 @@
+// 引入 Node.js 模块
+const fs = require("fs");
+const path = require("path");
+
+// 获取当前模块的绝对路径
+// const currentFilePath = process.argv[1];
+// if (!currentFilePath) {
+// 	throw new Error("无法获取当前文件路径。请确保你的脚本被正确调用。");
+// }
+// const __dirname = path.dirname(currentFilePath);
+const __dirname = path.resolve()
+const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
+let tmpname = ''
+// 读取用户配置文件
+function readUserConfig() {
+	if (fs.existsSync(configFilePath)) {
+		const configData = fs.readFileSync(configFilePath, "utf-8");
+		return JSON.parse(configData); // 返回配置文件中的数据
+	} else {
+		console.error("用户配置文件不存在");
+		return null;
+	}
+}
+
+// 修改用户配置文件
+function saveUserConfig(userConfig){
+    const jsonContent = JSON.stringify(userConfig, null, 2)
+    fs.writeFileSync(configFilePath, jsonContent, "utf-8")
+}
+
+// 生成文件名字
+function generateFileName(state) {
+	let filename = "";
+	for (let i = 0; i < Math.min(state.dataList.length, 10); i++) {
+		if (i !== 0) {
+			filename += "-";
+		}
+		filename += `${state.dataList[i].title}`;
+	}
+	return filename.replace(/[<>:"/\\|?*]+/g, "_");
+}
+
+// 保存文件
+function saveStateOnExit(state) {
+	if (state.dataList.length > 0) {
+		const currentDate = new Date();
+		const formattedDate = `${currentDate.getFullYear()}-${(
+			currentDate.getMonth() + 1
+		)
+			.toString()
+			.padStart(2, "0")}-${currentDate
+			.getDate()
+			.toString()
+			.padStart(2, "0")}`;
+		const saveDir = path.join(__dirname, `../user/data/${formattedDate}`);
+
+		// 如果目录不存在，则创建目录
+		if (!fs.existsSync(saveDir)) {
+			fs.mkdirSync(saveDir, { recursive: true });
+		}
+		const filename = `${generateFileName(state)}.json`;
+        const filePath = path.join(saveDir, filename);
+		const jsonContent = JSON.stringify(state, null, 2);
+        if (tmpname === "") {
+			tmpname = filename;
+            fs.writeFileSync(filePath, jsonContent, "utf-8")
+		}
+        else if(tmpname !== filename){
+            const lastPath = path.join(saveDir, tmpname)
+            fs.renameSync(lastPath, filePath)
+            tmpname = filename
+            fs.writeFileSync(filePath, jsonContent, "utf-8")
+        }
+	}
+}
+
+// 打开文件
+function openFile(event, state) {
+	const file = event.target.files[0];
+	if (file && file.type === "application/json") {
+		const reader = new FileReader();
+		// 文件读取完成时的回调
+		reader.onload = (e) => {
+			try {
+				const result = e.target.result; // 获取文件内容
+				const parsedData = JSON.parse(result); // 解析 JSON并存储
+
+                for(const key in parsedData){
+                    state[key] = parsedData[key]
+                }
+			} catch (error) {
+				ElMessage.error("读取文件过程出错！");
+				console.error("Error parsing JSON:", error);
+			}
+		};
+		reader.readAsText(file); // 读取文件内容为文本
+		event.target.value = "";
+	} else {
+		alert("请上传一个 JSON 文件");
+	}
+}
+
+// 导出函数
+export {
+	readUserConfig,
+    saveUserConfig,
+	saveStateOnExit,
+	openFile,
+};

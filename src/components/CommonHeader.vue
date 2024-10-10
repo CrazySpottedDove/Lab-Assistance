@@ -14,18 +14,34 @@
 <script setup>
 import { FolderChecked,FolderOpened } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {ref, onMounted, onBeforeUnmount, watch} from 'vue'
+
 const store = useAllDataStore()
+async function readUserConfig(){
+    const {readUserConfig} = await import('../../supplement/arrangeFile.js')
+    store.userConfig = readUserConfig()
+}
+async function saveStateOnExit(state){
+    const { saveStateOnExit } = await import('../../supplement/arrangeFile.js')
+    saveStateOnExit(state)
+}
+
+async function openFile(event, state){
+    const {openFile} = await import('../../supplement/arrangeFile.js')
+    openFile(event, state)
+}
 const handleFileSave = ()=>{
-    store.saveFile()
+    ElMessage.success("文件已保存")
+    saveStateOnExit(store.state)
 }
 const fileLoad = ref(null)
 const triggerFileLoad = ()=>{
     fileLoad.value.click()
 }
 const handleFileLoad = (event)=>{
-    store.openFile(event)
+    openFile(event, store.state)
 }
+
 const handleKeydown = (event) => {
     if(event.ctrlKey){
         switch(event.key){
@@ -42,10 +58,19 @@ const handleKeydown = (event) => {
 }
 onMounted(() => {
     document.addEventListener('keydown', handleKeydown)
+    readUserConfig()
 })
+
 onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeydown)
 })
+
+watch(store.state, (newState) => {
+    if(store.userConfig.autoSaveFile){
+        saveStateOnExit(newState)
+    }
+})
+
 </script>
 <style  lang="less" scoped>
     .header{

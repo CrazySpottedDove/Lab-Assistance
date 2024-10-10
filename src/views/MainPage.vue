@@ -66,6 +66,19 @@ const greekLetters = {
     'Ω': '\\Omega '
 }
 const chinese = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]+/g
+const tableNO = computed(()=>{
+    return store.userConfig.language === 'chinese' ? '编号' : 'No.'
+})
+const figureLineName = computed(()=>{
+    return store.userConfig.language === 'chinese' ? '拟合直线' : 'fitting line'
+})
+const figureCurveName = computed(() => {
+    return store.userConfig.language === 'chinese' ? '拟合曲线' : 'fitting curve'
+})
+const figureDataName = computed(() => {
+    return store.userConfig.language === 'chinese' ? '实验数据' : 'raw data'
+})
+
 const rely =
 `\\usepackage{amsmath}
 \\usepackage{bm}
@@ -792,7 +805,7 @@ const handleTableUpdate = (()=>{
                     }
                 }, selectedTable.dataValueN[0].dataHeight)
                 function draftCenterNumber(length, index){
-                    center += '编号 & '
+                    center += `${tableNO.value} & `
                     for(let i = index * length + 1; i < (index+1) * length + 1; i++){
                         center += `$ ${i} $`
                         if(i !== (index+1) * length){
@@ -1045,7 +1058,7 @@ const handleGraphUpdate = () => {
                             graphCommentContent += ` \\\\ `
                         }
                     }
-                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.slope}*x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${graphs[i].graphData.intercept}}[拟合直线：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.slope}*x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${graphs[i].graphData.intercept}}[${figureLineName.value}：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[${figureDataName.value}：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.slope)}x${graphs[i].graphData.intercept[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.intercept)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
                     break
                 case 'square':
@@ -1057,7 +1070,7 @@ const handleGraphUpdate = () => {
                             graphCommentContent += ` \\\\ `
                         }
                     }
-                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.a}*x*x${graphs[i].graphData.b[0] === '-' ? '' : '+'}${graphs[i].graphData.b}*x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${graphs[i].graphData.c}}[拟合曲线：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[实验数据：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
+                    graphCenterContent += `\\functionline{${xDomain}}{${graphs[i].graphData.a}*x*x${graphs[i].graphData.b[0] === '-' ? '' : '+'}${graphs[i].graphData.b}*x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${graphs[i].graphData.c}}[${figureCurveName.value}：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]\n\t\t\t\\datapoint[only marks]{${datapointContent}}[${figureDataName.value}：$${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)}$]`
                     graphCommentContent += `$ ${titleFormat(graphs[i].yData)}\\text{-}${titleFormat(graphs[i].xData)} : y=${dataFormat(graphs[i].graphData.a)}x^2${graphs[i].graphData.b[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.b)}x${graphs[i].graphData.c[0] === '-' ? '' : '+'}${dataFormat(graphs[i].graphData.c)} \\qquad R^2 = ${dataFormat(graphs[i].graphData.rSquared)} $`
                     break
                 case 'simple':

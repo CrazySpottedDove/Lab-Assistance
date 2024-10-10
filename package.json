@@ -22,6 +22,18 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",
     "a-calc": "^2.2.6",
+    "concurrently": "^9.0.1",
+    "nw": "^0.76.1-sdk",
+    "terser": "^5.34.1",
     "vite": "^5.4.0"
-  }
+  },
+  "window": {
+    "title": "Vite-NW.js App",
+    "toolbar": false,
+    "frame": true,
+    "width": 800,
+    "height": 600,
+    "devtools": true
+  },
+  "main": "dist/index.html"
 }

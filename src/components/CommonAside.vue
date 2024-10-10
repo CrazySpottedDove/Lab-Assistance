@@ -1,142 +1,150 @@
 <template>
-<div class="common-aside">
-    <el-aside width="100%">
-        <el-menu
-            background-color="#626aef"
-            :default-openeds="['1', '1-1','1-2','2','3']"
-        >
-            <el-sub-menu index="1" >
-                <template #title>
-                    <span style="color: gainsboro!important;">数据管理</span>
-                </template>
-                <el-sub-menu index="1-1">
-                    <template #title >
-                        <span style="color: gainsboro!important;">直接数据</span>
+    <div class="common-aside">
+        <el-aside width="100%">
+            <el-menu background-color="#626aef" :default-openeds="['0-1','0-2','1', '1-1','1-2','2','3']">
+                <el-sub-menu index="0">
+                    <template #title>
+                        <el-icon style="color: gainsboro;">
+                            <setting></setting>
+                        </el-icon>
+                        <span style="color: gainsboro">设置</span>
                     </template>
-                    <el-menu-item
-                        v-for="(item,displayIndex) of directDataList"
-                        :ref="el => refs[displayIndex] = el"
-                        @click="handleDataSelection(item.index, displayIndex)"
-                        :class="{'selected':selectedDataIndex === item.index}"
-                    >
-                        <el-input v-model="item.data.title" @change="handleTitleChange(item.index)" @click.stop="handleTitleCopy(item.index)"></el-input>
+                    <el-sub-menu index="0-1">
+                        <template #title>
+                            <span style="color: gainsboro!important;">文件保存策略</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile }"
+                            @click="handleChangeAutoSaveFile(true)">自动保存</el-menu-item>
+                        <el-menu-item :class="{ 'selected': !store.userConfig.autoSaveFile }"
+                            @click="handleChangeAutoSaveFile(false)">手动保存</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-2">
+                        <template #title>
+                            <span style="color: gainsboro!important;">输出语言</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'chinese' }"
+                            @click="handleChangeLanguage('chinese')">中文</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'english' }"
+                            @click="handleChangeLanguage('english')">英文</el-menu-item>
+                    </el-sub-menu>
+                </el-sub-menu>
+                <el-sub-menu index="1">
+                    <template #title>
+                        <span style="color: gainsboro!important;">数据管理</span>
+                    </template>
+                    <el-sub-menu index="1-1">
+                        <template #title>
+                            <span style="color: gainsboro!important;">直接数据</span>
+                        </template>
+                        <el-menu-item v-for="(item,displayIndex) of directDataList" :ref="el => refs[displayIndex] = el"
+                            @click="handleDataSelection(item.index, displayIndex)"
+                            :class="{'selected':selectedDataIndex === item.index}">
+                            <el-input v-model="item.data.title" @change="handleTitleChange(item.index)"
+                                @click.stop="handleTitleCopy(item.index)"></el-input>
+                            <span>
+                                <el-icon @click.stop="handleDeleteData(item.index, displayIndex)"
+                                    class="deleteicon el-icon--right">
+                                    <circle-close></circle-close>
+                                </el-icon>
+                            </span>
+                        </el-menu-item>
+                        <el-menu-item class="mybutton" @click="handleAddData(true)">
+                            添加数据
+                        </el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="1-2">
+                        <template #title>
+                            <span style="color: gainsboro!important;">间接数据</span>
+                        </template>
+                        <el-menu-item v-for="(item, displayIndex) of indirectDataList"
+                            :ref="el => refs[displayIndex + directDataList.length] = el"
+                            @click="handleDataSelection(item.index, displayIndex + directDataList.length)"
+                            :class="{'selected':selectedDataIndex === item.index}">
+                            <el-input v-model="item.data.title" @change="handleTitleChange(item.index)"
+                                @click.stop="handleTitleCopy(item.index)"></el-input>
+                            <span>
+                                <el-icon
+                                    @click.stop="handleDeleteData(item.index, displayIndex + directDataList.length)"
+                                    class="deleteicon el-icon--right">
+                                    <circle-close></circle-close>
+                                </el-icon>
+                            </span>
+                        </el-menu-item>
+                        <el-menu-item class="mybutton" @click="handleAddData(false)">
+                            添加数据
+                        </el-menu-item>
+                    </el-sub-menu>
+                </el-sub-menu>
+                <el-sub-menu index="2">
+                    <template #title>
+                        <span style="color: gainsboro!important;">LaTeX制表</span>
+                    </template>
+                    <el-menu-item v-for="(table,index) of tableList"
+                        :ref="el => refs[index + directDataList.length + indirectDataList.length] = el"
+                        @click="handleTableSelection(index, index + directDataList.length + indirectDataList.length)"
+                        :class="{'selected':selectedTableIndex === index}">
+                        表{{ index + 1 }}
+                        <span style="width: 58%;"></span>
                         <span>
                             <el-icon
-                                @click.stop="handleDeleteData(item.index, displayIndex)"
-                                class="deleteicon el-icon--right"
-                            >
+                                @click="handleDeleteTable(index, index + directDataList.length + indirectDataList.length)"
+                                class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
                     </el-menu-item>
-                    <el-menu-item
-                        class="mybutton"
-                        @click="handleAddData(true)"
-                    >
-                        添加数据
+                    <el-menu-item class="mybutton" @click="handleAddTable()">
+                        添加表格
                     </el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="1-2">
-                    <template #title >
-                        <span style="color: gainsboro!important;">间接数据</span>
+                <el-sub-menu index="3">
+                    <template #title>
+                        <span style="color: gainsboro!important;">LaTeX制图</span>
                     </template>
-                    <el-menu-item
-                        v-for="(item, displayIndex) of indirectDataList"
-                        :ref="el => refs[displayIndex + directDataList.length] = el"
-                        @click="handleDataSelection(item.index, displayIndex + directDataList.length)"
-                        :class="{'selected':selectedDataIndex === item.index}"
-                    >
-                        <el-input v-model="item.data.title" @change="handleTitleChange(item.index)" @click.stop="handleTitleCopy(item.index)"></el-input>
+                    <el-menu-item v-for="(graph,index) of graphList"
+                        :ref="el => refs[index + directDataList.length + indirectDataList.length + tableList.length] = el"
+                        @click="handleGraphSelection(index, index + directDataList.length + indirectDataList.length + tableList.length)"
+                        :class="{'selected':selectedGraphIndex === index}">
+                        图{{ index + 1 }}
+                        <span style="width: 58%;"></span>
                         <span>
                             <el-icon
-                                @click.stop="handleDeleteData(item.index, displayIndex + directDataList.length)"
-                                class="deleteicon el-icon--right"
-                            >
+                                @click="handleDeleteGraph(index, index + directDataList.length + indirectDataList.length + tableList.length)"
+                                class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
                     </el-menu-item>
-                    <el-menu-item
-                        class="mybutton"
-                        @click="handleAddData(false)"
-                    >
-                        添加数据
+                    <el-menu-item class="mybutton" @click="handleAddGraph()">
+                        添加图
                     </el-menu-item>
                 </el-sub-menu>
-            </el-sub-menu>
-            <el-sub-menu index="2">
-                <template #title>
-                    <span style="color: gainsboro!important;">LaTeX制表</span>
-                </template>
-                <el-menu-item
-                    v-for="(table,index) of tableList"
-                    :ref="el => refs[index + directDataList.length + indirectDataList.length] = el"
-                    @click="handleTableSelection(index, index + directDataList.length + indirectDataList.length)"
-                    :class="{'selected':selectedTableIndex === index}"
-                >
-                    表{{ index + 1 }}
-                    <span style="width: 58%;"></span>
-                    <span>
-                        <el-icon
-                            @click="handleDeleteTable(index, index + directDataList.length + indirectDataList.length)"
-                            class="deleteicon el-icon--right"
-                        >
-                            <circle-close></circle-close>
-                        </el-icon>
-                    </span>
-                </el-menu-item>
-                <el-menu-item
-                    class="mybutton"
-                    @click="handleAddTable()"
-                >
-                    添加表格
-                </el-menu-item>
-            </el-sub-menu>
-            <el-sub-menu index="3">
-                <template #title>
-                    <span style="color: gainsboro!important;">LaTeX制图</span>
-                </template>
-                <el-menu-item
-                    v-for="(graph,index) of graphList"
-                    :ref="el => refs[index + directDataList.length + indirectDataList.length + tableList.length] = el"
-                    @click="handleGraphSelection(index, index + directDataList.length + indirectDataList.length + tableList.length)"
-                    :class="{'selected':selectedGraphIndex === index}"
-                >
-                    图{{ index + 1 }}
-                    <span style="width: 58%;"></span>
-                    <span>
-                        <el-icon
-                            @click="handleDeleteGraph(index, index + directDataList.length + indirectDataList.length + tableList.length)"
-                            class="deleteicon el-icon--right"
-                        >
-                            <circle-close></circle-close>
-                        </el-icon>
-                    </span>
-                </el-menu-item>
-                <el-menu-item
-                    class="mybutton"
-                    @click="handleAddGraph()"
-                >
-                    添加图
-                </el-menu-item>
-            </el-sub-menu>
-            <el-menu-item index="4" @click="handleSwitchToReadme" :class="{'selected':isReadme}">使用指南</el-menu-item>
-            <el-sub-menu index="5">
-                <template #title>
-                    <span style="color: gainsboro!important;">参考</span>
-                </template>
-                <el-menu-item index="5-1" @click="handleSwitchToNumberDoc" :class="{'selected':isNumberDoc}">参考：有效数字</el-menu-item>
-                <el-menu-item index="5-2" @click="handleSwitchToUncerDoc" :class="{'selected':isUncerDoc}">参考：不确定度</el-menu-item>
-                <el-menu-item index="5-3" @click="handleSwitchToPropertyDoc" :class="{'selected':isPropertyDoc}">参考：各项参数</el-menu-item>
-            </el-sub-menu>
-        </el-menu>
-    </el-aside >
-</div>
+                <el-menu-item index="4" @click="handleSwitchToReadme" :class="{'selected':isReadme}">使用指南</el-menu-item>
+                <el-sub-menu index="5">
+                    <template #title>
+                        <span style="color: gainsboro!important;">参考</span>
+                    </template>
+                    <el-menu-item index="5-1" @click="handleSwitchToNumberDoc"
+                        :class="{'selected':isNumberDoc}">参考：有效数字</el-menu-item>
+                    <el-menu-item index="5-2" @click="handleSwitchToUncerDoc"
+                        :class="{'selected':isUncerDoc}">参考：不确定度</el-menu-item>
+                    <el-menu-item index="5-3" @click="handleSwitchToPropertyDoc"
+                        :class="{'selected':isPropertyDoc}">参考：各项参数</el-menu-item>
+                </el-sub-menu>
+            </el-menu>
+        </el-aside>
+    </div>
 </template>
 <script setup>
-import { CircleClose } from '@element-plus/icons-vue';
+import { CircleClose,Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+
+async function saveUserConfig() {
+    const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
+    saveUserConfig(store.userConfig)
+}
+
 const store = useAllDataStore()
 const dataList = computed(()=>store.state.dataList)
 const tableList = computed(()=>store.state.tableList)
@@ -163,6 +171,19 @@ const click = (displayIndex) => {
         refs.value[displayIndex].$el.click()
     }
 }
+
+//修改配置文件中的保存选项
+const handleChangeAutoSaveFile = (flag) => {
+    store.userConfig.autoSaveFile = flag
+    saveUserConfig()
+}
+
+// 修改配置文件中的语言选项
+const handleChangeLanguage = (language) => {
+    store.userConfig.language = language
+    saveUserConfig()
+}
+
 const handleDataSelection = (index, displayIndex)=>{
     store.state.selectedDataIndex = index
     store.state.selectedTableIndex = -1

@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import {calc} from 'a-calc'
-import { saveAs } from 'file-saver'
+
 import {
     dimensionalAdd,
     evaluateExpression,
@@ -39,6 +39,10 @@ function initState(){
 
 export const useAllDataStore = defineStore('allData',()=>{
     const state = ref(initState())
+    const userConfig = ref({
+        autoSaveFile: true,
+        language: 'chinese'
+    })
     function deleteData(index, displayIndex){
         state.value.dataList.splice(index,1)
         if(state.value.selectedDisplayIndex >= displayIndex){
@@ -242,7 +246,9 @@ export const useAllDataStore = defineStore('allData',()=>{
                     }
                     // 规范化direct数据
 
-                    let avgValue = calc(`(${sum}) / (${length})`)
+                    let avgValue = String(Number(sum) / length)
+                    // calc在对小数除以相对大的数字的时候会有精度问题，需要避免
+
                     if(selectedType === 'direct'){
                         editAnalysis('avg', standardByLevel(avgValue, dataMinLevel))
                     }
@@ -263,18 +269,18 @@ export const useAllDataStore = defineStore('allData',()=>{
                         }
                         else{
                             selectedDataSet.forEach(item => {
-                                let tmpRelErr = calc(`((${item.rawData}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                                let tmpRelErr = String(Number(calc(`${item.rawData} - ${selectedTheoData}`)) / Number(selectedTheoData))
                                 tmpRelErr = toPositive(tmpRelErr)
                                 relErrSum = calc(`(${relErrSum}) + (${tmpRelErr})`)
                                 tmpRelErr = toPercent(errorMode(tmpRelErr))
                                 item.relErr = tmpRelErr
                             })
                             // 添加相对误差
-                            let tmpAvgRelErr = calc(`(${relErrSum}) / ${String(length)}`)
+                            let tmpAvgRelErr = String(Number(relErrSum) / length)
                             tmpAvgRelErr = toPercent(errorMode(tmpAvgRelErr))
                             createAnalysis('avgRelErr', '平均相对误差', tmpAvgRelErr)
                             // 添加平均相对误差
-                            let tmpOverallRelErr = calc(`((${avgValue}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                            let tmpOverallRelErr = String(Number(calc(`${avgValue} - ${selectedTheoData}`)) / Number(selectedTheoData))
                             tmpOverallRelErr = toPositive(tmpOverallRelErr)
                             tmpOverallRelErr = toPercent(errorMode(tmpOverallRelErr))
                             createAnalysis('avgOverallRelErr', '平均值与理论值的相对误差', tmpOverallRelErr)
@@ -301,7 +307,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                         initAnalysis('relAvgDev')
                     }
                     else{
-                        let tmpRelAvgDev = toPositive(calc(`(${devSum}) / (${String(length)}) / (${avgValue})`))
+                        let tmpRelAvgDev = toPositive(String(Number(devSum) / length / Number(avgValue)))
                         tmpRelAvgDev = toPercent(errorMode(tmpRelAvgDev))
                         editAnalysis('relAvgDev', tmpRelAvgDev)
                     }
@@ -316,7 +322,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                             initAnalysis('relStdDev')
                         }
                         else{
-                            let tmpRelStdDev = toPositive(calc(`(${tmpStdDev}) / (${avgValue})`))
+                            let tmpRelStdDev = toPositive(String(Number(tmpStdDev) / Number(avgValue)))
                             tmpRelStdDev = toPercent(errorMode(tmpRelStdDev))
                             editAnalysis('relStdDev', tmpRelStdDev)
                         }
@@ -344,7 +350,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                         let selectedUncers = selectedList.moreUncer
                         if(selectedUncers.equipUncer){
                             checkInvalidData(selectedUncers.equipUncer)
-                            let tmpBUncer = calc(`(${selectedUncers.equipUncer}) / (${String(Math.sqrt(3))})`)
+                            let tmpBUncer =  String(Number(selectedUncers.equipUncer) / Math.sqrt(3))
                             selectedUncers.bUncer = errorMode(tmpBUncer)
                         }
                         else{
@@ -372,7 +378,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                         initAnalysis('aUncer')
                         if(selectedList.moreUncer.equipUncer){
                             checkInvalidData(selectedList.moreUncer.equipUncer)
-                            let tmpBUncer = calc(`(${selectedList.moreUncer.equipUncer}) / (${String(Math.sqrt(3))})`)
+                            let tmpBUncer = String(Number(selectedList.moreUncer.equipUncer) / Math.sqrt(3))
                             selectedList.moreUncer.bUncer = errorMode(tmpBUncer)
                             selectedList.moreUncer.wholeUncer = selectedList.moreUncer.bUncer
                         }
@@ -388,7 +394,7 @@ export const useAllDataStore = defineStore('allData',()=>{
                 createAnalysis('avg', '实验值', selectedDataSet[0].rawData)
                 if(selectedTheoData !== ''){
                     checkInvalidData(selectedTheoData)
-                    let tmpRelErr = calc(`((${selectedDataSet[0].rawData}) - (${selectedTheoData})) / (${selectedTheoData})`)
+                    let tmpRelErr = String(Number(calc(`(${selectedDataSet[0].rawData}) - (${selectedTheoData}) `)) / Number(selectedTheoData))
                     tmpRelErr = toPositive(tmpRelErr)
                     tmpRelErr = toPercent(errorMode(tmpRelErr))
                     createAnalysis('relErr', '相对误差', tmpRelErr)
@@ -503,45 +509,45 @@ export const useAllDataStore = defineStore('allData',()=>{
         computeResult.rSquared = calc(String(computeResult.rSquared)+'|=6')
         return computeResult
     }
-    function saveFile(){
-        if(state.value.dataList.length === 0){
-            ElMessage.error('没有数据，无法保存！')
-        }
-        else{
-            const jsonContent = JSON.stringify(state.value, null, 2)
-            const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
-            let filename = ''
-            for(let i = 0 ; i < state.value.dataList.length; i++){
-                if(i !== 0){
-                    filename += '-'
-                }
-                filename += `${state.value.dataList[i].title}`
-            }
-            saveAs(blob, `${filename}.json`); // 使用 FileSaver.js 保存 JSON 文件
-        }
-    }
-    function openFile(event){
-        const file = event.target.files[0];
-        if (file && file.type === 'application/json') {
-            const reader = new FileReader();
-            // 文件读取完成时的回调
-            reader.onload = (e) => {
-                try {
-                    const result = e.target.result; // 获取文件内容
-                    state.value = JSON.parse(result); // 解析 JSON 并存储
-                }
-                catch (error) {
-                    ElMessage.error('读取文件过程出错！')
-                    console.error('Error parsing JSON:', error);
-                }
-            };
-            reader.readAsText(file); // 读取文件内容为文本
-            event.target.value = '';
-        }
-        else {
-            alert('请上传一个 JSON 文件');
-        }
-    }
+    // function saveFile(){
+    //     if(state.value.dataList.length === 0){
+    //         ElMessage.error('没有数据，无法保存！')
+    //     }
+    //     else{
+    //         const jsonContent = JSON.stringify(state.value, null, 2)
+    //         const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
+    //         let filename = ''
+    //         for(let i = 0 ; i < state.value.dataList.length; i++){
+    //             if(i !== 0){
+    //                 filename += '-'
+    //             }
+    //             filename += `${state.value.dataList[i].title}`
+    //         }
+    //         saveAs(blob, `${filename}.json`); // 使用 FileSaver.js 保存 JSON 文件
+    //     }
+    // }
+    // function openFile(event){
+    //     const file = event.target.files[0];
+    //     if (file && file.type === 'application/json') {
+    //         const reader = new FileReader();
+    //         // 文件读取完成时的回调
+    //         reader.onload = (e) => {
+    //             try {
+    //                 const result = e.target.result; // 获取文件内容
+    //                 state.value = JSON.parse(result); // 解析 JSON 并存储
+    //             }
+    //             catch (error) {
+    //                 ElMessage.error('读取文件过程出错！')
+    //                 console.error('Error parsing JSON:', error);
+    //             }
+    //         };
+    //         reader.readAsText(file); // 读取文件内容为文本
+    //         event.target.value = '';
+    //     }
+    //     else {
+    //         alert('请上传一个 JSON 文件');
+    //     }
+    // }
     return{
         state,
         deleteData,
@@ -558,7 +564,6 @@ export const useAllDataStore = defineStore('allData',()=>{
         evaluateLine,
         evaluateSquare,
         errorMode,
-        saveFile,
-        openFile
+        userConfig
     }
 })

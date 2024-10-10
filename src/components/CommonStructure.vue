@@ -29,12 +29,5 @@ import MainPage from '../views/MainPage.vue'
     width: 87vw;
     height: 8vh;
 }
-// body {
-//   width: 100%;
-//   height: 100%;
-//   background-color: #121212;
-//   color:#E0E0E0;
-// //   background-color: #f5f5f5;
-//   font-family: 'PingFangSC-Light', 'PingFang SC', 'STHeitiSC-Light', 'Helvetica-Light', 'Arial', 'sans-serif';
-// }
+
 </style>

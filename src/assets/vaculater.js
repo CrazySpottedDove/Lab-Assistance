@@ -121,7 +121,7 @@ class ValueCalc{
             let rawData1 = a.rawData
             let rawData2 = b.rawData
             let tmpBit = Math.min(bit1, bit2)
-            let tmpRawData = calc(`(${rawData1}) / (${rawData2})`)
+            let tmpRawData = String(Number(rawData1) / Number(rawData2))
             let tmpLevel = bitToLevel(tmpRawData, tmpBit)
             return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
         }
@@ -134,7 +134,7 @@ class ValueCalc{
                 let num = b
                 let numExp = Math.floor(Math.log10(Math.abs(num)))
                 let tmpLevel = obj.level - numExp
-                let tmpRawData = calc(`(${obj.rawData}) / (${String(num)})`)
+                let tmpRawData = String(Number(obj.rawData) / num)
                 let tmpBit = levelToBit(tmpRawData, tmpLevel)
                 return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
             }
@@ -142,7 +142,7 @@ class ValueCalc{
                 let obj = b
                 let num = a
                 let tmpBit = obj.bit
-                let tmpRawData = calc(`(${String(num)}) / (${obj.rawData})`)
+                let tmpRawData = String(num / Number(obj.rawData))
                 let tmpLevel = bitToLevel(tmpRawData, tmpBit)
                 return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData)
             }
@@ -680,7 +680,7 @@ uncerMath.import({
     'Object, Object':function(obj1, obj2){
         Check.divisorZero(Number(obj2.data))
         return {
-            data: calc(`(${obj1.data}) / (${obj2.data})`),
+            data: String(Number(obj1.rawData) / Number(obj2.rawData)),
             uncer: dimensionalAdd(Number(obj1.uncer) / Number(obj2.data), Number(obj1.data) / Number(obj2.data) / Number(obj2.data) * Number(obj2.uncer))
         }
     },
@@ -763,7 +763,7 @@ uncerMath.import({
         Check.naturalInpositive(Number(obj.data))
         return{
             data: String(Math.log(Number(obj.data))),
-            uncer: calc(`(${obj.uncer}) / (${obj.data})`)
+            uncer: String(Number(obj.uncer) / Number(obj.data))
         }
     },
     'number': function(num){
@@ -779,7 +779,7 @@ uncerMath.import({
         Check.radicandNegative(Number(obj.data))
         return{
             data: String(Math.sqrt(Number(obj.data))),
-            uncer: calc(`(${obj.uncer}) / (${String(Math.sqrt(Number(obj.data)))}) / 2`)
+            uncer: String(Number(obj.uncer) / Math.sqrt(Number(obj.data)) / 2)
         }
     },
     'number': function(num){
@@ -841,7 +841,7 @@ uncerMath.import({
         Check.naturalInpositive(Number(obj.data))
         return{
             data: String(Math.log10(Number(obj.data))),
-            uncer: calc(`(${obj.uncer}) / (${obj.data}) * (${String(Math.LN10)})`)
+            uncer: calc(`${Number(obj.uncer) / Number(obj.data)} * (${String(Math.LN10)})`)
         }
     },
     'number': function(num){
