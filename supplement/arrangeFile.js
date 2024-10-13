@@ -8,6 +8,7 @@ const __dirname = path.resolve();
 const configDir = path.join(__dirname, "../user/config");
 const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
 let tmpname = "";
+
 // 读取用户配置文件
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {

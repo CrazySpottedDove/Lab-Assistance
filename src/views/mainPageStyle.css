@@ -1,0 +1,161 @@
+.theo-data {
+    display: flex;
+    justify-content: center;
+    width: 50%;
+    padding: 10px;
+}
+
+.indirect-theo-data {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+}
+
+.equipment {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+}
+
+.new-data {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    width: 50%;
+}
+
+.card-div {
+    padding: 10px;
+    width: 100%;
+}
+
+:deep(.el-input__inner) {
+    text-align: center;
+}
+
+.deleteicon:hover {
+    color: red;
+    cursor: pointer;
+}
+
+.clear-btn {
+    margin-top: 9px;
+    margin-left: -34px;
+}
+
+input {
+    height: 25px;
+}
+
+label {
+    margin-top: 8px;
+    min-width: 4em;
+}
+
+.edit-one {
+    display: flex;
+}
+
+h1 {
+    font-weight: bolder;
+    font-size: 30px;
+    line-height: 150%;
+}
+
+h2 {
+    font-weight: bold;
+    font-size: 22px;
+    line-height: 125%;
+    text-indent: 1em;
+}
+
+p {
+    line-height: 140%;
+    font-size: 18px;
+    padding: 5px;
+    text-indent: 2em;
+}
+
+em {
+    font-weight: 550;
+}
+
+pre {
+    tab-size: 2;
+    line-height: 2.4ex;
+    overflow: auto;
+}
+
+ul {
+    margin: 20px 0;
+    padding-left: 20px;
+}
+
+ul li {
+    margin-bottom: 10px;
+    line-height: 125%;
+}
+
+h2 {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-top: 40px;
+}
+
+ul {
+    margin: 20px 0;
+    padding-left: 20px;
+}
+
+ul li {
+    margin-bottom: 10px;
+}
+
+p {
+    margin: 10px 0;
+}
+
+strong {
+    color: #626aef;
+}
+
+sub {
+    vertical-align: sub;
+    font-size: smaller;
+    line-height: 0;
+}
+
+sup {
+    vertical-align: super;
+    font-size: smaller;
+    line-height: 0;
+}
+
+.custom-overline {
+    display: inline-block;
+    border-top: 1.2px solid black;
+    /* 设置线的粗细和颜色 */
+    padding-top: 1px;
+    /* 调整上划线与文字的距离 */
+}
+
+.formula {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.2em;
+    line-height: 1.4;
+}
+
+.overline {
+    text-decoration: overline;
+}
+
+.copy {
+    cursor: pointer;
+
+    :hover {
+        color: #3498db
+    }
+}

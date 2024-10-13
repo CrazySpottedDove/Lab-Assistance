@@ -24,6 +24,7 @@ function initState(){
         dataList:[],
         tableList:[],
         graphList:[],
+        tableDataList:[],
         selectedDataIndex : -1,
         selectedTableIndex: -1,
         selectedGraphIndex: -1,
@@ -32,6 +33,7 @@ function initState(){
         isNumberDoc:false,
         isUncerDoc:false,
         isPropertyDoc:false,
+        counter:0,
     }
 }
 // 初始状态
@@ -43,6 +45,128 @@ export const useAllDataStore = defineStore('allData',()=>{
         autoSaveFile: true,
         language: 'chinese'
     })
+    const rely = `\\usepackage{amsmath}
+\\usepackage{bm}
+\\usepackage{float}
+\\usepackage{upgreek}
+\\usepackage{tabularray}
+\\usepackage{calc}
+\\usepackage{etoolbox}
+\\providecommand{\\Romannumeral}[1]{\\uppercase\\expandafter{\\romannumeral #1}}
+\\NewDocumentCommand{\\cmplen}{mmmO{}}{%
+    \\ifdim #1>#2%
+        #3%
+    \\else%
+        #4%
+    \\fi%
+}
+\\newlength{\\labtmplen}
+\\NewDocumentCommand{\\framed}{omo}{%
+    \\setlength{\\labtmplen}{\\widthof{#2}}%
+	\\framebox[\\labtmplen+4em]{
+		\\begin{minipage}{\\labtmplen+2em}
+			\\quad\\\\[2ex]
+			\\centering #2
+			\\IfNoValueF{#1}{\\caption{#1}}\\IfNoValueF{#3}{\\IfNoValueTF{#1}{\\quad\\\\[2ex]\\em #3}{\\quad\\\\[-2ex]\\em #3}}
+		\\end{minipage}
+	}
+}
+\\NewDocumentCommand{\\notframed}{omo}{%
+    \\setlength{\\labtmplen}{\\widthof{#2}}%
+    \\begin{center}
+        \\cmplen{\\labtmplen}{.94\\textwidth}{\\resizebox{.94\\textwidth}{!}{#2}}[#2]%
+        \\IfNoValueF{#1}{\\caption{#1}}\\IfNoValueF{#3}{\\IfNoValueTF{#1}{\\quad\\\\[2ex]\\em #3}{\\quad\\\\[-2ex]\\em #3}}
+    \\end{center}
+}
+\\usepackage{tikz}
+\\usetikzlibrary{calc}
+\\usepackage{pgfplots}
+\\usepackage{ifthen}
+\\newcommand{\\xlabel}{}
+\\newcommand{\\xmin}{}
+\\newcommand{\\xmax}{}
+\\newcommand{\\ylabel}{}
+\\newcommand{\\ymin}{}
+\\newcommand{\\ymax}{}
+\\newboolean{xfield}
+\\newboolean{yfield}
+\\setboolean{xfield}{false}
+\\setboolean{yfield}{false}
+\\NewDocumentCommand{\\xstyle}{moo}{
+	\\renewcommand{\\xlabel}{#1}
+	\\IfNoValueF{#2}{
+		\\setboolean{xfield}{true}
+		\\renewcommand{\\xmin}{#2}
+		\\renewcommand{\\xmax}{#3}
+	}
+}
+\\NewDocumentCommand{\\ystyle}{moo}{
+	\\renewcommand{\\ylabel}{#1}
+	\\IfNoValueF{#2}{
+		\\setboolean{yfield}{true}
+		\\renewcommand{\\ymin}{#2}
+		\\renewcommand{\\ymax}{#3}
+	}
+}
+\\newcounter{markstyle}
+\\newcounter{funcstyle}
+\\NewDocumentEnvironment{plot}{mos}{
+	#1%
+	\\begin{tikzpicture}
+		\\setcounter{markstyle}{0}
+		\\setcounter{funcstyle}{0}
+		\\ifbool{xfield}{
+			\\ifbool{yfield}{
+				\\begin{axis}[xlabel={\\xlabel},ylabel={\\ylabel},xmin=\\xmin,xmax=\\xmax,ymin=\\ymin,ymax=\\ymax,\\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\\IfBooleanT{#3}{axis equal,}]
+			}{
+				\\begin{axis}[xlabel={\\xlabel},ylabel={\\ylabel},xmin=\\xmin,xmax=\\xmax,\\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\\IfBooleanT{#3}{axis equal,}]
+			}
+		}{
+			\\ifbool{yfield}{
+				\\begin{axis}[xlabel={\\xlabel},ylabel={\\ylabel},ymin=\\ymin,ymax=\\ymax,\\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\\IfBooleanT{#3}{axis equal,}]
+			}{
+				\\begin{axis}[xlabel={\\xlabel},ylabel={\\ylabel},\\IfNoValueF{#2}{#2,} legend pos= outer north east,grid= major,\\IfBooleanT{#3}{axis equal,}]
+			}
+		}
+}{
+	\\end{axis}\\end{tikzpicture}\\setboolean{xfield}{false}\\setboolean{yfield}{false}
+}
+\\NewDocumentCommand{\\datapoint}{O{}mo}{
+	\\ifcase\\value{markstyle}
+		\\addplot[mark=*,solid,black,#1] coordinates {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
+	\\or
+		\\addplot[mark=square*,solid,green,#1] coordinates {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
+	\\or
+		\\addplot[mark=diamond*,solid,red,#1] coordinates {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
+	\\or
+		\\addplot[mark=triangle*,solid,blue,#1] coordinates {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
+	\\or
+		\\addplot[mark=cross,solid,yellow,#1] coordinates {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{markstyle}
+	\\fi
+}
+\\NewDocumentCommand{\\functionline}{mmo}{
+	\\ifcase\\value{funcstyle}
+		\\addplot[solid,black,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,green,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,red,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,blue,no markers, domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\or
+		\\addplot[solid,yellow,no markers,domain=#1] {#2 };
+		\\IfNoValueF{#3}{\\addlegendentry{#3 }}\\stepcounter{funcstyle}
+	\\fi
+}`;
     function deleteData(index, displayIndex){
         state.value.dataList.splice(index,1)
         if(state.value.selectedDisplayIndex >= displayIndex){
@@ -51,6 +175,7 @@ export const useAllDataStore = defineStore('allData',()=>{
     }
     function deleteTable(index, displayIndex){
         state.value.tableList.splice(index, 1)
+        state.value.tableDataList.splice(index, 1)
         if(state.value.selectedDisplayIndex >= displayIndex){
             state.value.selectedDisplayIndex--
         }
@@ -64,6 +189,7 @@ export const useAllDataStore = defineStore('allData',()=>{
     function addData(flag){
         if(flag){
             state.value.dataList.push({
+                id:state.value.counter,
                 dataSet:[],
                 named:false,
                 theoData:'',
@@ -102,6 +228,7 @@ export const useAllDataStore = defineStore('allData',()=>{
         }
         else{
             state.value.dataList.push({
+                id:state.value.counter,
                 dataSet:[],
                 named:false,
                 theoData:'',
@@ -135,19 +262,18 @@ export const useAllDataStore = defineStore('allData',()=>{
             })
         }
         state.value.selectedDataIndex = state.value.dataList.length - 1
+        state.value.counter++
     }
     function addTable(){
         state.value.tableList.push({
-            centerContent:'',
-            headContent:'',
-            commentContent:'',
             tableContent:'',
             tableTitleContent:'',
             tableFramed:false,
             dataValue1:[],
             dataValueN:[],
-            dataValuesSource:[],
+            // tableDataList:[],
         })
+        state.value.tableDataList.push([])
         state.value.selectedTableIndex = state.value.tableList.length - 1
     }
     function addGraph(){
@@ -398,9 +524,11 @@ export const useAllDataStore = defineStore('allData',()=>{
                     tmpRelErr = toPositive(tmpRelErr)
                     tmpRelErr = toPercent(errorMode(tmpRelErr))
                     createAnalysis('relErr', '相对误差', tmpRelErr)
+                    selectedDataSet[0].relErr = tmpRelErr
                 }
                 else{
                     delete selectedAnalysis['relErr']
+                    delete selectedDataSet[0].relErr
                 }
             }
             // 单数据情况
@@ -509,45 +637,7 @@ export const useAllDataStore = defineStore('allData',()=>{
         computeResult.rSquared = calc(String(computeResult.rSquared)+'|=6')
         return computeResult
     }
-    // function saveFile(){
-    //     if(state.value.dataList.length === 0){
-    //         ElMessage.error('没有数据，无法保存！')
-    //     }
-    //     else{
-    //         const jsonContent = JSON.stringify(state.value, null, 2)
-    //         const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8' });
-    //         let filename = ''
-    //         for(let i = 0 ; i < state.value.dataList.length; i++){
-    //             if(i !== 0){
-    //                 filename += '-'
-    //             }
-    //             filename += `${state.value.dataList[i].title}`
-    //         }
-    //         saveAs(blob, `${filename}.json`); // 使用 FileSaver.js 保存 JSON 文件
-    //     }
-    // }
-    // function openFile(event){
-    //     const file = event.target.files[0];
-    //     if (file && file.type === 'application/json') {
-    //         const reader = new FileReader();
-    //         // 文件读取完成时的回调
-    //         reader.onload = (e) => {
-    //             try {
-    //                 const result = e.target.result; // 获取文件内容
-    //                 state.value = JSON.parse(result); // 解析 JSON 并存储
-    //             }
-    //             catch (error) {
-    //                 ElMessage.error('读取文件过程出错！')
-    //                 console.error('Error parsing JSON:', error);
-    //             }
-    //         };
-    //         reader.readAsText(file); // 读取文件内容为文本
-    //         event.target.value = '';
-    //     }
-    //     else {
-    //         alert('请上传一个 JSON 文件');
-    //     }
-    // }
+
     return{
         state,
         deleteData,
@@ -564,6 +654,7 @@ export const useAllDataStore = defineStore('allData',()=>{
         evaluateLine,
         evaluateSquare,
         errorMode,
-        userConfig
+        userConfig,
+        rely
     }
 })

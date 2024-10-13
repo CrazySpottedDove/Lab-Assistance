@@ -4,9 +4,6 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
 
-// // chat
-// import {resolve} from 'path'
-// // chat
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [
@@ -19,19 +16,6 @@ export default defineConfig({
 		}),
 	],
 	build: {
-		// minify: 'esbuild', // 使用 esbuild 压缩，Vite 默认的压缩工具
-		// esbuild: {
-		// // mangleProps: false, // 禁用 esbuild 的变量名压缩
-		// keepNames: true
-		// },
-		// // chat
-		// outDir:'dist',
-		// rollupOptions:{
-		//     input:{
-		//         main: resolve(__dirname, 'index.html')
-		//     }
-		// }
-		// // chat
 		terserOptions: {
 			compress: {
 				// 禁用压缩选项，确保不会移除或改变变量和函数名

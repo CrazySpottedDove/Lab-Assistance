@@ -69,7 +69,7 @@ watch(store.state, (newState) => {
     if(store.userConfig.autoSaveFile){
         saveStateOnExit(newState)
     }
-})
+},{deep:true})
 
 </script>
 <style  lang="less" scoped>

@@ -680,7 +680,7 @@ uncerMath.import({
     'Object, Object':function(obj1, obj2){
         Check.divisorZero(Number(obj2.data))
         return {
-            data: String(Number(obj1.rawData) / Number(obj2.rawData)),
+            data: String(Number(obj1.data) / Number(obj2.data)),
             uncer: dimensionalAdd(Number(obj1.uncer) / Number(obj2.data), Number(obj1.data) / Number(obj2.data) / Number(obj2.data) * Number(obj2.uncer))
         }
     },
@@ -1099,7 +1099,9 @@ function calculateQuadraticLeastSquares(x, y) {
     let vectorB = [sumX2Y, sumXY, sumY];
 
     // Solve the normal equations matrix using Cramer's Rule
+    // console.log(matrixA)
     let detA = determinant3x3(matrixA);
+    // console.log(detA)
     if (detA === 0) {
         ElMessage.error('矩阵不可逆！');
         return {};
@@ -1190,6 +1192,7 @@ function getBit(str){
 }
 // 获得一个数据的有效位数
 function toScientific(str){
+    console.log(str)
     if(/e/i.test(str)){
         return str
     }

@@ -256,7 +256,7 @@ const handleAddTable = () =>{
     store.state.isNumberDoc = false
     store.state.isUncerDoc = false
     store.state.isPropertyDoc = false
-    console.log(store.state.selectedDisplayIndex)
+    // console.log(store.state.selectedDisplayIndex)
 }
 const handleAddGraph = () =>{
     store.addGraph()
