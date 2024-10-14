@@ -1,6 +1,6 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { CircleClose, FirstAidKit } from '@element-plus/icons-vue';
 const store = useAllDataStore()
 const dataList = computed(() => store.state.dataList)
@@ -103,6 +103,58 @@ const handleDataMethodChange = () => {
     }
 }
 
+const copyBoardId = ref(-1)
+
+// 递归的深克隆函数
+function deepClone(obj) {
+    if (obj === null || typeof obj !== "object") {
+        return obj; // 处理基本类型
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map(item => deepClone(item)); // 深拷贝数组
+    }
+
+    const clonedObj = {};
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            clonedObj[key] = deepClone(obj[key]); // 深拷贝对象属性
+        }
+    }
+    return clonedObj;
+}
+
+// 处理快捷键事件
+const handleKeydown = (event) => {
+    if (event.ctrlKey && event.shiftKey) {
+        const key = event.key.toLowerCase();
+        switch (key) {
+            case 'c':
+                event.preventDefault();
+                if (selectedDataIndex.value >= 0) {
+                    copyBoardId.value = dataList.value[selectedDataIndex.value].id
+                }
+                return
+            case 'v':
+                event.preventDefault();
+                if (selectedDataIndex.value >= 0 && copyBoardId.value !== -1) {
+                    let source = dataList.value.find(data => data.id === copyBoardId.value)
+                    for (let key in source) {
+                        if (key !== 'title' && key !== 'id') {
+                            dataList.value[selectedDataIndex.value][key] = deepClone(source[key])
+                        }
+                    }
+                }
+                return
+        }
+    }
+}
+onMounted(() => {
+    document.addEventListener('keydown', handleKeydown)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 <template>
     <!-- 直接数据的编辑卡片 -->
@@ -187,8 +239,7 @@ const handleDataMethodChange = () => {
                 <label style="font-weight: 550;width: 10%;text-align: center;">保留方式</label>
                 <span style="width: 5%;"></span>
                 <el-switch v-model="dataList[selectedDataIndex].dataMethod" size="large" active-text="不确定度方式"
-                    inactive-text="有效数字方式" style="font-size: large;width: 40%;--el-switch-on-color: #626aef;"
-                    @change="handleDataMethodChange" />
+                    inactive-text="有效数字方式" style="font-size: large;width: 40%;--el-switch-on-color: #626aef;" />
                 <span style="width: 1%;"></span>
                 <label style="font-weight: 550;width: 5%;text-align: left;min-width: 5em;">符号含义</label>
                 <input v-model="dataList[selectedDataIndex].doc" style="text-align: center;width: 39%;"
@@ -204,7 +255,13 @@ const handleDataMethodChange = () => {
             <div class="equipment">
                 <label style="font-weight: 550;width: 16%;text-align: left;">单位</label>
                 <input style="text-align: center;width: 84%;" placeholder="选填，仅对LaTeX制表/图有影响"
-                    v-model="dataList[selectedDataIndex].unit">
+                    v-model="dataList[selectedDataIndex].unit"
+                    >
+                <span style="width: 2%; min-width: 1em;" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'"></span>
+                <label style="font-weight: 550;width: 16%;text-align: left;" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'">倍率</label>
+                <input style="text-align: center;width: 84%;"
+                    v-model="dataList[selectedDataIndex].multiplier"
+                    v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'">
             </div>
         </el-card>
     </div>

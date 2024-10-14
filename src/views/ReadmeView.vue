@@ -27,7 +27,7 @@ const isReadme = computed(() => store.state.isReadme)
         </p>
         <h2><span class="formula">LaTeX</span> 制表</h2>
         <p>选择表格数据，即生成对应表格的 <span class="formula">LaTeX</span> 代码。点击全选，可以选中当前的所有数据。点击清空，可以删除当前表格的数据。</p>
-        <p>如果内容无法对应，可以尝试点击刷新键。</p>
+        <p>如果表格内容与数据无法对应，可以尝试点击刷新键。</p>
         <p><span class="formula">LaTeX</span> 代码的依赖同时包含制表和制图的依赖。因此，<em>只需复制一次</em>即可。</p>
         <p>间接数据的计算公式也会出现在图表中。</p>
         <h2><span class="formula">LaTeX</span> 制图</h2>
@@ -35,7 +35,7 @@ const isReadme = computed(() => store.state.isReadme)
             制表处相同。
         </p>
         <p>在最小二乘直线斜率的有效数字方面，使用 x 数据集中最大的有效位数、 y 数据集中最大的有效位数中的最小者。</p>
-        <p>选择好数据后，<em>点击刷新</em>，即可获得最新的代码。</p>
+        <p>如果代码没有成功生成，可以尝试点击刷新键。</p>
         <h2>保存与读取</h2>
         <p>点击标题右侧的第一个图标，可以保存当前内容为一个 json 文件。之后打开时，可以点击标题右侧的第二个图标，打开对应的 json 文件。</p>
         <p>边栏的设置内有文件保存策略，默认为自动，此时你的全部数据会自动保存在 package.nw（mac 用户为 app.nw）同级目录 user 下的 data 目录中。</p>
@@ -43,8 +43,19 @@ const isReadme = computed(() => store.state.isReadme)
         <h2>参考</h2>
         <p>时有忘记各种计算方法的时候，所以留了三个参考，方便查阅。</p>
         <h2>快捷键</h2>
-        <p>上，下键可以控制选择直接数据、间接数据、表格、图，前提是当前你选中了它们其中的一种。</p>
-        <p>Ctrl + d 可以创建一个新的直接数据；Ctrl + i 可以创建一个新的间接数据；Ctrl + t 可以创建一个新的表格； Ctrl + f 可以创建一个新的图；Ctrl + s 可以保存当前数据； Ctrl + o 可以打开已有数据。</p>
+        <ul>
+            <li>↑: 选择已有数据或图表中往上一个</li>
+            <li>↓: 选择已有数据或图表中往下一个</li>
+            <li>Ctrl + D: 创建一个新的直接数据</li>
+            <li>Ctrl + I: 创建一个新的间接数据</li>
+            <li>Ctrl + T: 创建一个新的表格</li>
+            <li>Ctrl + G: 创建一个新的图</li>
+            <li>Ctrl + S: 保存当前数据</li>
+            <li>Ctrl + O: 打开已有数据</li>
+            <li>Ctrl + N: 创建与当前数据类型相同的数据</li>
+            <li>Ctrl + Shift + C: 在应用内复制当前数据</li>
+            <li>Ctrl + Shift + V: 黏贴并覆盖当前数据</li>
+        </ul>
     </div>
 </template>
 <style lang="less" scoped>

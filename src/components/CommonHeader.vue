@@ -66,6 +66,8 @@ onBeforeUnmount(() => {
 })
 
 watch(store.state, (newState) => {
+    console.log('detect change, save file')
+    console.log(newState)
     if(store.userConfig.autoSaveFile){
         saveStateOnExit(newState)
     }

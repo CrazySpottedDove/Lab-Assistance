@@ -28,13 +28,13 @@ const props = {
 // 制表时的选择项，与dataList一致
 const dataOptions = ref([])
 
-function getSourceById(id){
+function getSourceById(id) {
     return dataList.value.find(data => data.id === id)
 }
 
 // 根据dataList变化，调整dataOptions
 watch(dataList, () => {
-    function updateDataOptions(){
+    function updateDataOptions() {
         // 检测当前的dataOption中是否存在某个id的data
         function dataOptionPosition(id) {
             let i
@@ -108,7 +108,7 @@ watch(dataList, () => {
         // 删除所有labelList中没有的，children中有的元素
         function deleteInvalidChild(labelList, children) {
             let len = children.length
-            for (let i = 0; i < len; i++) {
+            for (let i = 0; i < len;) {
                 let isExist = false
                 for (let j = 0; j < labelList.length; j++) {
                     if (labelList[j] === children[i].label) {
@@ -150,6 +150,16 @@ watch(dataList, () => {
             addValidChild(labelList, children, id)
         }
 
+        // 检查dataList中有没有特定id的数据
+        function dataOfIdExists(id) {
+            for (let i = 0; i < dataList.value.length; i++) {
+                if (dataList.value[i].id === id) {
+                    return true
+                }
+            }
+            return false
+        }
+
         // 将dataOption中不存在的部分添加，存在的部分更新
         dataList.value.forEach(item => {
             let index = dataOptionPosition(item.id)
@@ -160,9 +170,29 @@ watch(dataList, () => {
                 updateDataOption(index)
             }
         })
+
+        // 删除dataList中不存在的对应option
+        let len = dataOptions.value.length
+        for (let i = 0; i < len;) {
+            if (!dataOfIdExists(dataOptions.value[i].id)) {
+                // 在tableDataList中去除
+                tableDataList.value.forEach((tableData, index) => {
+                    // 对每一个 tableData 重新赋值，过滤掉不需要的元素
+                    tableDataList.value[index] = tableData.filter(singleTableData => singleTableData.id !== dataOptions.value[i].id);
+                });
+
+                dataOptions.value.splice(i, 1)
+                len--
+            }
+            else {
+                i++
+            }
+        }
     }
     updateDataOptions()
-    updateCurrentTable()
+    if(selectedTableIndex.value >= 0){
+        updateCurrentTable()
+    }
 }, { deep: true })
 
 // 将粗略的tableDataList信息处理，成为可以直接用于绘表的数据
@@ -601,7 +631,8 @@ const handleRelyCopy = () => {
                 <div>
                     <div style="text-align: center;">
                         <el-switch v-model="tableList[selectedTableIndex].tableFramed" size="large" inactive-text="不带边框"
-                            active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;" @change="updateCurrentTable"/>
+                            active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                            @change="updateCurrentTable" />
                         <span style="font-weight: bold; font-size: large;"> 内容 </span>
                         <el-icon class="copy el-icon--right" @click="handleTableCopy">
                             <document-copy></document-copy>

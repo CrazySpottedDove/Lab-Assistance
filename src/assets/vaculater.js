@@ -1,5 +1,6 @@
 import {calc} from 'a-calc'
 import { create, all, typed } from 'mathjs'
+import { parse } from 'vue/compiler-sfc';
 
 const config = {
   // 可以选择在这里添加其他配置，如处理大数等
@@ -924,7 +925,8 @@ function escapeExpression(expression, variables) {
 }
 // 处理表达式规范，以便数学解析器解析
 
-function evaluateUncer(dataList, expression, currentTitle){
+function evaluateUncer(dataList, expression, currentTitle, multiplier){
+    expression = `(${expression})*${multiplier}`
     const parser = uncerMath.parser()
     let variables = {}
     dataList.forEach(item =>{
@@ -951,7 +953,8 @@ function evaluateUncer(dataList, expression, currentTitle){
 }
 // 依据计算式计算不确定度
 
-function evaluateExpression(dataList, expression, option, currentTitle) {
+function evaluateExpression(dataList, expression, option, currentTitle, multiplier) {
+    expression = `(${expression})*${multiplier}`
     const parser = valueMath.parser();
     let variables = {}
     if(option === 'forAll'){

@@ -35,46 +35,68 @@ function saveUserConfig(userConfig) {
 // 生成文件名字
 function generateFileName(state) {
 	let filename = "";
-	for (let i = 0; i < Math.min(state.dataList.length, 10); i++) {
-		if (i !== 0) {
-			filename += "-";
+	const tableTitleList = state.tableList.map(
+		(table) => table.tableTitleContent
+	);
+	const graphTitleList = state.graphList.map(
+		(graph) => graph.graphTitleContent
+	);
+	const titleList = tableTitleList.concat(graphTitleList);
+	const filteredTitleList = titleList.filter((title) => title !== "");
+	if (filteredTitleList.length > 0) {
+		for (let i = 0; i < Math.min(filteredTitleList.length, 8); i++) {
+			if (i !== 0) {
+				filename += "-";
+			}
+			filename += `${filteredTitleList[i]}`;
 		}
-		filename += `${state.dataList[i].title}`;
+	} else {
+		for (let i = 0; i < Math.min(state.dataList.length, 10); i++) {
+			if (i !== 0) {
+				filename += "-";
+			}
+			filename += `${state.dataList[i].title}`;
+		}
 	}
 	return filename.replace(/[<>:"/\\|?*]+/g, "_");
 }
 
 // 保存文件
 function saveStateOnExit(state) {
-	if (state.dataList.length > 0) {
-		const currentDate = new Date();
-		const formattedDate = `${currentDate.getFullYear()}-${(
-			currentDate.getMonth() + 1
-		)
-			.toString()
-			.padStart(2, "0")}-${currentDate
-			.getDate()
-			.toString()
-			.padStart(2, "0")}`;
-		const saveDir = path.join(__dirname, `../user/data/${formattedDate}`);
+    if(state.dataList.length === 0 && tmpname === ''){
+        return
+    }
+    const currentDate = new Date();
+    const formattedDate = `${currentDate.getFullYear()}-${(
+        currentDate.getMonth() + 1
+    )
+        .toString()
+        .padStart(2, "0")}-${currentDate
+        .getDate()
+        .toString()
+        .padStart(2, "0")}`;
+    const saveDir = path.join(__dirname, `../user/data/${formattedDate}`);
 
-		// 如果目录不存在，则创建目录
-		if (!fs.existsSync(saveDir)) {
-			fs.mkdirSync(saveDir, { recursive: true });
-		}
-		const filename = `${generateFileName(state)}.json`;
-		const filePath = path.join(saveDir, filename);
-		const jsonContent = JSON.stringify(state, null, 2);
-		if (tmpname === "") {
-			tmpname = filename;
-			fs.writeFileSync(filePath, jsonContent, "utf-8");
-		} else if (tmpname !== filename) {
-			const lastPath = path.join(saveDir, tmpname);
-			fs.renameSync(lastPath, filePath);
-			tmpname = filename;
-			fs.writeFileSync(filePath, jsonContent, "utf-8");
-		}
-	}
+    // 如果目录不存在，则创建目录
+    if (!fs.existsSync(saveDir)) {
+        fs.mkdirSync(saveDir, { recursive: true });
+    }
+    const filename = `${generateFileName(state)}.json`;
+    const filePath = path.join(saveDir, filename);
+    const jsonContent = JSON.stringify(state, null, 2);
+    if (tmpname === "") {
+        tmpname = filename;
+        fs.writeFileSync(filePath, jsonContent, "utf-8");
+    } else {
+        if (tmpname !== filename) {
+            const lastPath = path.join(saveDir, tmpname);
+            fs.renameSync(lastPath, filePath);
+            tmpname = filename;
+            fs.writeFileSync(filePath, jsonContent, "utf-8");
+        } else {
+            fs.writeFileSync(filePath, jsonContent, "utf-8");
+        }
+    }
 }
 
 // 打开文件
