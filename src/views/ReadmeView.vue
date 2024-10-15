@@ -56,6 +56,8 @@ const isReadme = computed(() => store.state.isReadme)
             <li>Ctrl + Shift + C: 在应用内复制当前数据</li>
             <li>Ctrl + Shift + V: 黏贴并覆盖当前数据</li>
         </ul>
+        <h2>更新</h2>
+        <p>当仓库出现新的更新时，页面头部会出现斑鸠提醒，点击即可跳转至最新仓库。</p>
     </div>
 </template>
 <style lang="less" scoped>
