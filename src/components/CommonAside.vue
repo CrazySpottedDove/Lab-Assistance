@@ -36,11 +36,14 @@
                         <template #title>
                             <span style="color: gainsboro!important;">直接数据</span>
                         </template>
-                        <el-menu-item v-for="(item, displayIndex) of directDataList" :ref="el => refs[displayIndex] = el"
-                            @click="handleDataSelection(item.index, displayIndex)"
-                            :class="{ 'selected': selectedDataIndex === item.index }">
-                            <el-input v-model="item.data.title"
-                                @click.stop="handleTitleCopy(item.index)"></el-input>
+                        <el-menu-item v-for="(item, displayIndex) of directDataList"
+                            :ref="el => refs[displayIndex] = el" @click="handleDataSelection(item.index, displayIndex)"
+                            :class="{ 'selected': selectedDataIndex === item.index, 'copytarget': copyTargetIndex === displayIndex && dataList[selectedDataIndex].type === 'indirect' }">
+                            <span style="width: 120px;">
+                                <el-input v-model="item.data.title" @click.stop="handleTitleCopy(item.index)"
+                                    v-if="selectedDataIndex === item.index"></el-input>
+                                <vue-latex class="sidetitle" :expression="item.data.title" v-else></vue-latex>
+                            </span>
                             <span>
                                 <el-icon @click.stop="handleDeleteData(item.index, displayIndex)"
                                     class="deleteicon el-icon--right">
@@ -59,12 +62,14 @@
                         <el-menu-item v-for="(item, displayIndex) of indirectDataList"
                             :ref="el => refs[displayIndex + directDataList.length] = el"
                             @click="handleDataSelection(item.index, displayIndex + directDataList.length)"
-                            :class="{ 'selected': selectedDataIndex === item.index }">
-                            <el-input v-model="item.data.title"
-                                @click.stop="handleTitleCopy(item.index)"></el-input>
+                            :class="{ 'selected': selectedDataIndex === item.index, 'copytarget': copyTargetIndex === displayIndex + directDataList.length && dataList[selectedDataIndex].type === 'indirect' }">
+                            <span style="width: 120px;">
+                                <el-input v-model="item.data.title" @click.stop="handleTitleCopy(item.index)"
+                                    v-if="selectedDataIndex === item.index"></el-input>
+                                <vue-latex class="sidetitle" :expression="item.data.title" v-else></vue-latex>
+                            </span>
                             <span>
-                                <el-icon
-                                    @click.stop="handleDeleteData(item.index, displayIndex + directDataList.length)"
+                                <el-icon @click.stop="handleDeleteData(item.index, displayIndex)"
                                     class="deleteicon el-icon--right">
                                     <circle-close></circle-close>
                                 </el-icon>
@@ -119,7 +124,8 @@
                         添加图
                     </el-menu-item>
                 </el-sub-menu>
-                <el-menu-item index="4" @click="handleSwitchToReadme" :class="{ 'selected': isReadme }">使用指南</el-menu-item>
+                <el-menu-item index="4" @click="handleSwitchToReadme"
+                    :class="{ 'selected': isReadme }">使用指南</el-menu-item>
                 <el-sub-menu index="5">
                     <template #title>
                         <span style="color: gainsboro!important;">参考</span>
@@ -139,7 +145,9 @@
 import { CircleClose, Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-
+import 'katex/dist/katex.css'
+// 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
+// 引入katex下的自动渲染函数
 async function saveUserConfig() {
     const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
     saveUserConfig(store.userConfig)
@@ -163,10 +171,20 @@ const directDataList = computed(() => {
 const indirectDataList = computed(() => {
     return dataList.value.map((data, index) => ({ data, index })).filter(item => item.data.type === 'indirect')
 })
+
+const sortedDataList = computed(()=>{
+    return [
+        ...directDataList.value,
+        ...indirectDataList.value
+    ]
+})
 const refs = ref([])
+
 const displayLength = computed(() => {
     return directDataList.value.length + indirectDataList.value.length + tableList.value.length + graphList.value.length
 })
+
+const copyTargetIndex = ref(-1)
 const click = (displayIndex) => {
     if (displayIndex >= 0) {
         refs.value[displayIndex].$el.click()
@@ -311,6 +329,11 @@ const handleSwitchToPropertyDoc = () => {
     store.state.isPropertyDoc = true
 }
 
+const copyTargetTitle = (displayIndex) => {
+    if(displayIndex >= 0){
+        navigator.clipboard.writeText(sortedDataList.value[displayIndex].data.title)
+    }
+}
 // 处理快捷键事件
 const handleKeydown = (event) => {
     if (event.ctrlKey) {
@@ -347,31 +370,63 @@ const handleKeydown = (event) => {
                     return
                 }
                 return
+            case 'ArrowDown':
+                if (store.state.selectedDisplayIndex === -1) {
+                    return
+                }
+                store.state.selectedDisplayIndex++
+                if (store.state.selectedDisplayIndex === displayLength.value) {
+                    store.state.selectedDisplayIndex = 0
+                }
+                click(store.state.selectedDisplayIndex)
+                return
+            case 'ArrowUp':
+                if (store.state.selectedDisplayIndex === -1) {
+                    return
+                }
+                store.state.selectedDisplayIndex--
+                if (store.state.selectedDisplayIndex === -1) {
+                    store.state.selectedDisplayIndex = displayLength.value - 1
+                }
+                click(store.state.selectedDisplayIndex)
+                return
         }
     }
     switch (event.key) {
-        case 'ArrowDown':
-            if (store.state.selectedDisplayIndex === -1) {
-                return
-            }
-            store.state.selectedDisplayIndex++
-            if (store.state.selectedDisplayIndex === displayLength.value) {
-                store.state.selectedDisplayIndex = 0
-            }
-            click(store.state.selectedDisplayIndex)
-            break
         case 'ArrowUp':
-            if (store.state.selectedDisplayIndex === -1) {
-                return
+            if(dataList.value[selectedDataIndex.value].type === 'indirect'){
+                if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
+                    copyTargetIndex.value = 0
+                }
+                else if (copyTargetIndex.value === -1) {
+                    return
+                }
+                else {
+                    copyTargetIndex.value--
+                    if (copyTargetIndex.value === -1) {
+                        copyTargetIndex.value = dataList.value.length - 1
+                    }
+                }
+                copyTargetTitle(copyTargetIndex.value)
             }
-            store.state.selectedDisplayIndex--
-            if (store.state.selectedDisplayIndex === -1) {
-                store.state.selectedDisplayIndex = displayLength.value - 1
-            }
-            click(store.state.selectedDisplayIndex)
             break
-        default:
-            break;
+        case 'ArrowDown':
+            if(dataList.value[selectedDataIndex.value].type === 'indirect'){
+                if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
+                    copyTargetIndex.value = 0
+                }
+                else if (copyTargetIndex.value === -1) {
+                    return
+                }
+                else {
+                    copyTargetIndex.value++
+                    if (copyTargetIndex.value === dataList.value.length) {
+                        copyTargetIndex.value = 0
+                    }
+                }
+                copyTargetTitle(copyTargetIndex.value)
+            }
+            break
     }
 }
 onMounted(() => {
@@ -425,4 +480,13 @@ onBeforeUnmount(() => {
 :deep(.el-input__inner) {
     text-align: center;
 }
+
+.copytarget {
+    background-color: rgb(52, 11, 78);
+}
+
+.sidetitle{
+    font-size: small!important;
+}
+
 </style>

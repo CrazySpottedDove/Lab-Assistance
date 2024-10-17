@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { calc } from "a-calc";
-
 import {
 	dimensionalAdd,
 	evaluateExpression,
@@ -366,26 +365,32 @@ export const useAllDataStore = defineStore("allData", () => {
 					// 取最大level和最小level
 
 					if (selectedType === "direct") {
-						if (selectedList.levelRule === "unified") {
-							selectedDataSet.forEach((item) => {
-								item.rawData = standardByLevel(
-									item.rawData,
-									dataMinLevel
-								);
-								item.bit = getBit(item.rawData);
-								item.level = dataMinLevel;
-							});
-						} else if (selectedList.levelRule === "nonUnified") {
-							selectedDataSet.forEach((item) => {
-								item.bit = getBit(item.rawData);
-								item.level = getLevel(item.rawData);
-							});
-						} else if (selectedList.levelRule === "precise") {
-							selectedDataSet.forEach((item) => {
-								item.bit = 100;
-								item.level = -100;
-							});
-						}
+                        switch (selectedList.levelRule) {
+                            case 'unified':
+                                selectedDataSet.forEach((item) => {
+									item.rawData = standardByLevel(
+										item.rawData,
+										dataMinLevel
+									);
+									item.bit = getBit(item.rawData);
+									item.level = dataMinLevel;
+								});
+                                break;
+                            case 'nonUnified':
+                                selectedDataSet.forEach((item) => {
+									item.bit = getBit(item.rawData);
+									item.level = getLevel(item.rawData);
+								});
+                                break;
+                            case 'precise':
+                                selectedDataSet.forEach((item) => {
+									item.bit = 100;
+									item.level = -100;
+								});
+                                break;
+                            default:
+                                break;
+                        }
 					}
 					// 规范化direct数据
 
@@ -647,7 +652,7 @@ export const useAllDataStore = defineStore("allData", () => {
 
         // 间接数据按照不确定度保留时
 		if (selectedList.dataMethod) {
-			selectedList.dataSet.forEach((item) => {
+			resultDataSet.forEach((item) => {
 				item.rawData = errorMode(item.rawData);
 			});
 		}
@@ -749,7 +754,6 @@ export const useAllDataStore = defineStore("allData", () => {
 		computeResult.rSquared = calc(String(computeResult.rSquared) + "|=6");
 		return computeResult;
 	}
-
 	return {
 		state,
 		deleteData,

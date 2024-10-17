@@ -293,7 +293,7 @@ function processTableDataList(tableDataList) {
                     fmtData = dataFormat(source.analysis['avgOverallRelErr'].propertyValue)
                     break
                 case '理论值':
-                    fmtData = dataFormat(source.analysis['avg'].propertyValue)
+                    fmtData = dataFormat(source.theoData)
                     break
                 default:
                     break
@@ -351,7 +351,7 @@ function processTableDataList(tableDataList) {
                     }
                 case '理论值':
                     return {
-                        center: `$ ${fmtTitle}_{\\text{theory}} ${fmtDoc} ${fmtUnit} $ & $ ${fmtData} $`,
+                        center: `$ {${fmtTitle}}_{\\text{theory}} ${fmtDoc} ${fmtUnit} $ & $ ${fmtData} $`,
                         dataLength: 1,
                     }
                 case '相对误差':
@@ -611,6 +611,9 @@ const handleRelyCopy = () => {
                     <span style="width: 1%;"></span>
                     <el-cascader :options="dataOptions" :props="props" placeholder="选择数据"
                         v-model="tableDataList[selectedTableIndex]" style="width: 38.5%;">
+                        <template v-slot:default="{ node, data }">
+                            <vue-latex :expression="data.label"></vue-latex>
+                        </template>
                     </el-cascader>
                     <span style="width: 1%;"></span>
                     <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>

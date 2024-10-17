@@ -7,21 +7,25 @@ const isReadme = computed(() => store.state.isReadme)
 <template>
     <div v-show="isReadme">
         <h2>直接数据</h2>
-        <p>直接数据默认是精度相同的数据集。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）。如果直接数据的精度确实不同，可以通过<em>精度规则-不统一精度</em>调整。</p>
+        <p>直接数据拥有三个精度选项：统一精度，不统一精度和确数。</p>
+        <p><em>统一精度</em>：所有输入数据精度相同。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）。</p>
+        <p><em>不统一精度</em>：输入数据可能精度不同，需要准确输入。</p>
+        <p><em>确数</em>：用于储存一些常作为字母出现的准确数，如各种给定的常数，就可以用确数保存。</p>
         <p>在新数据处输入数据并回车即可添加数据，各类信息会随着数据的输入自动更新。</p>
-        <p>单位只会影响 <span class="formula">LaTeX</span> 制作图表，不参与计算。斑鸠会自动处理 <span class="formula">*，/</span> 和数字上标，也包括 <span
-                class="formula">μ，°，℃</span> 这几个不常见字符。</p>
-        <p>单位示例：<span class="formula">kg*m/s2</span> 。</p>
+        <p>单位（如 <span class="formula">kg*m/s2</span> ）只会影响 <span class="formula">LaTeX</span> 制作图表，不参与计算。处理器会自动处理 <span
+                class="formula">*，/</span> 和数字上标，也包括 <span class="formula">μ，°，℃</span> 这几个不常见字符。</p>
         <h2>间接数据</h2>
         <p>间接数据通过直接数据计算得到。可以在待填处填入计算式，目前支持 <span class="formula">+，-, *, /, ^, ()</span> 运算符与 <span
                 class="formula">ln(),
                 lg(), sqrt(), abs()</span>
-            函数。使用直接数据前，需要在侧栏处为直接数据<em>命名</em>。现在对变量的命名没有严格要求，一般建议把中文部分放在数据的<em>含义</em>内容中。点击命名框可以直接复制数据名。</p>
-        <p>tips:字母后的数字会<em>自动识别成下标</em>， <span class="formula">a1，b1,2</span> 都是合法的命名。</p>
+            函数。</p>
+        <p>使用直接数据前，需要在侧栏处为直接数据<em>命名</em>。数据名支持 <span class="formula">LaTeX</span> 渲染。一般来说，建议把中文部分放在数据的<em>含义</em>内容中。
+        </p>
+        <p>tips: 如果想偷懒，<span class="formula">a1，b1,2</span> 都是合法的命名，因为字母后的数字会<em>自动识别成下标。</em></p>
         <p>示例：有直接数据 <span class="formula">a, b, c, d</span>，可写计算式 <span class="formula">(a+b)*c/d/9.8</span>。</p>
-        <p>需要注意的是，直接在运算式中输入数字，处理器会默认该数据是<em>精准数据</em>，会按照<em>存疑数字原则</em>保留计算结果的有效数字。如果数字拥有有效数字，请把它<em>作为直接数据</em>输入。</p>
+        <p>运算式中的所有数字会被处理器当作确数，它会按照<em>存疑数字原则</em>保留计算结果的有效数字。</p>
         <p>确定计算方式和计算式后，<em>点击刷新</em>，即可获得最新的间接数据。</p>
-        <p>斑鸠会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
+        <p>处理器会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
         <h2>设置</h2>
         <p>在边栏的设置中可以选择文件保存策略和输出语言。输出语言决定了制表和制图时一些默认注释的语言。这些设置将被保存在 package.nw（mac 用户为 app.nw）同级目录 user 下的 config 目录中。
         </p>
@@ -29,7 +33,7 @@ const isReadme = computed(() => store.state.isReadme)
         <p>选择表格数据，即生成对应表格的 <span class="formula">LaTeX</span> 代码。点击全选，可以选中当前的所有数据。点击清空，可以删除当前表格的数据。</p>
         <p>如果表格内容与数据无法对应，可以尝试点击刷新键。</p>
         <p><span class="formula">LaTeX</span> 代码的依赖同时包含制表和制图的依赖。因此，<em>只需复制一次</em>即可。</p>
-        <p>间接数据的计算公式也会出现在图表中。</p>
+        <p>间接数据的计算公式会自动出现在图表注释中。</p>
         <h2><span class="formula">LaTeX</span> 制图</h2>
         <p>为数据命名后，即可通过选择数据与制图方法获得 <span class="formula">LaTeX</span> 代码。在这里，依赖的内容与 <span class="formula">LaTeX</span>
             制表处相同。
@@ -44,8 +48,8 @@ const isReadme = computed(() => store.state.isReadme)
         <p>时有忘记各种计算方法的时候，所以留了三个参考，方便查阅。</p>
         <h2>快捷键</h2>
         <ul>
-            <li>↑: 选择已有数据或图表中往上一个</li>
-            <li>↓: 选择已有数据或图表中往下一个</li>
+            <li>Ctrl + ↑: 选择已有数据或图表中往上一个</li>
+            <li>Ctrl + ↓: 选择已有数据或图表中往下一个</li>
             <li>Ctrl + D: 创建一个新的直接数据</li>
             <li>Ctrl + I: 创建一个新的间接数据</li>
             <li>Ctrl + T: 创建一个新的表格</li>
@@ -55,9 +59,13 @@ const isReadme = computed(() => store.state.isReadme)
             <li>Ctrl + N: 创建与当前数据类型相同的数据</li>
             <li>Ctrl + Shift + C: 在应用内复制当前数据</li>
             <li>Ctrl + Shift + V: 黏贴并覆盖当前数据</li>
+            <li>Tab : 页面中选择下一选项</li>
+            <li>Shift + Tab : 页面中选择上一选项</li>
+            <li>↑: 编辑间接数据的算式时，复制上一个数据的标题</li>
+            <li>↓: 编辑间接数据的算式时，复制下一个数据的标题</li>
         </ul>
         <h2>更新</h2>
-        <p>当仓库出现新的更新时，页面头部会出现斑鸠提醒，点击即可跳转至最新仓库。</p>
+        <p>当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</p>
     </div>
 </template>
 <style lang="less" scoped>

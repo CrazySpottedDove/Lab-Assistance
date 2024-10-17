@@ -2,6 +2,7 @@
 import { useAllDataStore } from '../assets/stores';
 import { computed, ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { CircleClose, FirstAidKit } from '@element-plus/icons-vue';
+// Never import { expression } from 'mathjs';
 const store = useAllDataStore()
 const dataList = computed(() => store.state.dataList)
 const selectedDataIndex = computed(() => store.state.selectedDataIndex)
@@ -47,6 +48,10 @@ const handleInsertRawData = (index) => {
 const handleEditTheoData = () => {
     store.refresh()
 }
+
+const handleEditLevelRule = () => {
+    store.refresh()
+}
 const handleDeleteRawData = (index) => {
     dataList.value[selectedDataIndex.value].dataSet.splice(index, 1)
     store.refresh()
@@ -88,19 +93,6 @@ const levelRules = [
 
 const handleUncerEdit = () => {
     store.refresh()
-}
-
-// 间接数据逻辑
-const handleDataMethodChange = () => {
-    let selectedList = dataList.value[selectedDataIndex.value]
-    if (selectedList.dataMethod) {
-        dataList.value[selectedDataIndex.value].dataSet.forEach(item => {
-            item.rawData = store.errorMode(item.rawData)
-        })
-    }
-    else {
-        store.editIndirectData()
-    }
 }
 
 const copyBoardId = ref(-1)
@@ -155,6 +147,14 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('keydown', handleKeydown)
 })
+
+const isIndirectComputeOptionEdit = ref(false)
+const handleIndirectComputeOptionEdit = () => {
+    isIndirectComputeOptionEdit.value = true
+}
+const handleIndirectComputeOptionUnEdit = () => {
+    isIndirectComputeOptionEdit.value = false
+}
 </script>
 <template>
     <!-- 直接数据的编辑卡片 -->
@@ -170,6 +170,9 @@ onBeforeUnmount(() => {
                     </el-table-column>
                     <el-table-column v-for="(column, index) in tableOneColumns" :key="index" :prop="column.prop"
                         :label="column.label" align='center'>
+                        <template #header="{ column }">
+                            <vue-latex :expression="column.label"></vue-latex>
+                        </template>
                         <template #default="scope">
                             <el-input v-model="scope.row[column.prop]" @change="handleChange()"
                                 :disabled="column.prop === 'relErr'" :ref="el => inputRefs[scope.$index] = el">
@@ -205,7 +208,7 @@ onBeforeUnmount(() => {
                 <div class="equipment" v-if="selectedDataIndex >= 0">
                     <label style="font-weight: 550;width: 10%;text-align: left;min-width: 5em;">精度规则</label>
                     <el-select style="width: 39%;text-align: center;min-width: 5.5em"
-                        v-model="dataList[selectedDataIndex].levelRule">
+                        v-model="dataList[selectedDataIndex].levelRule" @change="handleEditLevelRule">
                         <el-option v-for="levelRule in levelRules" :key="levelRule.value" :label="levelRule.label"
                             :value="levelRule.value"></el-option>
                     </el-select>
@@ -230,8 +233,17 @@ onBeforeUnmount(() => {
                         :value="option.value"></el-option>
                 </el-select>
                 <span style="width: 1%;"></span>
-                <input style="text-align: center;width: 64%;" placeholder="示例：(a+b)/(9.8*c)"
-                    v-model="dataList[selectedDataIndex].computeMethod">
+                <span style="width: 64%;" @focus="handleIndirectComputeOptionEdit" tabindex="0">
+                    <input style="text-align: center;width: 98%;" placeholder="示例：(a+b)/(9.8*c)"
+                        v-model="dataList[selectedDataIndex].computeMethod"
+                        v-if="isIndirectComputeOptionEdit || dataList[selectedDataIndex].computeMethod.length === 0"
+                        @blur="handleIndirectComputeOptionUnEdit">
+                        <center v-else style="margin-top: 4.5pt;"><vue-latex style="width: 98%;font-size: small;"
+                            :expression="dataList[selectedDataIndex].computeMethod"></vue-latex></center>
+
+
+
+                </span>
                 <span style="width: 1%;"></span>
                 <el-button style="width: 14%;" @click="handleCompute">刷新</el-button>
             </div>
@@ -255,12 +267,12 @@ onBeforeUnmount(() => {
             <div class="equipment">
                 <label style="font-weight: 550;width: 16%;text-align: left;">单位</label>
                 <input style="text-align: center;width: 84%;" placeholder="选填，仅对LaTeX制表/图有影响"
-                    v-model="dataList[selectedDataIndex].unit"
-                    >
-                <span style="width: 2%; min-width: 1em;" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'"></span>
-                <label style="font-weight: 550;width: 16%;text-align: left;" v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'">倍率</label>
-                <input style="text-align: center;width: 84%;"
-                    v-model="dataList[selectedDataIndex].multiplier"
+                    v-model="dataList[selectedDataIndex].unit">
+                <span style="width: 2%; min-width: 1em;"
+                    v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'"></span>
+                <label style="font-weight: 550;width: 16%;text-align: left;"
+                    v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'">倍率</label>
+                <input style="text-align: center;width: 84%;" v-model="dataList[selectedDataIndex].multiplier"
                     v-if="selectedDataIndex >= 0 && dataList[selectedDataIndex].type === 'indirect'">
             </div>
         </el-card>
@@ -279,6 +291,9 @@ onBeforeUnmount(() => {
                     </el-table-column>
                     <el-table-column v-for="(column, index) in tableOneColumns" :key="index" :prop="column.prop"
                         :label="column.label" align='center'>
+                        <template #header="{ column }">
+                            <vue-latex :expression="column.label"></vue-latex>
+                        </template>
                         <template #default="scope">
                             <el-input v-model="scope.row[column.prop]" @change="handleChange()"
                                 :disabled="column.prop === 'relErr'">

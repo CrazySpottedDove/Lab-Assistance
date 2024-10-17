@@ -219,7 +219,7 @@ function titleFormat(input){
 		(match) => greekLetters[match]
 	);
 
-	if (tmplen >= 4 && input.indexOf("\\") === -1 && input.indexOf('{') === -1) {
+	if (tmplen >= 4 && input.indexOf("\\") === -1 && input.indexOf('{') === -1 && input.indexOf('_')  === -1 && input.indexOf('^') === -1) {
 		return `\\text{${input}}`;
 	}
 

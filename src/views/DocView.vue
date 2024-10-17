@@ -15,11 +15,10 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
         <h2>1. 有效数字的修约原则</h2>
         <p>有效数字的修约遵循<em>四舍六入五凑偶</em>的原则：</p>
         <ul>
-            <li>当修约的保留位后首位数字<strong>小于5</strong>时，舍去保留位之后的所有数字，保留位不变。例如：3.141保留到0.01位，则修约到 3.14。</li>
-            <li>当修约的保留位后首位数字<strong>大于5</strong>，或<strong>等于5且后面还有非零数字</strong>时，舍去修约位置之后的所有数字，并将保留位的最后一位数加1。例如：3.146或3.1451
-                保留到0.01位，则修约到 3.15。</li>
-            <li>当修约的保留位后首位数字<strong>等于5，且后面数字均为0</strong>时，若保留位为偶数，则直接舍去保留位之后的所有数字；若保留位为奇数，则在舍去的基础上，保留位进一。例如：2.550
-                保留到0.1位，则修约到 2.6；换成2.650，则也修约到2.6。</li>
+            <li>当修约的保留位后首位数字<strong>小于 5 </strong>时，舍去保留位之后的所有数字，保留位不变。例如：3.141 保留到 0.01 位，则修约到 3.14。</li>
+            <li>当修约的保留位后首位数字<strong>大于 5</strong>，或<strong>等于 5 且后面还有非零数字</strong>时，舍去修约位置之后的所有数字，并将保留位的最后一位数加 1。例如：3.146 或 3.1451 保留到 0.01 位，则修约到 3.15。</li>
+            <li>当修约的保留位后首位数字<strong>等于 5，且后面数字均为 0</strong>时，若保留位为偶数，则直接舍去保留位之后的所有数字；若保留位为奇数，则在舍去的基础上，保留位进一。例如：2.550
+                保留到 0.1 位，则修约到 2.6；换成 2.650，则也修约到 2.6。</li>
         </ul>
 
         <h2>2. 函数值的有效位数表示法</h2>
@@ -53,31 +52,26 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
         <p>不确定度的保留位数通常与测量结果的有效位数相对应，具体法则如下：</p>
         <ul>
             <li>修约法则：保留位后一位若不为 0，则进位。保留位后的数字一律舍去。</li>
-            <li>当不确定度的<strong>第一位 ≥3 </strong>时，保留<strong>一位有效数字</strong>。例如，不确定度为0.056，则修约为0.06。</li>
-            <li>当不确定度的<strong>第一位 =1,2</strong> 时，保留<strong>两位有效数字</strong>。例如，不确定度为0.0120，则修约为0.012。</li>
-            <li>测量结果应<strong>与不确定度保留相同的小数位数</strong>。例如，测量值为3.141，且不确定度为0.06，则最终结果表示为3.14 ± 0.06。</li>
-            <li>需要注意的是，如果不确定度修约之后，第一位由2变成了3，则应保留一位有效数字。例如，不确定度为0.291，则修约为0.3。</li>
-            <li>类似地，若修约之后，第一位由9变成了1，则应保留两位有效数字。例如，不确定度为0.91，则修约为1.0。</li>
+            <li>当不确定度的<strong>第一位 ≥3 </strong>时，保留<strong>一位有效数字</strong>。例如，不确定度为 0.056，则修约为 0.06。</li>
+            <li>当不确定度的<strong>第一位 =1,2</strong> 时，保留<strong>两位有效数字</strong>。例如，不确定度为 0.0120，则修约为 0.012。</li>
+            <li>测量结果应<strong>与不确定度保留相同的小数位数</strong>。例如，测量值为 3.141，且不确定度为 0.06，则最终结果表示为 3.14 ± 0.06。</li>
+            <li>需要注意的是，如果不确定度修约之后，第一位由 2变成了 3，则应保留一位有效数字。例如，不确定度为 0.291，则修约为 0.3。</li>
+            <li>类似地，若修约之后，第一位由 9 变成了 1，则应保留两位有效数字。例如，不确定度为 0.91，则修约为 1.0。</li>
         </ul>
 
         <h2>2. 不确定度的合成方式</h2>
         <p>在多个测量值的运算中，不确定度的合成遵循以下公式：</p>
         <ul>
             <li>
-                <strong>加法或减法：</strong>对于 <span class="formula">y = ax<sub>1</sub> + bx<sub>2</sub></span> 或 <span
-                    class="formula">y = ax<sub>1</sub> - bx<sub>2</sub></span>，结果的合成不确定度为：
-                <div style="text-align: center;" class="formula">
-                    u<sub>y</sub> = √<span class="custom-overline">a² u<sub>x<sub>1</sub></sub>² + b²
-                        u<sub>x<sub>2</sub></sub>²</span>
-                </div>
+                <strong>加法或减法：</strong>对于 <vue-latex expression="y = ax_1 + bx_2"></vue-latex> 或 <vue-latex
+                    expression="y = ax_1 - bx_2"></vue-latex>，结果的合成不确定度为：
+                <vue-latex expression="u_y=\sqrt{a^2u_{x_1}{}^2+b^2u_{x_2}{}^2}" display-mode></vue-latex>
             </li>
-            <li><strong>乘法或除法：</strong>对于 <span class="formula">y = x<sub>1</sub><sup>a</sup> ×
-                    x<sub>2</sub><sup>b</sup></span> 或 <span class="formula">y = x<sub>1</sub><sup>a</sup> /
-                    x<sub>2</sub><sup>b</sup></span>，结果的相对不确定度为：
-                <div style="text-align: center;" class="formula">
-                    u<sub>y</sub>/y = √<span class="custom-overline">a² (u<sub>x<sub>1</sub></sub>/x<sub>1</sub>)² + b²
-                        (u<sub>x<sub>2</sub></sub>/x<sub>2</sub>)²</span>
-                </div>
+            <li><strong>乘法或除法：</strong>对于 <vue-latex expression="y = x_1{}^ax_2{}^b"></vue-latex> 或 <vue-latex
+                    expression="y = \dfrac{x_1{}^a}{x_2{}^b}"></vue-latex>，结果的相对不确定度为：
+                <vue-latex
+                    expression="\frac{u_y}{y}=\sqrt{a^2\left(\frac{u_{x_1}}{x_1}\right)^2+b^2\left(\frac{u_{x_2}}{x_2}\right)^2}"
+                    display-mode></vue-latex>
             </li>
             <li>总的来说，就是把微分在不同维度叠加。</li>
         </ul>
@@ -91,86 +85,55 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
         <ul>
             <li>
                 平均值（按有效数字方式保留）
-                <br>
-                <div style="text-align: center;" class="formula">
-                    <span class="overline">x</span> = ∑ x<sub>i</sub> /n
-                </div>
+                <vue-latex expression="\bar{x}=\sum \frac{x_i}{n}" display-mode></vue-latex>
             </li>
             <li>
                 相对误差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    ε<sub>r,x</sub> = |x - x<sub>theory</sub>| / x<sub>theory</sub>
-                </div>
+                <vue-latex expression="\varepsilon_{r,x}=\left|\frac{x-x_{theory}}{x_{theory}}\right|"
+                    display-mode></vue-latex>
             </li>
             <li>
                 平均相对误差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    <span class="overline">ε</span><sub>r,x</sub> = ∑ ε<sub>r,x</sub> / n
-                </div>
+                <vue-latex expression="\overline{\varepsilon_{r,x}}=\sum\frac{\varepsilon_{r,x}}{n}"
+                    display-mode></vue-latex>
             </li>
             <li>
                 平均值与理论值的相对误差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    Δ<sub>r,x</sub> = |<span class="overline">x</span> - x<sub>theory</sub>| / x<sub>theory</sub>
-                </div>
+                <vue-latex expression="\Delta_{r,x}=\left|\frac{\bar{x}-x_{theory}}{x_{theory}}\right|"
+                    display-mode></vue-latex>
             </li>
             <li>
                 相对平均偏差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    <span class="overline">δ</span><sub>r,x</sub> = Σ|x<sub>i</sub> - <span class="overline">x</span>| /
-                    n
-                </div>
+                <vue-latex expression="\overline{\delta_{r,x}}=\sum\frac{|x_i-\bar{x}|}{n}" display-mode></vue-latex>
             </li>
             <li>
                 标准偏差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    s<sub>x</sub> = √<span class="custom-overline">Σ (x<sub>i</sub> - <span class="overline">x</span>)²
-                        / (n
-                        - 1)</span>
-                </div>
+                <vue-latex expression="s_x=\sqrt{\sum\frac{(x_i-\bar{x})^2}{n-1}}" display-mode></vue-latex>
             </li>
             <li>
                 相对标准偏差（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    s<sub>r,x</sub> = s<sub>x</sub> / <span class="overline">x</span>
-                </div>
+                <vue-latex expression="s_{r,x}=\frac{s_x}{\bar{x}}" display-mode></vue-latex>
             </li>
             <li>
                 A类不确定度（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    u<sub>A,x</sub> = s<sub>x</sub> / √<span class="custom-overline">n</span>
-                </div>
+                <vue-latex expression="u_{A,x}=\frac{s_x}{\sqrt{n}}" display-mode></vue-latex>
             </li>
             <li>
                 B类不确定度（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    u<sub>B,x</sub> = Δ<sub>equip_x</sub> / √<span class="custom-overline">3</span>
-                </div>
+                <vue-latex expression="u_{B,x}=\frac{Δ_{equip_x}}{\sqrt{3}}" display-mode></vue-latex>
             </li>
             <li>
                 不确定度（按不确定度方式保留）
-                <div style="text-align: center;" class="formula">
-                    u<sub>x</sub> = √<span class="custom-overline">u<sub>A,x</sub>² + u<sub>B,x</sub>²</span>
-                </div>
+                <vue-latex expression="u_x=\sqrt{u_{A,x}{}^2+u_{B,x}{}^2}" display-mode></vue-latex>
             </li>
             <li>
                 最小二乘直线（按有效数字方式保留）
-                <div style="text-align: center;" class="formula">
-                    y = ax + b
-                    <br>
-                    <br>
-                    a = (<span class="overline">x y</span> - <span class="overline">x</span> <span
-                        class="overline">y</span>) / (<span class="overline">x²</span> - <span
-                        class="overline">x</span><sup> ²</sup>)
-                    <br>
-                    <br>
-                    b = <span class="overline">y</span> - a<span class="overline">x</span>
-                    <br>
-                    <br>
-                    R² = ( ∑ (x<sub>i</sub> - <span class="overline">x</span>)(y<sub>i</sub> - <span
-                        class="overline">y</span>) )² / ( ∑ (x<sub>i</sub> - <span class="overline">x</span>)² ∑
-                    (y<sub>i</sub> - <span class="overline">y</span>)² )
-                </div>
+                <vue-latex expression="y=ax+b" display-mode></vue-latex>
+                <vue-latex expression="a=\frac{\sum x_i y_i - n\bar{x} \bar{y}}{\sum x_i{}^2 - n \bar{x}^2}"
+                    display-mode></vue-latex>
+                <vue-latex expression="b=\bar{y} - a\bar{x}" display-mode></vue-latex>
+                <vue-latex expression="R^2=\frac{\left(\sum (x_i - \bar{x})(y_i - \bar{y})\right)^2}{\sum (x_i - \bar{x})²\sum (y_i - \bar{y})²}"
+                    display-mode></vue-latex>
             </li>
         </ul>
     </div>

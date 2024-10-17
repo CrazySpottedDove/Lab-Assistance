@@ -929,10 +929,11 @@ function evaluateUncer(dataList, expression, currentTitle, multiplier){
     expression = `(${expression})*${multiplier}`
     const parser = uncerMath.parser()
     let variables = {}
-    dataList.forEach(item =>{
+    const sortedDataList = dataList.map(item => ({title:item.title, data:item.analysis['avg'].propertyValue, uncer:item.moreUncer.wholeUncer})).sort((a, b) => b.title.length - a.title.length);
+    sortedDataList.forEach(item =>{
         if(item.title !== currentTitle){
             variables[item.title] = escapeVariableName(item.title)
-            parser.set(escapeVariableName(item.title), {data: item.analysis['avg'].propertyValue, uncer: item.moreUncer.wholeUncer})
+            parser.set(escapeVariableName(item.title), {data: item.data, uncer: item.uncer})
         }
         // 防止该数据的命名与算式有冲突
     })
@@ -946,8 +947,8 @@ function evaluateUncer(dataList, expression, currentTitle, multiplier){
         }
     }
     catch (error) {
-        ElMessage.error('计算过程中出错！')
-        console.error("Error evaluating expression:", error)
+        ElMessage.error('计算不确定度过程中出错！')
+        console.error("Error evaluating Uncer:", error)
         return '0'  // 错误处理
     }
 }
@@ -956,9 +957,16 @@ function evaluateUncer(dataList, expression, currentTitle, multiplier){
 function evaluateExpression(dataList, expression, option, currentTitle, multiplier) {
     expression = `(${expression})*${multiplier}`
     const parser = valueMath.parser();
+    const sortedDataList = dataList
+		.map((item) => ({
+			title: item.title,
+			dataSet: item.dataSet,
+			rawData: item.analysis['avg'].propertyValue
+		}))
+		.sort((a, b) => b.title.length - a.title.length);
     let variables = {}
     if(option === 'forAll'){
-        dataList.forEach(item => {
+        sortedDataList.forEach(item => {
             if(item.title !== currentTitle){
                 variables[item.title] = escapeVariableName(item.title)
                 parser.set(escapeVariableName(item.title), item.dataSet)
@@ -969,14 +977,13 @@ function evaluateExpression(dataList, expression, option, currentTitle, multipli
         dataList.forEach(item => {
             if(item.title !== currentTitle){
                 variables[item.title] = escapeVariableName(item.title)
-                let tmpRawData = item.analysis['avg'].propertyValue
-                parser.set(escapeVariableName(item.title),[
-                    {
-                        rawData:tmpRawData,
-                        level:getLevel(tmpRawData),
-                        bit:getBit(tmpRawData)
-                    }
-                ])
+                parser.set(escapeVariableName(item.title), [
+					{
+						rawData: item.rawData,
+						level: getLevel(item.rawData),
+						bit: getBit(item.rawData),
+					},
+				]);
             }
         })
     }
@@ -1009,7 +1016,7 @@ function evaluateExpression(dataList, expression, option, currentTitle, multipli
         }
     }
     catch (error) {
-        ElMessage.error('计算过程中出错！')
+        ElMessage.error('计算数值过程中出错！')
         console.error("Error evaluating expression:", error);
         return [];  // 错误处理，返回空数组
     }

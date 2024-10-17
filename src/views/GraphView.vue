@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useAllDataStore } from '../assets/stores'
 import { CircleClose, DocumentCopy } from '@element-plus/icons-vue';
-import { titleFormat, dataFormat, unitFormat } from '../assets/format';
+import { titleFormat, dataFormat, unitFormat, docFormat } from '../assets/format';
 
 // 基础属性
 const store = useAllDataStore()
@@ -169,6 +169,8 @@ function updateCurrentGraph(mode) {
     let graphCenterContent = ''
     let graphCommentContent = ''
     let xTitle = ''
+    let xDoc = ''
+    let yDoc = ''
     let yTitle = ''
     let graphs = selectedGraph.singleGraphs
     let graphLength = selectedGraph.singleGraphs.length
@@ -186,10 +188,10 @@ function updateCurrentGraph(mode) {
                         break;
                 }
             }
-            console.log(ySource)
             yDataSet = ySource.dataSet
             yUnit = ySource.unit
             yTitle = ySource.title
+            yDoc = ySource.doc
             if (selectedGraph.singleGraphs[i].xDataId === -1) {
                 xDataSet = []
                 for (let i = 1; i <= yDataSet.length; i++) {
@@ -214,19 +216,20 @@ function updateCurrentGraph(mode) {
                 xDataSet = xSource.dataSet
                 xUnit = xSource.unit
                 xTitle = xSource.title
+                xDoc = xSource.doc
             }
 
             if (i === 0) {
-                xstyleContent += `${titleFormat(xTitle)}`
-                ystyleContent += `${titleFormat(yTitle)}`
+                xstyleContent += `${titleFormat(xTitle)}${docFormat(xDoc)}`
+                ystyleContent += `${titleFormat(yTitle)}${docFormat(yDoc)}`
             }
             // 防止同样的变量多次出现在标题中
             else {
                 if (xstyleContent.indexOf(titleFormat(xTitle)) === -1) {
-                    xstyleContent += `, ${titleFormat(xTitle)}`
+                    xstyleContent += `, ${titleFormat(xTitle)}${docFormat(xDoc)}`
                 }
                 if (ystyleContent.indexOf(titleFormat(yTitle)) === -1) {
-                    ystyleContent += `, ${titleFormat(yTitle)}`
+                    ystyleContent += `, ${titleFormat(yTitle)}${docFormat(yDoc)}`
                 }
             }
             if (i === graphLength - 1) {
@@ -298,6 +301,9 @@ function updateCurrentGraph(mode) {
         ElMessage.error('作图失败！')
         console.error('Error during plotting', error)
     }
+    if(mode === 'active'){
+        ElMessage.success('刷新成功！')
+    }
 }
 
 // 复制绘图内容
@@ -359,7 +365,11 @@ const handleGraphUpdate = () => {
                             <el-select style="width: 32%;text-align: center;min-width: 5.5em"
                                 v-model="singleGraph.xDataId" @change="handleGraphQuietUpdate">
                                 <el-option v-for="title in xDataOptionList" :key="title.value" :label="title.label"
-                                    :value="title.value"></el-option>
+                                    :value="title.value">
+                                    <template #default>
+                                        <vue-latex :expression="title.label"></vue-latex>
+                                    </template>
+                                </el-option>
                             </el-select>
                             <span style="width: 1%;"></span>
                             <label style="font-weight: 550;width: 16%;text-align: center;">y轴数据</label>
@@ -388,16 +398,16 @@ const handleGraphUpdate = () => {
                     <div class="equipment" style="font-size: 15pt;font-weight: bold;"
                         v-if="singleGraph.graphOption === 'line'">
                         拟合结果：{{ 'y = ' + singleGraph.graphData.slope + ' x ' + (singleGraph.graphData.intercept[0] ===
-                            '-' ? '' : '+')
-                            + singleGraph.graphData.intercept + ' ' + ',' + ' R² = ' + singleGraph.graphData.rSquared }}
+                        '-' ? '' : '+')
+                        + singleGraph.graphData.intercept + ' ' + ',' + ' R² = ' + singleGraph.graphData.rSquared }}
                     </div>
                     <div class="equipment" style="font-size: 15pt;font-weight: bold;"
                         v-if="singleGraph.graphOption === 'square'">
                         拟合结果：{{ 'y = ' + singleGraph.graphData.a + ' x² ' + (singleGraph.graphData.b[0] === '-' ? '' :
-                            '+ ') +
-                            singleGraph.graphData.b + ' x ' + (singleGraph.graphData.c[0] === '-' ? '' : '+ ') +
-                            singleGraph.graphData.c
-                            + ' , R² = ' + singleGraph.graphData.rSquared }}
+                        '+ ') +
+                        singleGraph.graphData.b + ' x ' + (singleGraph.graphData.c[0] === '-' ? '' : '+ ') +
+                        singleGraph.graphData.c
+                        + ' , R² = ' + singleGraph.graphData.rSquared }}
                     </div>
                 </el-card>
             </div>
