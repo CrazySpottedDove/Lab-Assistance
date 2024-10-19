@@ -172,7 +172,7 @@ const indirectDataList = computed(() => {
     return dataList.value.map((data, index) => ({ data, index })).filter(item => item.data.type === 'indirect')
 })
 
-const sortedDataList = computed(()=>{
+const sortedDataList = computed(() => {
     return [
         ...directDataList.value,
         ...indirectDataList.value
@@ -186,6 +186,8 @@ const displayLength = computed(() => {
 
 const copyTargetIndex = ref(-1)
 const click = (displayIndex) => {
+    console.log('refs.value:' , refs.value)
+    console.log('displayIndex', displayIndex)
     if (displayIndex >= 0) {
         refs.value[displayIndex].$el.click()
     }
@@ -330,7 +332,7 @@ const handleSwitchToPropertyDoc = () => {
 }
 
 const copyTargetTitle = (displayIndex) => {
-    if(displayIndex >= 0){
+    if (displayIndex >= 0) {
         navigator.clipboard.writeText(sortedDataList.value[displayIndex].data.title)
     }
 }
@@ -394,7 +396,7 @@ const handleKeydown = (event) => {
     }
     switch (event.key) {
         case 'ArrowUp':
-            if(dataList.value[selectedDataIndex.value].type === 'indirect'){
+            if (selectedDataIndex.value !== -1 && dataList.value[selectedDataIndex.value].type === 'indirect') {
                 if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
                     copyTargetIndex.value = 0
                 }
@@ -411,7 +413,7 @@ const handleKeydown = (event) => {
             }
             break
         case 'ArrowDown':
-            if(dataList.value[selectedDataIndex.value].type === 'indirect'){
+            if (selectedDataIndex !== -1 && dataList.value[selectedDataIndex.value].type === 'indirect') {
                 if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
                     copyTargetIndex.value = 0
                 }
@@ -485,8 +487,7 @@ onBeforeUnmount(() => {
     background-color: rgb(52, 11, 78);
 }
 
-.sidetitle{
-    font-size: small!important;
+.sidetitle {
+    font-size: small !important;
 }
-
 </style>
