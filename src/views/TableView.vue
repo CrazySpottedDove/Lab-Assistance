@@ -258,7 +258,7 @@ function processTableDataList(tableDataList) {
     function processProperty(property) {
         function propertyMap(subtitle, source) {
             let fmtUnit = unitFormat(source.unit)
-            let fmtDoc = unitFormat(source.doc)
+            let fmtDoc = docFormat(source.doc)
             let fmtTitle = titleFormat(source.title)
             let fmtData
             switch (subtitle) {
