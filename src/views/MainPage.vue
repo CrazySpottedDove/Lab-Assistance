@@ -6,6 +6,21 @@ import GraphView from './GraphView.vue';
 import ReadmeView from './ReadmeView.vue';
 import DocView from './DocView.vue';
 
+import { useAllDataStore } from '../assets/stores';
+import { handleKeyDown } from '../assets/keyBoard';
+import { onMounted, onBeforeUnmount } from 'vue';
+const store = useAllDataStore();
+const wrappedHandleKeyDown = (event) => {
+    handleKeyDown(event, store)
+}
+
+onMounted(() => {
+    document.addEventListener('keydown', wrappedHandleKeyDown)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('keydown', wrappedHandleKeyDown)
+})
+
 </script>
 <template>
     <data-view></data-view>

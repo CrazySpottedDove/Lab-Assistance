@@ -4,11 +4,14 @@ import { useAllDataStore } from '../assets/stores'
 import { CircleClose, DocumentCopy } from '@element-plus/icons-vue';
 import { titleFormat, dataFormat, unitFormat, docFormat } from '../assets/format';
 
+
 // 基础属性
 const store = useAllDataStore()
-const dataList = computed(() => store.state.dataList)
+const dataList = computed(() => [...store.state.directDataList, ...store.state.indirectDataList])
 const graphList = computed(() => store.state.graphList)
-const selectedGraphIndex = computed(() => store.state.selectedGraphIndex)
+const viewIndex = computed(() => store.state.view.index)
+const viewType = computed(() => store.state.view.type)
+
 
 // 随语言模式切换的一些默认值
 const graphLineName = computed(() => {
@@ -88,7 +91,7 @@ watch(dataList, () => {
                 xDataOptionList.value.push({ value: data.id, label: data.title ? data.title : '未命名数据' })
             }
             else {
-                if(data.title){
+                if (data.title) {
                     xDataOptionList.value[xIndex].label = data.title
                 }
 
@@ -97,7 +100,7 @@ watch(dataList, () => {
                 yDataOptionList.value.push({ value: data.id, label: data.title ? data.title : '未命名数据' })
             }
             else {
-                if(data.title){
+                if (data.title) {
                     yDataOptionList.value[yIndex].label = data.title
                 }
             }
@@ -106,7 +109,7 @@ watch(dataList, () => {
         // 删除多余部分
         let len = xDataOptionList.value.length
         for (let i = 0; i < len;) {
-            if (xDataOptionList.value[i].value !== -2 && !dataOfIdExists(xDataOptionList.value[i].value)) {
+            if (xDataOptionList.value[i].value !== -2 && xDataOptionList.value[i].value !== -1 && !dataOfIdExists(xDataOptionList.value[i].value)) {
                 graphList.value.forEach((graph) => {
                     graph.singleGraphs.forEach(singleGraph => {
                         if (singleGraph.xDataId === xDataOptionList.value[i].value) {
@@ -141,12 +144,12 @@ watch(dataList, () => {
     }
 
     updateXYDataOptionList()
-    if (selectedGraphIndex.value >= 0) {
+    if (viewType === 'graph' && viewIndex >= 0) {
         updateCurrentGraph('quiet')
     }
 }, { deep: true })
 
-// 更新当前图，mode有quiet和active两种
+/**更新当前图，mode有quiet和active两种 */
 function updateCurrentGraph(mode) {
     // 获取一组数据的最小，最大值范围，用于函数绘图
     function getDomain(dataSet) {
@@ -163,7 +166,7 @@ function updateCurrentGraph(mode) {
     let yDataSet = []
     let xUnit = ''
     let yUnit = ''
-    let selectedGraph = graphList.value[selectedGraphIndex.value]
+    let selectedGraph = graphList.value[viewIndex.value]
     let xstyleContent = ''
     let ystyleContent = ''
     let graphCenterContent = ''
@@ -301,14 +304,14 @@ function updateCurrentGraph(mode) {
         ElMessage.error('作图失败！')
         console.error('Error during plotting', error)
     }
-    if(mode === 'active'){
+    if (mode === 'active') {
         ElMessage.success('刷新成功！')
     }
 }
 
 // 复制绘图内容
 const handleGraphCopy = () => {
-    navigator.clipboard.writeText(graphList.value[selectedGraphIndex.value].graphContent)
+    navigator.clipboard.writeText(graphList.value[viewIndex.value].graphContent)
         .then(() => {
             ElMessage.success('绘图内容已复制到剪贴板！')
         })
@@ -326,12 +329,12 @@ const handleRelyCopy = () => {
 
 // 添加单条图线
 const handleAddSingleGraph = () => {
-    store.addSingleGraph()
+    store.Add.singleGraph()
 }
 
 // 删除单条图线
 const handleDeleteSingleGraph = (index) => {
-    store.deleteSingleGraph(index)
+    store.Delete.singleGraph(index)
     handleGraphQuietUpdate()
 }
 
@@ -348,13 +351,13 @@ const handleGraphUpdate = () => {
 </script>
 <template>
     <!-- 导出为LaTeX图像视图 -->
-    <div v-if="selectedGraphIndex >= 0 && graphList[selectedGraphIndex]">
-        <div v-for="(singleGraph, index) in graphList[selectedGraphIndex].singleGraphs">
+    <div v-if="viewType === 'graph' && viewIndex >= 0">
+        <div v-for="(singleGraph, index) in graphList[viewIndex].singleGraphs">
             <div class="card-div">
                 <el-card shadow="hover">
                     <div class="equipment" style="font-weight: bold; font-size: large;">
                         图线 {{ index + 1 }}
-                        <el-icon class="el-icon--right deleteicon" @click="handleDeleteSingleGraph">
+                        <el-icon class="el-icon--right deleteicon" @click="handleDeleteSingleGraph(index)">
                             <circle-close></circle-close>
                         </el-icon>
                     </div>
@@ -364,10 +367,13 @@ const handleGraphUpdate = () => {
                             <span style="width: 1%;"></span>
                             <el-select style="width: 32%;text-align: center;min-width: 5.5em"
                                 v-model="singleGraph.xDataId" @change="handleGraphQuietUpdate">
-                                <el-option v-for="title in xDataOptionList" :key="title.value" :label="title.label"
-                                    :value="title.value">
+                                <template #label="{label}">
+                                    <vue-latex :expression="label" style="font-size: small;"></vue-latex>
+                                </template>
+                                <el-option v-for="xDataOption in xDataOptionList" :key="xDataOption.value"
+                                    :label="xDataOption.label" :value="xDataOption.value">
                                     <template #default>
-                                        <vue-latex :expression="title.label"></vue-latex>
+                                        <vue-latex :expression="xDataOption.label"></vue-latex>
                                     </template>
                                 </el-option>
                             </el-select>
@@ -376,8 +382,15 @@ const handleGraphUpdate = () => {
                             <span style="width: 1%;"></span>
                             <el-select style="width: 32%;text-align: center;min-width: 5.5em"
                                 v-model="singleGraph.yDataId" @change="handleGraphQuietUpdate">
+                                <template #label="{ label }" style="font-size: small;">
+                                    <vue-latex :expression="label" style="font-size: small;"></vue-latex>
+                                </template>
                                 <el-option v-for="title in yDataOptionList" :key="title.value" :label="title.label"
-                                    :value="title.value"></el-option>
+                                    :value="title.value">
+                                    <template #default>
+                                        <vue-latex :expression="title.label"></vue-latex>
+                                    </template>
+                                </el-option>
                             </el-select>
                             <span style="width: 1%;"></span>
                         </div>
@@ -417,7 +430,7 @@ const handleGraphUpdate = () => {
                 <div class="equipment">
                     <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                     <span style="width: 1%;"></span>
-                    <input placeholder="标题" v-model="graphList[selectedGraphIndex].graphTitleContent"
+                    <input placeholder="标题" v-model="graphList[viewIndex].graphTitleContent"
                         @change="handleGraphQuietUpdate" style="width: 22%; text-align: center;">
                     <span style="width: 5%;"></span>
                     <el-button @click="handleAddSingleGraph" style="width: 35%; text-align: center;">添加图线</el-button>
@@ -430,7 +443,7 @@ const handleGraphUpdate = () => {
             <el-card shadow="hover">
                 <div>
                     <div style="text-align: center;">
-                        <el-switch v-model="graphList[selectedGraphIndex].graphFramed" size="large" inactive-text="不带边框"
+                        <el-switch v-model="graphList[viewIndex].graphFramed" size="large" inactive-text="不带边框"
                             active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                             @change="handleGraphQuietUpdate" />
                         <span style="font-weight: bold; font-size: large;"> 内容 </span>
@@ -438,7 +451,7 @@ const handleGraphUpdate = () => {
                             <document-copy></document-copy>
                         </el-icon>
                     </div>
-                    <pre>{{ graphList[selectedGraphIndex].graphContent }}</pre>
+                    <pre>{{ graphList[viewIndex].graphContent }}</pre>
                 </div>
             </el-card>
         </div>

@@ -1,7 +1,7 @@
 <template>
     <div class="common-aside">
         <el-aside width="100%">
-            <el-menu background-color="#626aef" :default-openeds="['0-1', '0-2', '1', '1-1', '1-2', '2', '3']">
+            <el-menu background-color="#626aef" :default-openeds="['0-1', '0-2','0-3', '1', '1-1', '1-2', '2', '3']">
                 <el-sub-menu index="0">
                     <template #title>
                         <el-icon style="color: gainsboro;">
@@ -27,6 +27,15 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.language === 'english' }"
                             @click="handleChangeLanguage('english')">英文</el-menu-item>
                     </el-sub-menu>
+                    <el-sub-menu index="0-3">
+                        <template #title>
+                            <span style="color: gainsboro!important;">直接数据精度规则</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.directDataLevelRule === 'unified' }"
+                            @click="handleChangeLevelRule('unified')">统一精度</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.directDataLevelRule === 'nonUnified' }"
+                            @click="handleChangeLevelRule('nonUnified')">不统一精度</el-menu-item>
+                    </el-sub-menu>
                 </el-sub-menu>
                 <el-sub-menu index="1">
                     <template #title>
@@ -36,22 +45,20 @@
                         <template #title>
                             <span style="color: gainsboro!important;">直接数据</span>
                         </template>
-                        <el-menu-item v-for="(item, displayIndex) of directDataList"
-                            :ref="el => refs[displayIndex] = el" @click="handleDataSelection(item.index, displayIndex)"
-                            :class="{ 'selected': selectedDataIndex === item.index, 'copytarget': copyTargetIndex === displayIndex && dataList[selectedDataIndex].type === 'indirect' }">
+                        <el-menu-item v-for="(item, index) of store.state.directDataList" @click="handleDirectDataSelection(index)"
+                            :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
                             <span style="width: 120px;">
-                                <el-input v-model="item.data.title" @click.stop="handleTitleCopy(item.index)"
-                                    v-if="selectedDataIndex === item.index"></el-input>
-                                <vue-latex class="sidetitle" :expression="item.data.title" v-else></vue-latex>
+                                <el-input v-model="item.title"
+                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
+                                <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
                             </span>
                             <span>
-                                <el-icon @click.stop="handleDeleteData(item.index, displayIndex)"
-                                    class="deleteicon el-icon--right">
+                                <el-icon @click.stop="handleDeleteDirectData(index)" class="deleteicon el-icon--right">
                                     <circle-close></circle-close>
                                 </el-icon>
                             </span>
                         </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAddData(true)">
+                        <el-menu-item class="mybutton" @click="handleAddDirectData()">
                             添加数据
                         </el-menu-item>
                     </el-sub-menu>
@@ -59,23 +66,22 @@
                         <template #title>
                             <span style="color: gainsboro!important;">间接数据</span>
                         </template>
-                        <el-menu-item v-for="(item, displayIndex) of indirectDataList"
-                            :ref="el => refs[displayIndex + directDataList.length] = el"
-                            @click="handleDataSelection(item.index, displayIndex + directDataList.length)"
-                            :class="{ 'selected': selectedDataIndex === item.index, 'copytarget': copyTargetIndex === displayIndex + directDataList.length && dataList[selectedDataIndex].type === 'indirect' }">
+                        <el-menu-item v-for="(item, index) of store.state.indirectDataList"
+                            @click="handleIndirectDataSelection(index)"
+                            :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index}">
                             <span style="width: 120px;">
-                                <el-input v-model="item.data.title" @click.stop="handleTitleCopy(item.index)"
-                                    v-if="selectedDataIndex === item.index"></el-input>
-                                <vue-latex class="sidetitle" :expression="item.data.title" v-else></vue-latex>
+                                <el-input v-model="item.title"
+                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
+                                <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
                             </span>
                             <span>
-                                <el-icon @click.stop="handleDeleteData(item.index, displayIndex)"
+                                <el-icon @click.stop="handleDeleteIndirectData(index)"
                                     class="deleteicon el-icon--right">
                                     <circle-close></circle-close>
                                 </el-icon>
                             </span>
                         </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAddData(false)">
+                        <el-menu-item class="mybutton" @click="handleAddIndirectData()">
                             添加数据
                         </el-menu-item>
                     </el-sub-menu>
@@ -84,16 +90,12 @@
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX制表</span>
                     </template>
-                    <el-menu-item v-for="(table, index) of tableList"
-                        :ref="el => refs[index + directDataList.length + indirectDataList.length] = el"
-                        @click="handleTableSelection(index, index + directDataList.length + indirectDataList.length)"
-                        :class="{ 'selected': selectedTableIndex === index }">
+                    <el-menu-item v-for="(table, index) of store.state.tableList" @click="handleTableSelection(index)"
+                        :class="{ 'selected': store.state.view.type === 'table' && store.state.view.index === index }">
                         表{{ index + 1 }}
                         <span style="width: 58%;"></span>
                         <span>
-                            <el-icon
-                                @click="handleDeleteTable(index, index + directDataList.length + indirectDataList.length)"
-                                class="deleteicon el-icon--right">
+                            <el-icon @click="handleDeleteTable(index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
@@ -106,16 +108,12 @@
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX制图</span>
                     </template>
-                    <el-menu-item v-for="(graph, index) of graphList"
-                        :ref="el => refs[index + directDataList.length + indirectDataList.length + tableList.length] = el"
-                        @click="handleGraphSelection(index, index + directDataList.length + indirectDataList.length + tableList.length)"
-                        :class="{ 'selected': selectedGraphIndex === index }">
+                    <el-menu-item v-for="(graph, index) of store.state.graphList" @click="handleGraphSelection(index)"
+                        :class="{ 'selected': store.state.view.type === 'graph' && store.state.view.index === index }">
                         图{{ index + 1 }}
                         <span style="width: 58%;"></span>
                         <span>
-                            <el-icon
-                                @click="handleDeleteGraph(index, index + directDataList.length + indirectDataList.length + tableList.length)"
-                                class="deleteicon el-icon--right">
+                            <el-icon @click="handleDeleteGraph(index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
@@ -124,18 +122,18 @@
                         添加图
                     </el-menu-item>
                 </el-sub-menu>
-                <el-menu-item index="4" @click="handleSwitchToReadme"
-                    :class="{ 'selected': isReadme }">使用指南</el-menu-item>
+                <el-menu-item index="4" @click="handleSelectReadme"
+                    :class="{ 'selected': store.state.view.type === 'readme' }">使用指南</el-menu-item>
                 <el-sub-menu index="5">
                     <template #title>
                         <span style="color: gainsboro!important;">参考</span>
                     </template>
-                    <el-menu-item index="5-1" @click="handleSwitchToNumberDoc"
-                        :class="{ 'selected': isNumberDoc }">参考：有效数字</el-menu-item>
-                    <el-menu-item index="5-2" @click="handleSwitchToUncerDoc"
-                        :class="{ 'selected': isUncerDoc }">参考：不确定度</el-menu-item>
-                    <el-menu-item index="5-3" @click="handleSwitchToPropertyDoc"
-                        :class="{ 'selected': isPropertyDoc }">参考：各项参数</el-menu-item>
+                    <el-menu-item index="5-1" @click="handleSelectNumberDoc"
+                        :class="{ 'selected': store.state.view.type === 'numberDoc' }">参考：有效数字</el-menu-item>
+                    <el-menu-item index="5-2" @click="handleSelectUncerDoc"
+                        :class="{ 'selected': store.state.view.type === 'uncerDoc' }">参考：不确定度</el-menu-item>
+                    <el-menu-item index="5-3" @click="handleSelectPropertyDoc"
+                        :class="{ 'selected': store.state.view.type === 'propertyDoc' }">参考：各项参数</el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
@@ -144,7 +142,6 @@
 <script setup>
 import { CircleClose, Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import 'katex/dist/katex.css'
 // 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
 // 引入katex下的自动渲染函数
@@ -154,44 +151,6 @@ async function saveUserConfig() {
 }
 
 const store = useAllDataStore()
-const dataList = computed(() => store.state.dataList)
-const tableList = computed(() => store.state.tableList)
-const graphList = computed(() => store.state.graphList)
-const selectedDataIndex = computed(() => store.state.selectedDataIndex)
-const selectedTableIndex = computed(() => store.state.selectedTableIndex)
-const selectedGraphIndex = computed(() => store.state.selectedGraphIndex)
-const isReadme = computed(() => store.state.isReadme)
-const isNumberDoc = computed(() => store.state.isNumberDoc)
-const isUncerDoc = computed(() => store.state.isUncerDoc)
-const isPropertyDoc = computed(() => store.state.isPropertyDoc)
-const directDataList = computed(() => {
-    // 这里的data是浅拷贝，对directDataList中的data的修改对于dataList依旧有效
-    return dataList.value.map((data, index) => ({ data, index })).filter(item => item.data.type === 'direct')
-})
-const indirectDataList = computed(() => {
-    return dataList.value.map((data, index) => ({ data, index })).filter(item => item.data.type === 'indirect')
-})
-
-const sortedDataList = computed(() => {
-    return [
-        ...directDataList.value,
-        ...indirectDataList.value
-    ]
-})
-const refs = ref([])
-
-const displayLength = computed(() => {
-    return directDataList.value.length + indirectDataList.value.length + tableList.value.length + graphList.value.length
-})
-
-const copyTargetIndex = ref(-1)
-const click = (displayIndex) => {
-    console.log('refs.value:' , refs.value)
-    console.log('displayIndex', displayIndex)
-    if (displayIndex >= 0) {
-        refs.value[displayIndex].$el.click()
-    }
-}
 
 //修改配置文件中的保存选项
 const handleChangeAutoSaveFile = (flag) => {
@@ -205,238 +164,73 @@ const handleChangeLanguage = (language) => {
     saveUserConfig()
 }
 
-const handleDataSelection = (index, displayIndex) => {
-    store.state.selectedDataIndex = index
-    store.state.selectedTableIndex = -1
-    store.state.selectedGraphIndex = -1
-    store.state.selectedDisplayIndex = displayIndex
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+/**修改配置文件中的直接数据精度规则 */
+const handleChangeLevelRule = (levelRule) => {
+    store.userConfig.directDataLevelRule = levelRule
+    saveUserConfig()
 }
-const handleTableSelection = (index, displayIndex) => {
-    store.state.selectedTableIndex = index
-    store.state.selectedDataIndex = -1
-    store.state.selectedGraphIndex = -1
-    store.state.selectedDisplayIndex = displayIndex
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+const handleDirectDataSelection = (index) => {
+    store.Select.directData(index)
 }
-const handleGraphSelection = (index, displayIndex) => {
-    store.state.selectedGraphIndex = index
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.selectedDisplayIndex = displayIndex
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+
+const handleIndirectDataSelection = (index) => {
+    store.Select.indirectData(index)
 }
-const handleTitleCopy = (index) => {
-    navigator.clipboard.writeText(dataList.value[index].title)
+
+const handleTableSelection = (index) => {
+    store.Select.table(index)
 }
-const handleDeleteData = async (index, displayIndex) => {
-    store.deleteData(index, displayIndex)
-    await nextTick()
-    click(store.state.selectedDisplayIndex)
+
+const handleGraphSelection = (index) => {
+    store.Select.graph(index)
 }
-const handleDeleteTable = async (index, displayIndex) => {
-    store.deleteTable(index, displayIndex)
-    await nextTick()
-    click(store.state.selectedDisplayIndex)
+
+const handleDeleteDirectData = (index) => {
+    store.Delete.directData(index)
 }
-const handleDeleteGraph = async (index, displayIndex) => {
-    store.deleteGraph(index, displayIndex)
-    await nextTick()
-    click(store.state.selectedDisplayIndex)
+
+const handleDeleteIndirectData = (index) => {
+    store.Delete.indirectData(index)
 }
-const handleAddData = (flag) => {
-    store.addData(flag)
-    if (flag) {
-        store.state.selectedDisplayIndex = directDataList.value.length - 1
-    }
-    else {
-        store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length - 1
-    }
-    store.state.selectedTableIndex = -1
-    store.state.selectedGraphIndex = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+
+const handleDeleteTable = (index) => {
+    store.Delete.table(index)
+}
+const handleDeleteGraph = (index) => {
+    store.Delete.graph(index)
+}
+
+const handleAddDirectData = () => {
+    store.Add.directData()
+}
+const handleAddIndirectData = () => {
+    store.Add.indirectData()
 }
 const handleAddTable = () => {
-    store.addTable()
-    store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length + tableList.value.length - 1
-    store.state.selectedDataIndex = -1
-    store.state.selectedGraphIndex = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
-    // console.log(store.state.selectedDisplayIndex)
+    store.Add.table()
 }
 const handleAddGraph = () => {
-    store.addGraph()
-    store.state.selectedDisplayIndex = directDataList.value.length + indirectDataList.value.length + tableList.value.length + graphList.value.length - 1
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.isReadme = false
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
+    store.Add.graph()
 }
 
-const handleSwitchToReadme = () => {
-    store.state.selectedDisplayIndex = -1
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.isReadme = true
-    store.state.selectedGraphIndex = -1
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
-}
-const handleSwitchToNumberDoc = () => {
-    store.state.selectedDisplayIndex = -1
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.isReadme = false
-    store.state.selectedGraphIndex = -1
-    store.state.isNumberDoc = true
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = false
-}
-const handleSwitchToUncerDoc = () => {
-    store.state.selectedDisplayIndex = -1
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.isReadme = false
-    store.state.selectedGraphIndex = -1
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = true
-    store.state.isPropertyDoc = false
-}
-const handleSwitchToPropertyDoc = () => {
-    store.state.selectedDisplayIndex = -1
-    store.state.selectedDataIndex = -1
-    store.state.selectedTableIndex = -1
-    store.state.isReadme = false
-    store.state.selectedGraphIndex = -1
-    store.state.isNumberDoc = false
-    store.state.isUncerDoc = false
-    store.state.isPropertyDoc = true
+const handleSelectReadme = () => {
+    store.Select.readme()
 }
 
-const copyTargetTitle = (displayIndex) => {
-    if (displayIndex >= 0) {
-        navigator.clipboard.writeText(sortedDataList.value[displayIndex].data.title)
-    }
+const handleSelectNumberDoc = () => {
+    store.Select.numberDoc()
 }
-// 处理快捷键事件
-const handleKeydown = (event) => {
-    if (event.ctrlKey) {
-        switch (event.key) {
-            case 'd':
-                handleAddData(true)
-                return
-            case 'i':
-                handleAddData(false)
-                return
-            case 't':
-                handleAddTable()
-                return
-            case 'g':
-                handleAddGraph()
-                return
-            case 'n':
-                if (selectedDataIndex.value >= 0) {
-                    if (dataList.value[selectedDataIndex.value].type === 'direct') {
-                        handleAddData(true)
-                        return
-                    }
-                    else if (dataList.value[selectedDataIndex.value].type === 'indirect') {
-                        handleAddData(false)
-                        return
-                    }
-                }
-                if (selectedTableIndex.value >= 0) {
-                    handleAddTable()
-                    return
-                }
-                if (selectedGraphIndex.value >= 0) {
-                    handleAddGraph()
-                    return
-                }
-                return
-            case 'ArrowDown':
-                if (store.state.selectedDisplayIndex === -1) {
-                    return
-                }
-                store.state.selectedDisplayIndex++
-                if (store.state.selectedDisplayIndex === displayLength.value) {
-                    store.state.selectedDisplayIndex = 0
-                }
-                click(store.state.selectedDisplayIndex)
-                return
-            case 'ArrowUp':
-                if (store.state.selectedDisplayIndex === -1) {
-                    return
-                }
-                store.state.selectedDisplayIndex--
-                if (store.state.selectedDisplayIndex === -1) {
-                    store.state.selectedDisplayIndex = displayLength.value - 1
-                }
-                click(store.state.selectedDisplayIndex)
-                return
-        }
-    }
-    switch (event.key) {
-        case 'ArrowUp':
-            if (selectedDataIndex.value !== -1 && dataList.value[selectedDataIndex.value].type === 'indirect') {
-                if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
-                    copyTargetIndex.value = 0
-                }
-                else if (copyTargetIndex.value === -1) {
-                    return
-                }
-                else {
-                    copyTargetIndex.value--
-                    if (copyTargetIndex.value === -1) {
-                        copyTargetIndex.value = dataList.value.length - 1
-                    }
-                }
-                copyTargetTitle(copyTargetIndex.value)
-            }
-            break
-        case 'ArrowDown':
-            if (selectedDataIndex !== -1 && dataList.value[selectedDataIndex.value].type === 'indirect') {
-                if (copyTargetIndex.value === -1 && dataList.value.length > 0) {
-                    copyTargetIndex.value = 0
-                }
-                else if (copyTargetIndex.value === -1) {
-                    return
-                }
-                else {
-                    copyTargetIndex.value++
-                    if (copyTargetIndex.value === dataList.value.length) {
-                        copyTargetIndex.value = 0
-                    }
-                }
-                copyTargetTitle(copyTargetIndex.value)
-            }
-            break
-    }
+
+const handleSelectUncerDoc = () => {
+    store.Select.uncerDoc()
 }
-onMounted(() => {
-    document.addEventListener('keydown', handleKeydown)
-})
-onBeforeUnmount(() => {
-    document.removeEventListener('keydown', handleKeydown)
-})
+
+const handleSelectPropertyDoc = () => {
+    store.Select.propertyDoc()
+}
+
+
+
 </script>
 <style lang="less" scoped>
 .el-menu {

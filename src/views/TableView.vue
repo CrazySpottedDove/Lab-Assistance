@@ -6,11 +6,12 @@ import { DocumentCopy } from '@element-plus/icons-vue';
 
 // 基本参数
 const store = useAllDataStore()
-const dataList = computed(() => store.state.dataList)
-const tableList = computed(() => store.state.tableList)
-const selectedTableIndex = computed(() => store.state.selectedTableIndex)
+const viewType = computed(() => store.state.view.type)
+const viewIndex = computed(() => store.state.view.index)
+const dataList = computed(() => [...store.state.directDataList, ...store.state.indirectDataList])
 const tableDataList = computed(() => store.state.tableDataList)
-const selectedTableData = computed(() => selectedTableIndex.value >= 0 ? store.state.tableDataList[store.state.selectedTableIndex] : null)
+const selectedTable = computed(() => viewType.value === 'table' && viewIndex.value >=0 ? store.state.tableList[viewIndex.value] : {})
+const selectedTableData = computed(() => viewType.value === 'table' && viewIndex.value >= 0 ? store.state.tableDataList[viewIndex.value] : null)
 
 const tableNO = computed(() => {
     return store.userConfig.language === 'chinese' ? '编号' : 'No.'
@@ -35,7 +36,7 @@ function getSourceById(id) {
 // 根据dataList变化，调整dataOptions
 watch(dataList, () => {
     function updateDataOptions() {
-        // 检测当前的dataOption中是否存在某个id的data
+        /** 检测当前的dataOption中是否存在某个id的data*/
         function dataOptionPosition(id) {
             let i
             for (i = 0; i < dataOptions.value.length; i++) {
@@ -46,7 +47,7 @@ watch(dataList, () => {
             return -1
         }
 
-        // 生成一个child
+        /** 生成一个child*/
         function child(label, id) {
             return {
                 label: label,
@@ -57,7 +58,7 @@ watch(dataList, () => {
             }
         }
 
-        // 依据source-id生成应有的labelList
+        /** 依据source-id生成应有的labelList*/
         function generateLabelList(id) {
             let source = getSourceById(id)
             let labelList = []
@@ -89,7 +90,7 @@ watch(dataList, () => {
             return labelList
         }
 
-        // 添加所有labelList中有的,children中没有的元素
+        /** 添加所有labelList中有的,children中没有的元素*/
         function addValidChild(labelList, children, id) {
             labelList.forEach(label => {
                 let isExist = false
@@ -105,7 +106,7 @@ watch(dataList, () => {
             })
         }
 
-        // 删除所有labelList中没有的，children中有的元素
+        /**删除所有labelList中没有的，children中有的元素 */
         function deleteInvalidChild(labelList, children) {
             let len = children.length
             for (let i = 0; i < len;) {
@@ -126,7 +127,7 @@ watch(dataList, () => {
             }
         }
 
-        // 生成一个原始的dataOption，只包含id和subtitle
+        /** 生成一个原始的dataOption，只包含id和subtitle*/
         function generateDataOption(item) {
             let result = {}
             result.value = { id: item.id }
@@ -138,7 +139,7 @@ watch(dataList, () => {
             return result
         }
 
-        // 更新某个dataOption
+        /**更新某个dataOption */
         function updateDataOption(index) {
             let target = dataOptions.value[index]
             let id = target.value.id
@@ -150,7 +151,7 @@ watch(dataList, () => {
             addValidChild(labelList, children, id)
         }
 
-        // 检查dataList中有没有特定id的数据
+        /**检查dataList中有没有特定id的数据 */
         function dataOfIdExists(id) {
             for (let i = 0; i < dataList.value.length; i++) {
                 if (dataList.value[i].id === id) {
@@ -190,7 +191,7 @@ watch(dataList, () => {
         }
     }
     updateDataOptions()
-    if(selectedTableIndex.value >= 0){
+    if(viewType.value === 'table' && viewIndex.value >= 0){
         updateCurrentTable()
     }
 }, { deep: true })
@@ -248,7 +249,7 @@ function processTableDataList(tableDataList) {
         processed.dataHeight = tmp.dataHeight
 
         if (source.computeMethod) {
-            processed.comment = `$ \\displaystyle ${titleFormat(source.title)} = ${commentFormat(source.computeMethod, store.state.dataList)} $\\qquad `
+            processed.comment = `$ \\displaystyle ${titleFormat(source.title)} = ${commentFormat(source.computeMethod, dataList.value)} $\\qquad `
         }
 
         return processed
@@ -385,40 +386,39 @@ function processTableDataList(tableDataList) {
 
 // 更新当前表格
 function updateCurrentTable() {
-    let processedTableData = processTableDataList(selectedTableData.value)
-    let selectedTable = tableList.value[selectedTableIndex.value]
-    let tableFramed = selectedTable.tableFramed
+    let processedTableDataList = processTableDataList(selectedTableData.value)
+    let tableFramed = selectedTable.value.tableFramed
     function updateDataValue1() {
         let tmp = []
-        if (processedTableData && processedTableData.length) {
-            processedTableData.forEach(item => {
+        if (processedTableDataList && processedTableDataList.length) {
+            processedTableDataList.forEach(item => {
                 if (item.dataLength === 1) {
                     tmp.push(item)
                 }
             })
         }
-        selectedTable.dataValue1 = tmp
+        selectedTable.value.dataValue1 = tmp
     }
     function updateDataValueN() {
         let tmp = []
-        if (processedTableData && processedTableData.length) {
-            processedTableData.forEach(item => {
+        if (processedTableDataList && processedTableDataList.length) {
+            processedTableDataList.forEach(item => {
                 if (item.dataLength !== 1) {
                     tmp.push(item)
                 }
             })
         }
-        selectedTable.dataValueN = tmp
+        selectedTable.value.dataValueN = tmp
     }
 
     let centerContent = ''
     function updateCenterContent() {
         let center = ''
-        let len1 = selectedTable.dataValue1.length
-        let lenN = selectedTable.dataValueN.length
+        let len1 = selectedTable.value.dataValue1.length
+        let lenN = selectedTable.value.dataValueN.length
         if (lenN) {
             try {
-                let maxLen = selectedTable.dataValueN.reduce((max, data) => {
+                let maxLen = selectedTable.value.dataValueN.reduce((max, data) => {
                     if (max === data.dataLength || (max > data.dataLength && data.dataLength === 1)) {
                         return max
                     }
@@ -429,8 +429,8 @@ function updateCurrentTable() {
                         ElMessage.error('数组的长度不一致！')
                         throw new Error('数组的长度不一致！')
                     }
-                }, selectedTable.dataValueN[0].dataLength)
-                let maxHeight = selectedTable.dataValueN.reduce((max, data) => {
+                }, selectedTable.value.dataValueN[0].dataLength)
+                let maxHeight = selectedTable.value.dataValueN.reduce((max, data) => {
                     if (max === data.dataHeight || (max > data.dataHeight && data.dataHeight === 1)) {
                         return max
                     }
@@ -441,7 +441,7 @@ function updateCurrentTable() {
                         ElMessage.error('数组的长度不一致！')
                         throw new Error('数组的长度不一致！')
                     }
-                }, selectedTable.dataValueN[0].dataHeight)
+                }, selectedTable.value.dataValueN[0].dataHeight)
                 function draftCenterNumber(length, index) {
                     center += `${tableNO.value} & `
                     for (let i = index * length + 1; i < (index + 1) * length + 1; i++) {
@@ -456,13 +456,13 @@ function updateCurrentTable() {
                     draftCenterNumber(maxLen, i)
                     if (len1) {
                         for (let j = 0; j < lenN; j++) {
-                            center += selectedTable.dataValueN[j].center[i]
+                            center += selectedTable.value.dataValueN[j].center[i]
                             center += ' \\\\\n\t\t\t'
                         }
                     }
                     else {
                         for (let j = 0; j < lenN; j++) {
-                            center += selectedTable.dataValueN[j].center[i]
+                            center += selectedTable.value.dataValueN[j].center[i]
                             if (!(j === lenN - 1 && i === maxHeight - 1)) {
                                 center += ' \\\\\n\t\t\t'
                             }
@@ -481,27 +481,26 @@ function updateCurrentTable() {
         }
         if (len1) {
             for (let i = 0; i < len1; i++) {
-                center += selectedTable.dataValue1[i].center
+                center += selectedTable.value.dataValue1[i].center
                 if (i !== len1 - 1) {
                     center += ' \\\\\n\t\t\t'
                 }
             }
             center += '\n\t\t'
         }
-        // selectedTable.centerContent = center
         centerContent = center
     }
 
     let headContent = ''
     function updateHeadContent() {
         let head = ''
-        let len1 = selectedTable.dataValue1.length
+        let len1 = selectedTable.value.dataValue1.length
         let lenN = 0
         let lenNum = 0
-        if (selectedTable.dataValueN.length) {
-            for (let i = 0; i < selectedTable.dataValueN.length; i++) {
-                lenN += selectedTable.dataValueN[i].center.length
-                lenNum = Math.max(lenNum, selectedTable.dataValueN[i].center.length)
+        if (selectedTable.value.dataValueN.length) {
+            for (let i = 0; i < selectedTable.value.dataValueN.length; i++) {
+                lenN += selectedTable.value.dataValueN[i].center.length
+                lenNum = Math.max(lenNum, selectedTable.value.dataValueN[i].center.length)
             }
         }
         if (lenN && len1) {
@@ -513,29 +512,27 @@ function updateCurrentTable() {
                 }
             }
             let maxDataLength = 0
-            selectedTable.dataValueN.forEach(item => {
+            selectedTable.value.dataValueN.forEach(item => {
                 maxDataLength = Math.max(maxDataLength, item.dataLength)
             })
             head += `}{2}={r=1,c=${maxDataLength}}{c}`
         }
-        // selectedTable.headContent = head
         headContent = head
     }
 
     let commentContent = ''
     function updateCommentContent() {
         let comment = ''
-        selectedTable.dataValueN.forEach(item => {
+        selectedTable.value.dataValueN.forEach(item => {
             if (item.comment) {
                 comment += item.comment
             }
         })
-        selectedTable.dataValue1.forEach(item => {
+        selectedTable.value.dataValue1.forEach(item => {
             if (item.comment) {
                 comment += item.comment
             }
         })
-        // selectedTable.commentContent = comment
         commentContent = comment
     }
 
@@ -545,16 +542,15 @@ function updateCurrentTable() {
     updateCenterContent()
     updateCommentContent()
     if (tableFramed) {
-        selectedTable.tableContent = `\\begin{table}[H]\n\t\\framed[${selectedTable.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}` + headContent + '}\n\t\t\t' + centerContent + '\\end{tblr}\n\t}[' + commentContent + ']\n\\end{table}'
+        selectedTable.value.tableContent = `\\begin{table}[H]\n\t\\framed[${selectedTable.value.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}` + headContent + '}\n\t\t\t' + centerContent + '\\end{tblr}\n\t}[' + commentContent + ']\n\\end{table}'
     }
     else {
-        selectedTable.tableContent = `\\begin{table}[H]\n\t\\notframed[${selectedTable.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}` + headContent + '}\n\t\t\t' + centerContent + '\\end{tblr}\n\t}[' + commentContent + ']\n\\end{table}'
+        selectedTable.value.tableContent = `\\begin{table}[H]\n\t\\notframed[${selectedTable.value.tableTitleContent}]{\n\t\t\\begin{tblr}{hlines,vlines,cells={c}` + headContent + '}\n\t\t\t' + centerContent + '\\end{tblr}\n\t}[' + commentContent + ']\n\\end{table}'
     }
 }
 
 // 手动刷新表格
 const handleTableUpdate = (() => {
-    // console.log(selectedTableData.value)
     updateCurrentTable()
     ElMessage.success('刷新成功！')
 })
@@ -568,23 +564,19 @@ watch(selectedTableData, () => {
 
 // 表格选择全部数据
 const handleTableSelectAll = () => {
-    let tmpValueSource = []
-    dataOptions.value.forEach(item => {
-        tmpValueSource.push(item.value)
-    })
-    tableDataList.value[selectedTableIndex.value] = tmpValueSource
+    tableDataList.value[viewIndex.value] = dataOptions.value.map(item => item.value)
     handleTableUpdate()
 }
 
 // 表格清除全部数据
 const handleTableClearAll = () => {
-    tableDataList.value[selectedTableIndex.value] = []
+    tableDataList.value[viewIndex.value] = []
     handleTableUpdate()
 }
 
 // 复制表格内容
 const handleTableCopy = () => {
-    navigator.clipboard.writeText(tableList.value[selectedTableIndex.value].tableContent)
+    navigator.clipboard.writeText(selectedTable.value.tableContent)
         .then(() => {
             ElMessage.success('表格内容已复制到剪贴板！')
         })
@@ -603,22 +595,25 @@ const handleRelyCopy = () => {
 
 <template>
     <!-- 导出为LaTeX图表视图 -->
-    <div v-if="selectedTableIndex >= 0 && tableList[selectedTableIndex]">
+    <div v-if="viewType === 'table' && viewIndex >= 0">
         <div class="card-div">
             <el-card shadow="hover">
                 <div class="equipment">
                     <label style="font-weight: 550;width: 10%;text-align: center;">表格数据</label>
                     <span style="width: 1%;"></span>
                     <el-cascader :options="dataOptions" :props="props" placeholder="选择数据"
-                        v-model="tableDataList[selectedTableIndex]" style="width: 38.5%;">
+                        v-model="tableDataList[viewIndex]" style="width: 38.5%;">
                         <template v-slot:default="{ node, data }">
-                            <vue-latex :expression="data.label"></vue-latex>
+                            <vue-latex :expression="data.label" style="font-size: small;"></vue-latex>
+                        </template>
+                        <template #label="label">
+                            <vue-latex :expression="label"></vue-latex>
                         </template>
                     </el-cascader>
                     <span style="width: 1%;"></span>
                     <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                     <span style="width: 1%;"></span>
-                    <input placeholder="标题" v-model="tableList[selectedTableIndex].tableTitleContent"
+                    <input placeholder="标题" v-model="selectedTable.tableTitleContent"
                         style="width: 38.5%; text-align: center; " @change="updateCurrentTable">
 
                 </div>
@@ -633,7 +628,7 @@ const handleRelyCopy = () => {
             <el-card shadow="hover">
                 <div>
                     <div style="text-align: center;">
-                        <el-switch v-model="tableList[selectedTableIndex].tableFramed" size="large" inactive-text="不带边框"
+                        <el-switch v-model="selectedTable.tableFramed" size="large" inactive-text="不带边框"
                             active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
                             @change="updateCurrentTable" />
                         <span style="font-weight: bold; font-size: large;"> 内容 </span>
@@ -641,7 +636,7 @@ const handleRelyCopy = () => {
                             <document-copy></document-copy>
                         </el-icon>
                     </div>
-                    <pre>{{ tableList[selectedTableIndex].tableContent }}</pre>
+                    <pre>{{ selectedTable.tableContent }}</pre>
                 </div>
             </el-card>
             <br>

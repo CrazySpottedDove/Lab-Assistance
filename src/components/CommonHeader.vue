@@ -19,7 +19,7 @@
 <script setup>
 import { FolderChecked, FolderOpened } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { fetchLatestVersionUrl} from '../assets/versionTips.js';
 
 const store = useAllDataStore()
@@ -50,8 +50,8 @@ async function openFile(event, state) {
     openFile(event, state)
 }
 const handleFileSave = () => {
-    ElMessage.success("文件已保存")
     saveStateOnExit(store.state)
+    ElMessage.success("文件已保存")
 }
 const fileLoad = ref(null)
 const triggerFileLoad = () => {
@@ -61,27 +61,8 @@ const handleFileLoad = (event) => {
     openFile(event, store.state)
 }
 
-const handleKeydown = (event) => {
-    if (event.ctrlKey) {
-        switch (event.key) {
-            case 's':
-                event.preventDefault()
-                handleFileSave()
-                return
-            case 'o':
-                event.preventDefault()
-                fileLoad.value.click()
-                return
-        }
-    }
-}
 onMounted(() => {
-    document.addEventListener('keydown', handleKeydown)
     readUserConfig()
-})
-
-onBeforeUnmount(() => {
-    document.removeEventListener('keydown', handleKeydown)
 })
 
 watch(store.state, (newState) => {

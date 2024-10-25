@@ -71,8 +71,8 @@ function isUnaryOperator(token) {
 }
 
 // 判断运算符的优先级
-function hasHigherPrecedence(op1, op2) {
-    return precedence[op1] > precedence[op2]
+function hasGEPrecedence(op1, op2) {
+    return precedence[op1] >= precedence[op2]
 }
 
 // 将字符串表达式转化成数组表达式
@@ -99,7 +99,7 @@ function infixToPostfix(infixTokens) {
             while (
                 operatorStack.length > 0 &&
                 isOperator(operatorStack[operatorStack.length - 1]) &&
-                hasHigherPrecedence(operatorStack[operatorStack.length - 1], token)
+                hasGEPrecedence(operatorStack[operatorStack.length - 1], token)
             ) {
                 outputQueue.push(operatorStack.pop());
             }

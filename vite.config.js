@@ -17,15 +17,15 @@ export default defineConfig({
 	],
 	build: {
 		terserOptions: {
-			compress: {
-				// 禁用压缩选项，确保不会移除或改变变量和函数名
-				keep_classnames: true,
-				keep_fnames: true,
-				properties: {
-					keep_quoted: true, // 保留属性名，只处理引号中的属性
-				},
-			},
-			mangle: false, // 禁用混淆，保持变量和属性名不被改变
+			// compress: {
+			// 	// 禁用压缩选项，确保不会移除或改变变量和函数名
+			// 	// keep_classnames: true,
+			// 	// keep_fnames: true,
+			// 	// properties: {
+			// 	// 	keep_quoted: true, // 保留属性名，只处理引号中的属性
+			// 	// },
+			// },
+			// mangle: false, // 禁用混淆，保持变量和属性名不被改变
 		},
 		minify: "terser", // 使用 terser 进行最小化
 	},

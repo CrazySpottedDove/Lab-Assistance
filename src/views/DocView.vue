@@ -1,17 +1,12 @@
 <script setup>
-import { computed } from 'vue';
 import {useAllDataStore} from '../assets/stores'
 
 const store = useAllDataStore()
-const isNumberDoc = computed(()=>store.state.isNumberDoc)
-const isUncerDoc = computed(()=>store.state.isUncerDoc)
-const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
-
 
 </script>
 <template>
     <!-- 有效数字视图 -->
-    <div v-show="isNumberDoc">
+    <div v-show="store.state.view.type === 'numberDoc'">
         <h2>1. 有效数字的修约原则</h2>
         <p>有效数字的修约遵循<em>四舍六入五凑偶</em>的原则：</p>
         <ul>
@@ -47,7 +42,7 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
     </div>
 
     <!-- 不确定度视图 -->
-    <div v-show="isUncerDoc">
+    <div v-show="store.state.view.type === 'uncerDoc'">
         <h2>1. 不确定度的保留位数法则</h2>
         <p>不确定度的保留位数通常与测量结果的有效位数相对应，具体法则如下：</p>
         <ul>
@@ -80,7 +75,7 @@ const isPropertyDoc = computed(()=>store.state.isPropertyDoc)
     </div>
 
     <!-- 参数视图 -->
-    <div v-show="isPropertyDoc">
+    <div v-show="store.state.view.type === 'propertyDoc'">
         <h2>斑鸠计算的各项参数的参考公式</h2>
         <ul>
             <li>

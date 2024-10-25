@@ -1,11 +1,10 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed } from 'vue';
 const store = useAllDataStore()
-const isReadme = computed(() => store.state.isReadme)
+
 </script>
 <template>
-    <div v-show="isReadme">
+    <div v-show="store.state.view.type === 'readme'">
         <h2>直接数据</h2>
         <p>直接数据拥有三个精度选项：统一精度，不统一精度和确数。</p>
         <p><em>统一精度</em>：所有输入数据精度相同。因此，输入时<em>允许省略末尾的零</em>（只要有一个数据末尾不为0）。</p>
@@ -27,7 +26,7 @@ const isReadme = computed(() => store.state.isReadme)
         <p>确定计算方式和计算式后，<em>点击刷新</em>，即可获得最新的间接数据。</p>
         <p>处理器会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
         <h2>设置</h2>
-        <p>在边栏的设置中可以选择文件保存策略和输出语言。输出语言决定了制表和制图时一些默认注释的语言。这些设置将被保存在 package.nw（mac 用户为 app.nw）同级目录 user 下的 config 目录中。
+        <p>边栏处可以修改一些基本设置。输出语言决定了制表和制图时一些默认注释的语言。这些设置将被保存在 package.nw（mac 用户为 app.nw）同级目录 user 下的 config 目录中。
         </p>
         <h2><span class="formula">LaTeX</span> 制表</h2>
         <p>选择表格数据，即生成对应表格的 <span class="formula">LaTeX</span> 代码。点击全选，可以选中当前的所有数据。点击清空，可以删除当前表格的数据。</p>
@@ -57,12 +56,11 @@ const isReadme = computed(() => store.state.isReadme)
             <li>Ctrl + S: 保存当前数据</li>
             <li>Ctrl + O: 打开已有数据</li>
             <li>Ctrl + N: 创建与当前数据类型相同的数据</li>
-            <li>Ctrl + Shift + C: 在应用内复制当前数据</li>
-            <li>Ctrl + Shift + V: 黏贴并覆盖当前数据</li>
+            <li>Ctrl + Shift + C: 在应用内复制当前数据(直接数据或间接数据)；复制代码(图表)</li>
+            <li>Ctrl + Shift + V: 黏贴并覆盖当前数据(直接数据或间接数据)</li>
+            <li>Ctrl + Shift + D: 删除当前数据</li>
             <li>Tab : 页面中选择下一选项</li>
             <li>Shift + Tab : 页面中选择上一选项</li>
-            <li>↑: 编辑间接数据的算式时，复制上一个数据的标题</li>
-            <li>↓: 编辑间接数据的算式时，复制下一个数据的标题</li>
         </ul>
         <h2>更新</h2>
         <p>当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</p>

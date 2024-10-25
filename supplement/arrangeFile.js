@@ -12,13 +12,23 @@ let tmpname = "";
 // 读取用户配置文件
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {
-		const configData = fs.readFileSync(configFilePath, "utf-8");
-		return JSON.parse(configData); // 返回配置文件中的数据
+		let configData = JSON.parse(fs.readFileSync(configFilePath, "utf-8"));
+		if(!configData.language){
+            configData.language = 'chinese'
+        }
+        if(!configData.directDataLevelRule){
+            configData.directDataLevelRule = 'unified'
+        }
+        if(!configData.autoSaveFile){
+            configData.autoSaveFile = true
+        }
+        return configData;
 	} else {
 		fs.mkdirSync(configDir, { recursive: true });
 		const initConfig = {
 			autoSaveFile: true,
 			language: "chinese",
+            directDataLevelRule:'unified'
 		};
 		const jsonContent = initConfig;
 		fs.writeFileSync(configFilePath, jsonContent, "utf-8");
@@ -41,6 +51,7 @@ function generateFileName(state) {
 	const graphTitleList = state.graphList.map(
 		(graph) => graph.graphTitleContent
 	);
+    const dataList = [...state.directDataList, ...state.indirectDataList]
 	const titleList = tableTitleList.concat(graphTitleList);
 	const filteredTitleList = titleList.filter((title) => title !== "");
 	if (filteredTitleList.length > 0) {
@@ -51,11 +62,11 @@ function generateFileName(state) {
 			filename += `${filteredTitleList[i]}`;
 		}
 	} else {
-		for (let i = 0; i < Math.min(state.dataList.length, 10); i++) {
+		for (let i = 0; i < Math.min(dataList.length, 10); i++) {
 			if (i !== 0) {
 				filename += "-";
 			}
-			filename += `${state.dataList[i].title}`;
+			filename += `${dataList[i].title}`;
 		}
 	}
 	return filename.replace(/[<>:"/\\|?*]+/g, "_");
@@ -63,7 +74,7 @@ function generateFileName(state) {
 
 // 保存文件
 function saveStateOnExit(state) {
-    if(state.dataList.length === 0 && tmpname === ''){
+    if(state.directDataList.length === 0 && state.indirectDataList.length === 0 && tmpname === ''){
         return
     }
     const currentDate = new Date();
