@@ -198,7 +198,6 @@ watch(dataList, () => {
 
 // 将粗略的tableDataList信息处理，成为可以直接用于绘表的数据
 function processTableDataList(tableDataList) {
-
     // 处理可能多行数据的格式
     function processDataFmt(id, dataSource, title) {
         let source = getSourceById(id)

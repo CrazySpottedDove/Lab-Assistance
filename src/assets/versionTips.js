@@ -1,11 +1,14 @@
 const currentVersion = "v1.1.8";
 
-async function fetchLatestVersionUrl() {
+async function fetchLatestVersionUrl(newVersionTips) {
 	// 定义GitHub仓库的API URL
 	const repoUrl =
 		"https://api.github.com/repos/CrazySpottedDove/Lab-Assistance/releases/latest";
 
 	try {
+        if(!newVersionTips){
+            return null
+        }
 		// 使用fetch API获取仓库的最新发布版本信息
 		const response = await fetch(repoUrl);
 

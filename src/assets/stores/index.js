@@ -45,7 +45,8 @@ export const useAllDataStore = defineStore("allData", () => {
 					language: "chinese",
 					directDataLevelRule: "unified",
                     framed: false,
-                    saveByDate: true
+                    saveByDate: true,
+                    newVersionTips: true
 				};
 			},
 

@@ -5,12 +5,12 @@ async function saveStateOnExit(state, userConfig) {
 	saveStateOnExit(state, userConfig);
 }
 
-async function openFile(event, state) {
+async function openFile(state) {
 	const { openFile } = await import("../../supplement/arrangeFile.js");
-	openFile(event, state);
+	openFile(state);
 }
 
-// 递归的深克隆函数
+/**递归的深克隆函数 */
 function deepClone(obj) {
 	if (obj === null || typeof obj !== "object") {
 		return obj; // 处理基本类型
@@ -29,13 +29,14 @@ function deepClone(obj) {
 	return clonedObj;
 }
 
-function copy(str){
-    navigator.clipboard.writeText(str)
+/**将str复制到剪贴板 */
+function copy(str) {
+	navigator.clipboard.writeText(str);
 }
 
 /**处理所有的快捷键事件 */
 function handleKeyDown(event, store) {
-    // ctrl+shift
+	// ctrl+shift
 	if (event.ctrlKey && event.shiftKey) {
 		const key = event.key.toLowerCase();
 		switch (key) {
@@ -46,31 +47,49 @@ function handleKeyDown(event, store) {
 				if (
 					store.state.view.type === "readme" ||
 					store.state.view.type === "numberDoc" ||
-                    store.state.view.type === "uncerDoc" ||
-                    store.state.view.type === "propertyDoc"
+					store.state.view.type === "uncerDoc" ||
+					store.state.view.type === "propertyDoc"
 				)
 					return;
 				if (store.state.view.index < 0) return;
 
 				store.state.copyBoardByView = store.state.view;
-                switch (store.state.view.type) {
-                    case 'directData':
-                        ElMessage.success(`已复制 ${store.state.directDataList[store.state.view.index].title} 的信息，在新的直接数据中使用 Ctrl + Shift + V 黏贴`);
-                        break;
-                    case 'indirectData':
-                        ElMessage.success(`已复制 ${store.state.indirectDataList[store.state.view.index].title} 的信息，在新的间接数据中使用 Ctrl + Shift + V 黏贴`);
-                        break;
-                    case 'table':
-                        copy(store.state.tableList[store.state.view.index].tableContent);
-                        ElMessage.success(`表格内容已复制到剪贴板！`);
-                        break;
-                    case 'graph':
-                        copy(store.state.graphList[store.state.view.index].graphContent);
-                        ElMessage.success(`绘图内容已复制到剪贴板！`);
-                        break;
-                    default:
-                        break;
-                }
+				switch (store.state.view.type) {
+					case "directData":
+						ElMessage.success(
+							`已复制 ${
+								store.state.directDataList[
+									store.state.view.index
+								].title
+							} 的信息，在新的直接数据中使用 Ctrl + Shift + V 黏贴`
+						);
+						break;
+					case "indirectData":
+						ElMessage.success(
+							`已复制 ${
+								store.state.indirectDataList[
+									store.state.view.index
+								].title
+							} 的信息，在新的间接数据中使用 Ctrl + Shift + V 黏贴`
+						);
+						break;
+					case "table":
+						copy(
+							store.state.tableList[store.state.view.index]
+								.tableContent
+						);
+						ElMessage.success(`表格内容已复制到剪贴板！`);
+						break;
+					case "graph":
+						copy(
+							store.state.graphList[store.state.view.index]
+								.graphContent
+						);
+						ElMessage.success(`绘图内容已复制到剪贴板！`);
+						break;
+					default:
+						break;
+				}
 
 				return;
 			case "v":
@@ -118,33 +137,33 @@ function handleKeyDown(event, store) {
 						}
 						return;
 				}
-                return
-            case 'd':
-                event.preventDefault()
-                switch (store.state.view.type) {
-                    case 'directData':
-                        store.Delete.directData(store.state.view.index)
-                        break;
-                    case 'indirectData':
-                        store.Delete.indirectData(store.state.view.index)
-                        break;
-                    case 'table':
-                        store.Delete.table(store.state.view.index)
-                        break;
-                    case 'graph':
-                        store.Delete.graph(store.state.view.index)
-                        break;
-                    default:
-                        break;
-                }
-                return;
+				return;
+			case "d":
+				event.preventDefault();
+				switch (store.state.view.type) {
+					case "directData":
+						store.Delete.directData(store.state.view.index);
+						break;
+					case "indirectData":
+						store.Delete.indirectData(store.state.view.index);
+						break;
+					case "table":
+						store.Delete.table(store.state.view.index);
+						break;
+					case "graph":
+						store.Delete.graph(store.state.view.index);
+						break;
+					default:
+						break;
+				}
+				return;
 		}
 	}
 
-    // ctrl
+	// ctrl
 	if (event.ctrlKey) {
-        console.log('ctrl')
-        let view = store.state.view
+		console.log("ctrl");
+		let view = store.state.view;
 		switch (event.key) {
 			case "s":
 				event.preventDefault();
@@ -153,30 +172,7 @@ function handleKeyDown(event, store) {
 				return;
 			case "o":
 				event.preventDefault();
-				// 创建一个隐藏的文件输入元素
-				const fileInput = document.createElement("input");
-				fileInput.type = "file";
-				fileInput.style.display = "none";
-
-				// 将文件输入元素添加到文档中
-				document.body.appendChild(fileInput);
-
-				// 触发文件输入元素的点击事件
-				fileInput.click();
-				// 监听文件选择后的change事件
-				fileInput.addEventListener("change", function (fileEvent) {
-					const selectedFile = fileEvent.target.files[0];
-					if (selectedFile) {
-						console.log("Selected file:", selectedFile.name);
-						// 在这里可以处理选中的文件，例如上传或显示文件内容
-                        openFile(fileEvent, store.state);
-					} else {
-						console.log("No file selected");
-					}
-
-					// 选择文件后移除文件输入元素
-					document.body.removeChild(fileInput);
-				});
+				openFile(store.state)
 				return;
 			case "d":
 				event.preventDefault();

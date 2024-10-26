@@ -127,7 +127,7 @@ const store = useAllDataStore()
                 <vue-latex expression="a=\frac{\sum x_i y_i - n\bar{x} \bar{y}}{\sum x_i{}^2 - n \bar{x}^2}"
                     display-mode></vue-latex>
                 <vue-latex expression="b=\bar{y} - a\bar{x}" display-mode></vue-latex>
-                <vue-latex expression="R^2=\frac{\left(\sum (x_i - \bar{x})(y_i - \bar{y})\right)^2}{\sum (x_i - \bar{x})²\sum (y_i - \bar{y})²}"
+                <vue-latex expression="R^2=\frac{\left(\sum (x_i - \bar{x})(y_i - \bar{y})\right)^2}{\sum (x_i - \bar{x})^2\sum (y_i - \bar{y})^2}"
                     display-mode></vue-latex>
             </li>
         </ul>

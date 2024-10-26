@@ -4,10 +4,9 @@
             <el-icon class="saveicon el-icon--right" @click="handleFileSave">
                 <folder-checked></folder-checked>
             </el-icon>
-            <el-icon class="saveicon el-icon--right" @click="triggerFileLoad">
+            <el-icon class="saveicon el-icon--right" @click="handleFileLoad">
                 <folder-opened></folder-opened>
             </el-icon>
-            <input type="file" @change="handleFileLoad" accept=".json" style="display: none;" ref="fileLoad">
             <span v-show="updateUrl !== null">
                 <a :href="updateUrl" target="_blank">
                     &nbsp;<img src="../assets/logo.jpg" alt="" style="width: 20pt; height: auto;"><sup>!</sup>
@@ -19,14 +18,30 @@
 <script setup>
 import { FolderChecked, FolderOpened } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import { ref, onMounted, watch } from 'vue'
-import { fetchLatestVersionUrl} from '../assets/versionTips.js';
+import { ref, watch } from 'vue'
+import { fetchLatestVersionUrl } from '../assets/versionTips.js';
+
+async function readUserConfig() {
+    const { readUserConfig } = await import('../../supplement/arrangeFile.js')
+    store.userConfig = readUserConfig()
+}
+
+async function saveStateOnExit(state, userConfig) {
+    const { saveStateOnExit } = await import('../../supplement/arrangeFile.js')
+    saveStateOnExit(state, userConfig)
+}
+
+async function openFile(state) {
+    const { openFile } = await import('../../supplement/arrangeFile.js')
+    openFile(state)
+}
 
 const store = useAllDataStore()
 
 const updateUrl = ref(null)
-// 示例调用
-fetchLatestVersionUrl()
+
+/**如有最新版本，获取最新版本的url */
+fetchLatestVersionUrl(store.userConfig.newVersionTips)
     .then((url) => {
         if (url !== null) {
             updateUrl.value = url
@@ -36,40 +51,33 @@ fetchLatestVersionUrl()
         console.error("Error handling result:", error);
     });
 
-async function readUserConfig() {
-    const { readUserConfig } = await import('../../supplement/arrangeFile.js')
-    store.userConfig = readUserConfig()
-}
-async function saveStateOnExit(state, userConfig) {
-    const { saveStateOnExit } = await import('../../supplement/arrangeFile.js')
-    saveStateOnExit(state, userConfig)
-}
+/**读取用户配置 */
+readUserConfig()
+    .then(() => {
+        console.log('read user config')
+        console.log(store.userConfig)
+    })
+    .catch((error) => {
+        console.error("Error reading user config:", error);
+    })
 
-async function openFile(event, state) {
-    const { openFile } = await import('../../supplement/arrangeFile.js')
-    openFile(event, state)
-}
+
+/**显式保存文件 */
 const handleFileSave = () => {
     saveStateOnExit(store.state, store.userConfig)
     ElMessage.success("文件已保存")
 }
-const fileLoad = ref(null)
-const triggerFileLoad = () => {
-    fileLoad.value.click()
-}
-const handleFileLoad = (event) => {
-    openFile(event, store.state)
-}
 
-onMounted(() => {
-    readUserConfig()
-})
+/**处理文件加载 */
+const handleFileLoad = () => {
+    openFile(store.state)
+}
 
 watch(store.state, (newState) => {
     console.log('detect change, save file')
     console.log(newState)
     if (store.userConfig.autoSaveFile) {
-        saveStateOnExit(newState, store.userConafig)
+        saveStateOnExit(newState, store.userConfig)
     }
 }, { deep: true })
 

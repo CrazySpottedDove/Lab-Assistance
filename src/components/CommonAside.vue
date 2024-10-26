@@ -2,7 +2,8 @@
     <div class="common-aside">
         <el-aside width="100%">
             <el-menu background-color="#626aef"
-                :default-openeds="['0-1', '0-2','0-3','0-4', '1', '1-1', '1-2', '2', '3']">
+                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '1', '1-1', '1-2', '2', '3']">
+                <!-- 用户配置 -->
                 <el-sub-menu index="0">
                     <template #title>
                         <el-icon style="color: gainsboro;">
@@ -16,11 +17,11 @@
                         </template>
                         <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === true }"
                             @click="handleChangeUserConfig('autoSaveFile', true)">自动保存</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === false}"
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === false }"
                             @click="handleChangeUserConfig('autoSaveFile', false)">手动保存</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === true}"
+                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === true }"
                             @click="handleChangeUserConfig('saveByDate', true)">按日期保存</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === false}"
+                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === false }"
                             @click="handleChangeUserConfig('saveByDate', false)">不按日期保存</el-menu-item>
                     </el-sub-menu>
                     <el-sub-menu index="0-2">
@@ -50,7 +51,17 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.framed === false }"
                             @click="handleChangeUserConfig('framed', false)">无</el-menu-item>
                     </el-sub-menu>
+                    <el-sub-menu index="0-5">
+                        <template #title>
+                            <span style="color: gainsboro!important;">推送新版本</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === true }"
+                            @click="handleChangeUserConfig('newVersionTips', true)">是</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === false }"
+                            @click="handleChangeUserConfig('newVersionTips', false)">否</el-menu-item>
+                    </el-sub-menu>
                 </el-sub-menu>
+                <!--  直接数据与间接数据-->
                 <el-sub-menu index="1">
                     <template #title>
                         <span style="color: gainsboro!important;">数据管理</span>
@@ -60,7 +71,7 @@
                             <span style="color: gainsboro!important;">直接数据</span>
                         </template>
                         <el-menu-item v-for="(item, index) of store.state.directDataList"
-                            @click="handleDirectDataSelection(index)"
+                            @click="handleSelect('directData', index)"
                             :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
@@ -68,12 +79,13 @@
                                 <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
                             </span>
                             <span>
-                                <el-icon @click.stop="handleDeleteDirectData(index)" class="deleteicon el-icon--right">
+                                <el-icon @click.stop="handleDelete('directData', index)"
+                                    class="deleteicon el-icon--right">
                                     <circle-close></circle-close>
                                 </el-icon>
                             </span>
                         </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAddDirectData()">
+                        <el-menu-item class="mybutton" @click="handleAdd('directData')">
                             添加数据
                         </el-menu-item>
                     </el-sub-menu>
@@ -82,72 +94,77 @@
                             <span style="color: gainsboro!important;">间接数据</span>
                         </template>
                         <el-menu-item v-for="(item, index) of store.state.indirectDataList"
-                            @click="handleIndirectDataSelection(index)"
-                            :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index}">
+                            @click="handleISelect('indirectData', index)"
+                            :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
                                     v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
                                 <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
                             </span>
                             <span>
-                                <el-icon @click.stop="handleDeleteIndirectData(index)"
+                                <el-icon @click.stop="handleDelete('indirectData', index)"
                                     class="deleteicon el-icon--right">
                                     <circle-close></circle-close>
                                 </el-icon>
                             </span>
                         </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAddIndirectData()">
+                        <el-menu-item class="mybutton" @click="handleAdd('indirectData')">
                             添加数据
                         </el-menu-item>
                     </el-sub-menu>
                 </el-sub-menu>
+                <!-- 制表 -->
                 <el-sub-menu index="2">
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX制表</span>
                     </template>
-                    <el-menu-item v-for="(table, index) of store.state.tableList" @click="handleTableSelection(index)"
+                    <el-menu-item v-for="(table, index) of store.state.tableList" @click="handleSelect('table', index)"
                         :class="{ 'selected': store.state.view.type === 'table' && store.state.view.index === index }">
                         表{{ index + 1 }}
                         <span style="width: 58%;"></span>
                         <span>
-                            <el-icon @click="handleDeleteTable(index)" class="deleteicon el-icon--right">
+                            <el-icon @click="handleDelete('table', index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
                     </el-menu-item>
-                    <el-menu-item class="mybutton" @click="handleAddTable()">
+                    <el-menu-item class="mybutton" @click="handleAdd('table')">
                         添加表格
                     </el-menu-item>
                 </el-sub-menu>
+                <!-- 制图 -->
                 <el-sub-menu index="3">
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX制图</span>
                     </template>
-                    <el-menu-item v-for="(graph, index) of store.state.graphList" @click="handleGraphSelection(index)"
+                    <el-menu-item v-for="(graph, index) of store.state.graphList" @click="handleSelect('graph', index)"
                         :class="{ 'selected': store.state.view.type === 'graph' && store.state.view.index === index }">
                         图{{ index + 1 }}
                         <span style="width: 58%;"></span>
                         <span>
-                            <el-icon @click="handleDeleteGraph(index)" class="deleteicon el-icon--right">
+                            <el-icon @click="handleDelete('graph', index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
                             </el-icon>
                         </span>
                     </el-menu-item>
-                    <el-menu-item class="mybutton" @click="handleAddGraph()">
+                    <el-menu-item class="mybutton" @click="handleAdd('graph')">
                         添加图
                     </el-menu-item>
                 </el-sub-menu>
-                <el-menu-item index="4" @click="handleSelectReadme"
-                    :class="{ 'selected': store.state.view.type === 'readme' }">使用指南</el-menu-item>
+                <!-- readme -->
+                <el-menu-item index="4" @click="handleSelect('readme')"
+                    :class="{ 'selected': store.state.view.type === 'readme' }">使用指南
+                </el-menu-item>
+                <!-- 参考 -->
                 <el-sub-menu index="5">
                     <template #title>
                         <span style="color: gainsboro!important;">参考</span>
                     </template>
-                    <el-menu-item index="5-1" @click="handleSelectNumberDoc"
+                    <el-menu-item index="5-1" @click="handleSelect('numberDoc')"
                         :class="{ 'selected': store.state.view.type === 'numberDoc' }">参考：有效数字</el-menu-item>
-                    <el-menu-item index="5-2" @click="handleSelectUncerDoc"
+                    <el-menu-item index="5-2" @click="handleSelect('uncerDoc')"
                         :class="{ 'selected': store.state.view.type === 'uncerDoc' }">参考：不确定度</el-menu-item>
-                    <el-menu-item index="5-3" @click="handleSelectPropertyDoc"
+                    <el-menu-item index="5-3" @click="handleSelect('propertyDoc')"
                         :class="{ 'selected': store.state.view.type === 'propertyDoc' }">参考：各项参数</el-menu-item>
                 </el-sub-menu>
             </el-menu>
@@ -159,7 +176,7 @@ import { CircleClose, Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import 'katex/dist/katex.css'
 // 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
-// 引入katex下的自动渲染函数
+
 async function saveUserConfig() {
     const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
     saveUserConfig(store.userConfig)
@@ -168,72 +185,29 @@ async function saveUserConfig() {
 const store = useAllDataStore()
 
 /**修改用户配置 */
-const handleChangeUserConfig = (key, value)=>{
+const handleChangeUserConfig = (key, value) => {
     store.userConfig[key] = value
     saveUserConfig()
 }
 
-const handleDirectDataSelection = (index) => {
-    store.Select.directData(index)
+/**处理选择事件 */
+const handleSelect = (key, index) => {
+    if (index === undefined) {
+        store.Select[key]()
+    } else {
+        store.Select[key](index)
+    }
 }
 
-const handleIndirectDataSelection = (index) => {
-    store.Select.indirectData(index)
+/**处理删除事件 */
+const handleDelete = (key, index) => {
+    store.Delete[key](index)
 }
 
-const handleTableSelection = (index) => {
-    store.Select.table(index)
+/**处理添加事件 */
+const handleAdd = (key) => {
+    store.Add[key]()
 }
-
-const handleGraphSelection = (index) => {
-    store.Select.graph(index)
-}
-
-const handleDeleteDirectData = (index) => {
-    store.Delete.directData(index)
-}
-
-const handleDeleteIndirectData = (index) => {
-    store.Delete.indirectData(index)
-}
-
-const handleDeleteTable = (index) => {
-    store.Delete.table(index)
-}
-const handleDeleteGraph = (index) => {
-    store.Delete.graph(index)
-}
-
-const handleAddDirectData = () => {
-    store.Add.directData()
-}
-const handleAddIndirectData = () => {
-    store.Add.indirectData()
-}
-const handleAddTable = () => {
-    store.Add.table()
-}
-const handleAddGraph = () => {
-    store.Add.graph()
-}
-
-const handleSelectReadme = () => {
-    store.Select.readme()
-}
-
-const handleSelectNumberDoc = () => {
-    store.Select.numberDoc()
-}
-
-const handleSelectUncerDoc = () => {
-    store.Select.uncerDoc()
-}
-
-const handleSelectPropertyDoc = () => {
-    store.Select.propertyDoc()
-}
-
-
 
 </script>
 <style lang="less" scoped>
