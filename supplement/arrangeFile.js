@@ -26,18 +26,21 @@ function checkConfig(configData){
     if(configData.saveByDate === undefined){
         configData.saveByDate = true
     }
+    return configData
 }
 // 读取用户配置文件
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {
-		let configData = JSON.parse(fs.readFileSync(configFilePath, "utf-8"));
-        return checkConfig(configData);
+		let configData = checkConfig(JSON.parse(fs.readFileSync(configFilePath, "utf-8")));
+        return configData;
 	} else {
 		fs.mkdirSync(configDir, { recursive: true });
 		const initConfig = {
 			autoSaveFile: true,
 			language: "chinese",
-            directDataLevelRule:'unified'
+			directDataLevelRule: "unified",
+			framed: false,
+			saveByDate: true,
 		};
 		const jsonContent = initConfig;
 		fs.writeFileSync(configFilePath, jsonContent, "utf-8");

@@ -1082,6 +1082,7 @@ export const useAllDataStore = defineStore("allData", () => {
 
 	return {
 		state,
+		userConfig,
 		Delete,
 		Add,
 		Select,
@@ -1091,7 +1092,6 @@ export const useAllDataStore = defineStore("allData", () => {
 		evaluateLine,
 		evaluateSquare,
 		errorMode,
-		userConfig,
 		rely,
 	};
 });

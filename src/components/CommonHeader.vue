@@ -40,9 +40,9 @@ async function readUserConfig() {
     const { readUserConfig } = await import('../../supplement/arrangeFile.js')
     store.userConfig = readUserConfig()
 }
-async function saveStateOnExit(state) {
+async function saveStateOnExit(state, userConfig) {
     const { saveStateOnExit } = await import('../../supplement/arrangeFile.js')
-    saveStateOnExit(state)
+    saveStateOnExit(state, userConfig)
 }
 
 async function openFile(event, state) {
@@ -50,7 +50,7 @@ async function openFile(event, state) {
     openFile(event, state)
 }
 const handleFileSave = () => {
-    saveStateOnExit(store.state)
+    saveStateOnExit(store.state, store.userConfig)
     ElMessage.success("文件已保存")
 }
 const fileLoad = ref(null)
@@ -69,7 +69,7 @@ watch(store.state, (newState) => {
     console.log('detect change, save file')
     console.log(newState)
     if (store.userConfig.autoSaveFile) {
-        saveStateOnExit(newState)
+        saveStateOnExit(newState, store.userConafig)
     }
 }, { deep: true })
 

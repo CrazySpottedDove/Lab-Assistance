@@ -1,8 +1,8 @@
 import { ElMessage } from "element-plus";
 
-async function saveStateOnExit(state) {
+async function saveStateOnExit(state, userConfig) {
 	const { saveStateOnExit } = await import("../../supplement/arrangeFile.js");
-	saveStateOnExit(state);
+	saveStateOnExit(state, userConfig);
 }
 
 async function openFile(event, state) {
@@ -148,7 +148,7 @@ function handleKeyDown(event, store) {
 		switch (event.key) {
 			case "s":
 				event.preventDefault();
-				saveStateOnExit(store.state);
+				saveStateOnExit(store.state, store.userConfig);
 				ElMessage.success("文件已保存");
 				return;
 			case "o":
