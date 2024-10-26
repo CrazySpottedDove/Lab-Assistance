@@ -40,16 +40,6 @@ const store = useAllDataStore()
 
 const updateUrl = ref(null)
 
-/**如有最新版本，获取最新版本的url */
-fetchLatestVersionUrl(store.userConfig.newVersionTips)
-    .then((url) => {
-        if (url !== null) {
-            updateUrl.value = url
-        }
-    })
-    .catch((error) => {
-        console.error("Error handling result:", error);
-    });
 
 /**读取用户配置 */
 readUserConfig()
@@ -60,7 +50,18 @@ readUserConfig()
     .catch((error) => {
         console.error("Error reading user config:", error);
     })
-
+    .finally(() => {
+        /**如有最新版本，获取最新版本的url */
+        fetchLatestVersionUrl(store.userConfig.newVersionTips)
+            .then((url) => {
+                if (url !== null) {
+                    updateUrl.value = url
+                }
+            })
+            .catch((error) => {
+                console.error("Error handling result:", error);
+            });
+    })
 
 /**显式保存文件 */
 const handleFileSave = () => {

@@ -6,6 +6,7 @@ async function fetchLatestVersionUrl(newVersionTips) {
 		"https://api.github.com/repos/CrazySpottedDove/Lab-Assistance/releases/latest";
 
 	try {
+        console.log(newVersionTips)
         if(!newVersionTips){
             return null
         }
