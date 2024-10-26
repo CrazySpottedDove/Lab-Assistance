@@ -9,20 +9,29 @@ const configDir = path.join(__dirname, "../user/config");
 const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
 let tmpname = "";
 
+/**检查config完整性并补全 */
+function checkConfig(configData){
+    if (configData.language === undefined) {
+		configData.language = "chinese";
+	}
+	if (configData.directDataLevelRule === undefined) {
+		configData.directDataLevelRule = "unified";
+	}
+	if (configData.autoSaveFile === undefined) {
+		configData.autoSaveFile = true;
+	}
+	if (configData.framed === undefined) {
+		configData.framed = false;
+	}
+    if(configData.saveByDate === undefined){
+        configData.saveByDate = true
+    }
+}
 // 读取用户配置文件
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {
 		let configData = JSON.parse(fs.readFileSync(configFilePath, "utf-8"));
-		if(!configData.language){
-            configData.language = 'chinese'
-        }
-        if(!configData.directDataLevelRule){
-            configData.directDataLevelRule = 'unified'
-        }
-        if(!configData.autoSaveFile){
-            configData.autoSaveFile = true
-        }
-        return configData;
+        return checkConfig(configData);
 	} else {
 		fs.mkdirSync(configDir, { recursive: true });
 		const initConfig = {
@@ -73,7 +82,7 @@ function generateFileName(state) {
 }
 
 // 保存文件
-function saveStateOnExit(state) {
+function saveStateOnExit(state, userConfig) {
     if(state.directDataList.length === 0 && state.indirectDataList.length === 0 && tmpname === ''){
         return
     }
@@ -86,7 +95,7 @@ function saveStateOnExit(state) {
         .getDate()
         .toString()
         .padStart(2, "0")}`;
-    const saveDir = path.join(__dirname, `../user/data/${formattedDate}`);
+    const saveDir = userConfig.saveByDate ? path.join(__dirname, `../user/data/${formattedDate}`) : path.join(__dirname, '../user/data');
 
     // 如果目录不存在，则创建目录
     if (!fs.existsSync(saveDir)) {

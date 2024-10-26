@@ -44,6 +44,8 @@ export const useAllDataStore = defineStore("allData", () => {
 					autoSaveFile: true,
 					language: "chinese",
 					directDataLevelRule: "unified",
+                    framed: false,
+                    saveByDate: true
 				};
 			},
 
@@ -131,7 +133,7 @@ export const useAllDataStore = defineStore("allData", () => {
 				return {
 					tableContent: "",
 					tableTitleContent: "",
-					tableFramed: false,
+					tableFramed: userConfig.value.framed,
 					dataValue1: [],
 					dataValueN: [],
 				};
@@ -140,7 +142,7 @@ export const useAllDataStore = defineStore("allData", () => {
 			/**返回初始化图 */
 			graph: function () {
 				return {
-					graphFramed: false,
+					graphFramed: userConfig.value.framed,
 					singleGraphs: [
 						{
 							graphData: "",

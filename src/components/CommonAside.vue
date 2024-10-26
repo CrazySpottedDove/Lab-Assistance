@@ -1,7 +1,8 @@
 <template>
     <div class="common-aside">
         <el-aside width="100%">
-            <el-menu background-color="#626aef" :default-openeds="['0-1', '0-2','0-3', '1', '1-1', '1-2', '2', '3']">
+            <el-menu background-color="#626aef"
+                :default-openeds="['0-1', '0-2','0-3','0-4', '1', '1-1', '1-2', '2', '3']">
                 <el-sub-menu index="0">
                     <template #title>
                         <el-icon style="color: gainsboro;">
@@ -13,28 +14,41 @@
                         <template #title>
                             <span style="color: gainsboro!important;">文件保存策略</span>
                         </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile }"
-                            @click="handleChangeAutoSaveFile(true)">自动保存</el-menu-item>
-                        <el-menu-item :class="{ 'selected': !store.userConfig.autoSaveFile }"
-                            @click="handleChangeAutoSaveFile(false)">手动保存</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === true }"
+                            @click="handleChangeUserConfig('autoSaveFile', true)">自动保存</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === false}"
+                            @click="handleChangeUserConfig('autoSaveFile', false)">手动保存</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === true}"
+                            @click="handleChangeUserConfig('saveByDate', true)">按日期保存</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === false}"
+                            @click="handleChangeUserConfig('saveByDate', false)">不按日期保存</el-menu-item>
                     </el-sub-menu>
                     <el-sub-menu index="0-2">
                         <template #title>
                             <span style="color: gainsboro!important;">输出语言</span>
                         </template>
                         <el-menu-item :class="{ 'selected': store.userConfig.language === 'chinese' }"
-                            @click="handleChangeLanguage('chinese')">中文</el-menu-item>
+                            @click="handleChangeUserConfig('language', 'chinese')">中文</el-menu-item>
                         <el-menu-item :class="{ 'selected': store.userConfig.language === 'english' }"
-                            @click="handleChangeLanguage('english')">英文</el-menu-item>
+                            @click="handleChangeUserConfig('language', 'english')">英文</el-menu-item>
                     </el-sub-menu>
                     <el-sub-menu index="0-3">
                         <template #title>
                             <span style="color: gainsboro!important;">直接数据精度规则</span>
                         </template>
                         <el-menu-item :class="{ 'selected': store.userConfig.directDataLevelRule === 'unified' }"
-                            @click="handleChangeLevelRule('unified')">统一精度</el-menu-item>
+                            @click="handleChangeUserConfig('directDataLevelRule', 'unified')">统一精度</el-menu-item>
                         <el-menu-item :class="{ 'selected': store.userConfig.directDataLevelRule === 'nonUnified' }"
-                            @click="handleChangeLevelRule('nonUnified')">不统一精度</el-menu-item>
+                            @click="handleChangeUserConfig('directDataLevelRule', 'nonUnified')">不统一精度</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-4">
+                        <template #title>
+                            <span style="color: gainsboro!important;">图表边框</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.framed === true }"
+                            @click="handleChangeUserConfig('framed', true)">有</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.framed === false }"
+                            @click="handleChangeUserConfig('framed', false)">无</el-menu-item>
                     </el-sub-menu>
                 </el-sub-menu>
                 <el-sub-menu index="1">
@@ -45,7 +59,8 @@
                         <template #title>
                             <span style="color: gainsboro!important;">直接数据</span>
                         </template>
-                        <el-menu-item v-for="(item, index) of store.state.directDataList" @click="handleDirectDataSelection(index)"
+                        <el-menu-item v-for="(item, index) of store.state.directDataList"
+                            @click="handleDirectDataSelection(index)"
                             :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
@@ -152,23 +167,12 @@ async function saveUserConfig() {
 
 const store = useAllDataStore()
 
-//修改配置文件中的保存选项
-const handleChangeAutoSaveFile = (flag) => {
-    store.userConfig.autoSaveFile = flag
+/**修改用户配置 */
+const handleChangeUserConfig = (key, value)=>{
+    store.userConfig[key] = value
     saveUserConfig()
 }
 
-// 修改配置文件中的语言选项
-const handleChangeLanguage = (language) => {
-    store.userConfig.language = language
-    saveUserConfig()
-}
-
-/**修改配置文件中的直接数据精度规则 */
-const handleChangeLevelRule = (levelRule) => {
-    store.userConfig.directDataLevelRule = levelRule
-    saveUserConfig()
-}
 const handleDirectDataSelection = (index) => {
     store.Select.directData(index)
 }
