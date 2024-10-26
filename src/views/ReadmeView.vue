@@ -33,6 +33,7 @@ const store = useAllDataStore()
             <li><em>输出语言</em>： 决定了制表和制图时一些默认注释的语言。</li>
             <li><em>直接数据精度规则</em>：决定了直接数据默认的精度规则。</li>
             <li><em>图表边框</em>： 决定了制作图表时默认 带/不带 边框。</li>
+            <li><em>推送新版本</em>：如果为“是”，当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</li>
             <li>所有设置被保存在 package.nw（mac 用户为 app.nw）同级目录 user 下的 config 目录中。</li>
         </ul>
         <h2><span class="formula">LaTeX</span> 制表</h2>
@@ -69,8 +70,6 @@ const store = useAllDataStore()
             <li>Tab : 页面中选择下一选项</li>
             <li>Shift + Tab : 页面中选择上一选项</li>
         </ul>
-        <h2>更新</h2>
-        <p>当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</p>
     </div>
 </template>
 <style lang="less" scoped>
