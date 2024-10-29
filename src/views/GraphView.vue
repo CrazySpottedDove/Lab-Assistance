@@ -367,7 +367,7 @@ const handleGraphUpdate = () => {
                             <span style="width: 1%;"></span>
                             <el-select style="width: 32%;text-align: center;min-width: 5.5em"
                                 v-model="singleGraph.xDataId" @change="handleGraphQuietUpdate">
-                                <template #label="{label}">
+                                <template #label="{ label }">
                                     <vue-latex :expression="label" style="font-size: small;"></vue-latex>
                                 </template>
                                 <el-option v-for="xDataOption in xDataOptionList" :key="xDataOption.value"
@@ -410,17 +410,17 @@ const handleGraphUpdate = () => {
                 <el-card shadow="hover">
                     <div class="equipment" style="font-size: 15pt;font-weight: bold;"
                         v-if="singleGraph.graphOption === 'line'">
-                        拟合结果：{{ 'y = ' + singleGraph.graphData.slope + ' x ' + (singleGraph.graphData.intercept[0] ===
-                        '-' ? '' : '+')
-                        + singleGraph.graphData.intercept + ' ' + ',' + ' R² = ' + singleGraph.graphData.rSquared }}
+                        拟合结果：
+                        <vue-latex
+                            :expression="`y=${dataFormat(singleGraph.graphData.slope)} x${(singleGraph.graphData.intercept[0] === '-' ? '' : '+')}${dataFormat(singleGraph.graphData.intercept)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
+                        </vue-latex>
                     </div>
                     <div class="equipment" style="font-size: 15pt;font-weight: bold;"
                         v-if="singleGraph.graphOption === 'square'">
-                        拟合结果：{{ 'y = ' + singleGraph.graphData.a + ' x² ' + (singleGraph.graphData.b[0] === '-' ? '' :
-                        '+ ') +
-                        singleGraph.graphData.b + ' x ' + (singleGraph.graphData.c[0] === '-' ? '' : '+ ') +
-                        singleGraph.graphData.c
-                        + ' , R² = ' + singleGraph.graphData.rSquared }}
+                        拟合结果：
+                        <vue-latex
+                            :expression="`y=${dataFormat(singleGraph.graphData.a)} x^2${singleGraph.graphData.b[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.b)} x${singleGraph.graphData.c[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.c)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
+                        </vue-latex>
                     </div>
                 </el-card>
             </div>

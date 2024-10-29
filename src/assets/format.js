@@ -1,4 +1,3 @@
-
 const greekLetters = {
 	α: "\\alpha ",
 	β: "\\beta ",
@@ -51,6 +50,7 @@ const precedence = {
     "+": 1,
     "-": 1,
     "*": 2,
+    "CROSS":2,
     "/": 2,
     "^": 3,
     "abs": 4,
@@ -62,7 +62,7 @@ const precedence = {
 
 // 判断是否是运算符
 function isOperator(token) {
-    return ["+", "-", "*", "/", "^", "abs", "ln", "lg", "NEG", "sqrt"].includes(token)
+    return ["+", "-", "*", "/", "^", "abs", "ln", "lg", "NEG", "sqrt", "CROSS"].includes(token)
 }
 
 // 判断是否是一元运算符
@@ -82,7 +82,7 @@ function tokenize(expression) {
     // [()+\-*/^]     匹配运算符和括号
     // [^()+\-*/^ ]+  匹配非运算符、非括号、非空格的其他字符
     // 全局模式 'g' 保证找到所有匹配项
-    const regex = /abs|ln|lg|NEG|sqrt|[()+\-*/^]|[^()+\-*/^ ]+/g;
+    const regex = /abs|ln|lg|NEG|sqrt|CROSS|[()+\-*/^]|[^()+\-*/^ ]+/g;
 
     // 返回所有匹配的 token 数组
     return expression.match(regex);
@@ -158,8 +158,22 @@ function constructExpressionTree(postfixTokens) {
 }
 
 function processExpressionTree(node) {
+    if(!node){
+        return ''
+    }
     if (!node.left && !node.right) {
         return `${node.value}`
+    }
+
+    if(isUnaryOperator(node.value)){
+        if(!node.left){
+            return `${node.value}`
+        }
+    }
+    else{
+        if(!node.left || !node.right){
+            return `${node.value}`
+        }
     }
 
     const leftValue = node.left ? processExpressionTree(node.left) : '';
@@ -177,9 +191,14 @@ function processExpressionTree(node) {
             let centerOperator = ''
             let left = `${leftValue}`
             let right = `${rightValue}`
-            if (!isNaN(Number(rightValue[0]))) {
-                centerOperator = '\\cdot'
-            }
+            if (
+				!isNaN(Number(rightValue[0])) ||
+				(rightValue[1] &&
+					rightValue[0] === "{" &&
+					!isNaN(Number(rightValue[1])))
+			) {
+				centerOperator = "\\cdot";
+			}
             if (node.left.value === '+' || node.left.value === '-') {
                 left = `\\left( ${left} \\right)`
             }
@@ -187,6 +206,8 @@ function processExpressionTree(node) {
                 right = `\\left( ${right} \\right)`
             }
             return `${left} ${centerOperator} ${right}`
+        case 'CROSS':
+            return `${leftValue} \\times ${rightValue}`
         case "/":
             return `\\frac{${leftValue}}{${rightValue}}`
         case "^":
@@ -251,11 +272,11 @@ function unitFormat(str){
 
 // 注释区格式
 function commentFormat(str, dataList){
-    if (str === "") {
+	if (str === "") {
 		return str;
 	}
 
-	// 保护变量名
+	/**保护变量名 */
 	function protectTitle(input) {
 		// 按照给定的符号和函数名称进行部分替换
 		let result = titleFormat(input)
@@ -273,7 +294,7 @@ function commentFormat(str, dataList){
 		return result;
 	}
 
-	// 还原变量名
+	/**还原变量名 */
 	function restoreTitle(input) {
 		// 按照相反的顺序替换，确保先替换函数和运算符名再替换单字符符号
 		let result = input
@@ -291,6 +312,15 @@ function commentFormat(str, dataList){
 
 		return result;
 	}
+
+	/**检测并处理科学计数法 */
+	function handleScientificNotation(input) {
+		return input.replace(/(\d+(\.\d*)?)e(-?\d+)/gi, (match, p1, p2, p3) => {
+			return `(${p1} CROSS 10^(${p3}))`; // 转换为 (${p1}*10^(${p3})) 形式
+		});
+	}
+
+    str = handleScientificNotation(str);
 
 	// 实现保护变量名
 	dataList.forEach((item) => {
@@ -321,8 +351,6 @@ function dataFormat(str){
 		// 正则表达式匹配科学计数法
 		const scientificRegex = /^([-+]?\d+(\.\d+)?)([eE][-+]?\d+)%?$/;
 		const match = str.match(scientificRegex);
-        console.log(str)
-        console.log(match)
 		if (match) {
 			// 分解匹配结果
 			const base = match[1]; // 基数部分

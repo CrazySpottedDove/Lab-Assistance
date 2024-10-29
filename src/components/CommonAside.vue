@@ -94,7 +94,7 @@
                             <span style="color: gainsboro!important;">间接数据</span>
                         </template>
                         <el-menu-item v-for="(item, index) of store.state.indirectDataList"
-                            @click="handleISelect('indirectData', index)"
+                            @click="handleSelect('indirectData', index)"
                             :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
