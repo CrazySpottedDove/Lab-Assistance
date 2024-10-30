@@ -198,7 +198,7 @@ function updateCurrentGraph(mode) {
             if (selectedGraph.singleGraphs[i].xDataId === -1) {
                 xDataSet = []
                 for (let i = 1; i <= yDataSet.length; i++) {
-                    xDataSet.push({ rawData: i, bit: 100 })
+                    xDataSet.push({ rawData: i, bit: 70 })
                 }
                 xUnit = ''
                 xTitle = '序号'
