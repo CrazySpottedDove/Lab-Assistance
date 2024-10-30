@@ -582,8 +582,8 @@ export const useAllDataStore = defineStore("allData", () => {
 				(selectedType === "indirect" &&
 					selectedList.computeOption === "forAll")
 			) {
-				let dataMaxLevel = -100;
-				let dataMinLevel = 100;
+				let dataMaxLevel = -70;
+				let dataMinLevel = 70;
 				let sum = "0";
 				if (length !== 0) {
 					selectedDataSet.forEach((item) => {
@@ -615,8 +615,8 @@ export const useAllDataStore = defineStore("allData", () => {
 								break;
 							case "precise":
 								selectedDataSet.forEach((item) => {
-									item.bit = 100;
-									item.level = -100;
+									item.bit = 70;
+									item.level = -70;
 								});
 								break;
 							default:
@@ -880,9 +880,6 @@ export const useAllDataStore = defineStore("allData", () => {
 			return;
 		}
 
-		// 初始化结果数据集变量
-		let resultDataSet;
-
 		// 合并直接数据和间接数据列表，以便进行统一处理
 		let dataList = [
 			...state.value.directDataList,
@@ -890,35 +887,22 @@ export const useAllDataStore = defineStore("allData", () => {
 		];
 
 		// 根据计算选项执行相应的计算操作
-		if (selectedList.computeOption === "forAll") {
-			resultDataSet = evaluateExpression(
-				dataList,
-				selectedList.computeMethod,
-				"forAll",
-				selectedList.title,
-				Number(selectedList.multiplier)
-			);
-			// 数值计算
-		} else if (selectedList.computeOption === "forAvg") {
-			resultDataSet = evaluateExpression(
-				dataList,
-				selectedList.computeMethod,
-				"forAvg",
-				selectedList.title,
-				Number(selectedList.multiplier)
-			);
-			// 数值计算
-		}
+        selectedList.dataSet = evaluateExpression(
+			dataList,
+			selectedList.computeMethod,
+			selectedList.computeOption,
+			selectedList.title,
+			Number(selectedList.multiplier)
+		)
 
 		// 间接数据按照不确定度保留时
 		if (selectedList.dataMethod) {
-			resultDataSet.forEach((item) => {
+			selectedList.dataSet.forEach((item) => {
 				item.rawData = errorMode(item.rawData);
 			});
 		}
 
-		// 更新选中列表的数据集和整体不确定性
-		selectedList.dataSet = resultDataSet;
+		// 更新选中列表的不确定性
 		selectedList.moreUncer.wholeUncer = evaluateUncer(
 			dataList,
 			selectedList.computeMethod,
@@ -964,11 +948,11 @@ export const useAllDataStore = defineStore("allData", () => {
 	 * @returns {Object} 返回一个对象，包含斜率、截距和决定系数等线性回归参数
 	 */
 	function evaluateLine(xDataSet, yDataSet) {
-		// 初始化x和y数据集的最大bit值为-100，这是一个任意的小数值，确保任何真实数据都会比它大
-		let xbit = -100;
-		let ybit = -100;
-		// 初始化y数据集的最小level值为-100，用于后续的比较
-		let yLevel = -100;
+		// 初始化x和y数据集的最大bit值为-70，这是一个任意的小数值，确保任何真实数据都会比它大
+		let xbit = -70;
+		let ybit = -70;
+		// 初始化y数据集的最小level值为-70，用于后续的比较
+		let yLevel = -70;
 
 		// 遍历x数据集，找出最大的bit值
 		xDataSet.forEach((item) => {
@@ -1025,10 +1009,10 @@ export const useAllDataStore = defineStore("allData", () => {
 	 * @returns {Object} 计算得到的二次最小二乘法结果，包括a、b、c系数和R平方值
 	 */
 	function evaluateSquare(xDataSet, yDataSet) {
-		// 初始化X轴和Y轴的最大bit值为-100，Y轴的最小level值为-100
-		let xbit = -100;
-		let ybit = -100;
-		let yLevel = -100;
+		// 初始化X轴和Y轴的最大bit值为-70，Y轴的最小level值为-70
+		let xbit = -70;
+		let ybit = -70;
+		let yLevel = -70;
 
 		// 找出X轴数据集中的最大bit值
 		xDataSet.forEach((item) => {

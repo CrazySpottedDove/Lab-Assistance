@@ -3,7 +3,7 @@ import { useAllDataStore } from '../assets/stores';
 import { computed, ref, nextTick, watch } from 'vue';
 import { CircleClose, FirstAidKit } from '@element-plus/icons-vue';
 // Never import { expression } from 'mathjs';
-import { commentFormat } from '../assets/format'
+import { commentFormat, dataFormat } from '../assets/format'
 const store = useAllDataStore()
 const viewType = computed(() => store.state.view.type)
 const viewIndex = computed(() => store.state.view.index)
@@ -142,7 +142,6 @@ const querySearch = (queryString, cb) => {
 }
 
 const handleSuggestionSelect = (item) => {
-    console.log(selectedData.value.computeMethod.slice(0, strStartIndex.value))
     selectedData.value.computeMethod = selectedData.value.computeMethod.slice(0, strStartIndex.value) + item
     inputComputeMethod.value = selectedData.value.computeMethod
 }
@@ -327,6 +326,9 @@ const handleSuggestionSelect = (item) => {
             <el-table :data="viewIndex >= 0 ? Object.values(selectedData.analysis) : []">
                 <el-table-column v-for="(property, index) in propertyLabel" :key="index" :prop="property.prop"
                     :label="property.label" align="center">
+                    <template #default="scope">
+                        <vue-latex :expression="dataFormat(scope.row[property.prop])" style="font-size: small;"></vue-latex>
+                    </template>
                 </el-table-column>
             </el-table>
         </el-card>

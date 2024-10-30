@@ -1,4 +1,4 @@
-const currentVersion = "v1.2.0";
+const currentVersion = "v1.2.1";
 
 async function fetchLatestVersionUrl(newVersionTips) {
 	// 定义GitHub仓库的API URL
