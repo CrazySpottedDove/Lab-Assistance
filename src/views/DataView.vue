@@ -120,7 +120,7 @@ watch(selectedData, () => {
     }
 }, { deep: true })
 const querySearch = (queryString, cb) => {
-    const titleList = [...store.state.directDataList.map(item => item.title), ...store.state.indirectDataList.map(item => item.title)]
+    const titleList = [...(store.state.directDataList.map(item => item.title)), ...(store.state.indirectDataList.map(item => item.title))]
     strStartIndex.value = queryString.length - 1
     const operators = '+-*/^()|'
     selectedData.value.computeMethod = queryString
@@ -142,6 +142,9 @@ const querySearch = (queryString, cb) => {
 }
 
 const handleSuggestionSelect = (item) => {
+    if(typeof item === 'object'){
+        return
+    }
     selectedData.value.computeMethod = selectedData.value.computeMethod.slice(0, strStartIndex.value) + item
     inputComputeMethod.value = selectedData.value.computeMethod
 }

@@ -1006,14 +1006,14 @@ function evaluateExpression(
 		sortedDataList.forEach((item) => {
 			if (item.title !== currentTitle) {
 				variables[item.title] = escapeVariableName(item.title);
-				parser.set(escapeVariableName(item.title), item.dataSet);
+				parser.set(variables[item.title], item.dataSet);
 			}
 		});
 	} else if (option === "forAvg") {
-		dataList.forEach((item) => {
+		sortedDataList.forEach((item) => {
 			if (item.title !== currentTitle) {
 				variables[item.title] = escapeVariableName(item.title);
-				parser.set(escapeVariableName(item.title), [
+				parser.set(variables[item.title], [
 					{
 						rawData: item.rawData,
 						level: getLevel(item.rawData),

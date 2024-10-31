@@ -886,6 +886,7 @@ export const useAllDataStore = defineStore("allData", () => {
 			...state.value.indirectDataList,
 		];
 
+        console.log(selectedList)
 		// 根据计算选项执行相应的计算操作
         selectedList.dataSet = evaluateExpression(
 			dataList,
