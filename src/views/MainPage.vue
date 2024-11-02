@@ -1,5 +1,5 @@
 <script setup>
-
+import 'katex/dist/katex.css'
 import DataView from './DataView.vue';
 import TableView from './TableView.vue';
 import GraphView from './GraphView.vue';

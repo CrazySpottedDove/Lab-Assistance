@@ -76,7 +76,7 @@
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
                                     v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
-                                <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
+                                <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
                                 <el-icon @click.stop="handleDelete('directData', index)"
@@ -99,7 +99,7 @@
                             <span style="width: 120px;">
                                 <el-input v-model="item.title"
                                     v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
-                                <vue-latex class="sidetitle" :expression="item.title" v-else></vue-latex>
+                                <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
                                 <el-icon @click.stop="handleDelete('indirectData', index)"
@@ -116,7 +116,7 @@
                 <!-- 制表 -->
                 <el-sub-menu index="2">
                     <template #title>
-                        <span style="color: gainsboro!important;">LaTeX制表</span>
+                        <span style="color: gainsboro!important;">LaTeX 制表</span>
                     </template>
                     <el-menu-item v-for="(table, index) of store.state.tableList" @click="handleSelect('table', index)"
                         :class="{ 'selected': store.state.view.type === 'table' && store.state.view.index === index }">
@@ -135,7 +135,7 @@
                 <!-- 制图 -->
                 <el-sub-menu index="3">
                     <template #title>
-                        <span style="color: gainsboro!important;">LaTeX制图</span>
+                        <span style="color: gainsboro!important;">LaTeX 制图</span>
                     </template>
                     <el-menu-item v-for="(graph, index) of store.state.graphList" @click="handleSelect('graph', index)"
                         :class="{ 'selected': store.state.view.type === 'graph' && store.state.view.index === index }">
@@ -174,7 +174,7 @@
 <script setup>
 import { CircleClose, Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
-import 'katex/dist/katex.css'
+import { titleFormat } from '../assets/format.js';
 // 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
 
 async function saveUserConfig() {

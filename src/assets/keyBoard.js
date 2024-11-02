@@ -161,9 +161,8 @@ function handleKeyDown(event, store) {
 	}
 
 	// ctrl
+	let view = store.state.view;
 	if (event.ctrlKey) {
-		console.log("ctrl");
-		let view = store.state.view;
 		switch (event.key) {
 			case "s":
 				event.preventDefault();
@@ -172,7 +171,7 @@ function handleKeyDown(event, store) {
 				return;
 			case "o":
 				event.preventDefault();
-				openFile(store.state)
+				openFile(store.state);
 				return;
 			case "d":
 				event.preventDefault();
@@ -207,7 +206,12 @@ function handleKeyDown(event, store) {
 						return;
 				}
 				return;
-			case "ArrowDown":
+		}
+	}
+
+	if (event.altKey) {
+		switch (event.key) {
+			case "s":
 				event.preventDefault();
 				switch (view.type) {
 					case "directData":
@@ -261,7 +265,7 @@ function handleKeyDown(event, store) {
 						return;
 				}
 				return;
-			case "ArrowUp":
+			case "w":
 				switch (view.type) {
 					case "graph":
 						if (view.index > 0) {

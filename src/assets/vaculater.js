@@ -1,6 +1,6 @@
 import { calc } from "a-calc";
 import { ElMessage } from "element-plus";
-import { create, all, typed } from "mathjs";
+import { create, all, typed, cos, atan, acos } from "mathjs";
 
 const config = {
 	// 可以选择在这里添加其他配置，如处理大数等
@@ -11,6 +11,7 @@ const valueMath = create(all, config);
 const uncerMath = create(all, config);
 // 导入自定义运算
 
+/**检查错误情况的方法类 */
 class Check {
 	static bothEmptyArray(len1, len2) {
 		if (len1 === 0 && len2 === 0) {
@@ -69,9 +70,17 @@ class Check {
 			throw new Error("不能对负数取非整数次方！");
 		}
 	}
-}
-// 检查错误情况的静态方法类
 
+	/**检查asin或acos的参数范围是否在-1到1之间 */
+	static invalidAsinOrAcos(angle) {
+		if (angle < -1 || angle > 1) {
+			ElMessage.error("参数范围必须在-1到1之间！");
+			throw new Error("参数范围必须在-1到1之间！");
+		}
+	}
+}
+
+/**valueMath的单个数据计算方法类 */
 class ValueCalc {
 	static createObj(tmpBit, tmpLevel, tmpRawData) {
 		return {
@@ -276,6 +285,66 @@ class ValueCalc {
 		}
 	}
 
+	static sin(x) {
+		if (typeof x === "number") {
+			return Math.sin(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.sin(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
+	static cos(x) {
+		if (typeof x === "number") {
+			return Math.cos(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.cos(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
+	static tan(x) {
+		if (typeof x === "number") {
+			return Math.tan(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.tan(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
+	static asin(x) {
+		if (typeof x === "number") {
+			return Math.asin(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.asin(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
+	static acos(x) {
+		if (typeof x === "number") {
+			return Math.acos(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.acos(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
+	static atan(x) {
+		if (typeof x === "number") {
+			return Math.atan(x);
+		}
+		let tmpBit = x.bit;
+		let tmpRawData = String(Math.atan(Number(x.rawData)));
+		let tmpLevel = bitToLevel(tmpRawData, tmpBit);
+		return ValueCalc.createObj(tmpBit, tmpLevel, tmpRawData);
+	}
+
 	static unaryMinus(x) {
 		if (typeof x === "object") {
 			let tmpLevel = x.level;
@@ -287,7 +356,6 @@ class ValueCalc {
 		}
 	}
 }
-// valueMath的单位计算静态方法类
 
 function bitToLevel(str, bit) {
 	let stdStr = standardByBit(str, bit);
@@ -626,6 +694,94 @@ valueMath.import(
 				return ValueCalc.unaryMinus(num);
 			},
 		}),
+		sin: typed("sin", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					result.push(ValueCalc.sin(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				return ValueCalc.sin(num);
+			},
+		}),
+		cos: typed("cos", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					result.push(ValueCalc.cos(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				return ValueCalc.cos(num);
+			},
+		}),
+		tan: typed("tan", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					result.push(ValueCalc.tan(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				return ValueCalc.tan(num);
+			},
+		}),
+		asin: typed("asin", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					Check.invalidAsinOrAcos(Number(item.rawData));
+					result.push(ValueCalc.asin(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				Check.invalidAsinOrAcos(num);
+				return ValueCalc.asin(num);
+			},
+		}),
+		acos: typed("acos", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					Check.invalidAsinOrAcos(Number(item.rawData));
+					result.push(ValueCalc.acos(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				Check.invalidAsinOrAcos(num);
+				return ValueCalc.acos(num);
+			},
+		}),
+		atan: typed("atan", {
+			Array: function (arr) {
+				let length = arr.length;
+				Check.emptyArray(length);
+				let result = [];
+				arr.forEach((item) => {
+					result.push(ValueCalc.atan(item));
+				});
+				return result;
+			},
+			number: function (num) {
+				return ValueCalc.atan(num);
+			},
+		}),
 	},
 	{ override: true }
 );
@@ -889,6 +1045,108 @@ uncerMath.import(
 				};
 			},
 		}),
+		sin: typed("sin", {
+			Object: function (obj) {
+				return {
+					data: String(Math.sin(Number(obj.data))),
+					uncer: calc(
+						`${obj.uncer} * ${Math.abs(Math.cos(Number(obj.data)))}`
+					),
+				};
+			},
+			number: function (num) {
+				return {
+					data: String(Math.sin(num)),
+					uncer: "0",
+				};
+			},
+		}),
+		cos: typed("cos", {
+			Object: function (obj) {
+				return {
+					data: String(Math.cos(Number(obj.data))),
+					uncer: calc(
+						`${obj.uncer} * ${Math.abs(Math.sin(Number(obj.data)))}`
+					),
+				};
+			},
+			number: function (num) {
+				return {
+					data: String(Math.cos(num)),
+                    uncer: "0",
+				};
+			},
+		}),
+		tan: typed("tan", {
+			Object: function (obj) {
+				return {
+					data: String(Math.tan(Number(obj.data))),
+					uncer: String(
+						Number(obj.uncer) /
+							Math.cos(Number(obj.data)) /
+							Math.cos(Number(obj.data))
+					),
+				};
+			},
+			number: function (num) {
+				return {
+					data: String(Math.tan(num)),
+					uncer: "0",
+				};
+			},
+		}),
+		asin: typed("asin", {
+			Object: function (obj) {
+				Check.invalidAsinOrAcos(obj.data);
+				return {
+					data: String(Math.asin(Number(obj.data))),
+					uncer: String(
+						Number(obj.uncer) /
+							Math.sqrt(1 - Math.pow(Number(obj.data), 2))
+					),
+				};
+			},
+			number: function (num) {
+				return {
+					data: String(Math.asin(num)),
+                    uncer: "0",
+				};
+			},
+		}),
+		acos: typed("acos", {
+			Object: function (obj) {
+				Check.invalidAsinOrAcos(obj.data);
+				return {
+					data: String(Math.acos(Number(obj.data))),
+					uncer: String(
+						Number(obj.uncer) /
+							Math.sqrt(1 - Math.pow(Number(obj.data), 2))
+					),
+				};
+			},
+            number: function (num) {
+				return {
+					data: String(Math.acos(num)),
+                    uncer: "0",
+				};
+			},
+		}),
+		atan: typed("atan", {
+			Object: function (obj) {
+				return {
+					data: String(Math.atan(Number(obj.data))),
+					uncer: String(
+						Number(obj.uncer) / (1 + Math.pow(Number(obj.data), 2))
+					),
+				};
+			},
+			number: function (num) {
+                return {
+					data: String(Math.atan(num)),
+					uncer: "0",
+				};
+            },
+		}),
 	},
 	{ override: true }
 );
@@ -912,24 +1170,50 @@ function escapeVariableName(variableName) {
 
 	// 用双引号包裹变量名，防止撇号引起解析错误
 	let tmp = variableName;
-	tmp = tmp.replace(/'/g, "_APOSTROPHE_");
-	tmp = tmp.replace(/,/g, "_COMMA_");
-	tmp = tmp.replace(/\+/g, "_ADD_");
-	tmp = tmp.replace(/\-/g, "_SUBTRACT_");
-	tmp = tmp.replace(/\*/g, "_MULTIPLY_");
-	tmp = tmp.replace(/\//g, "_DIVIDE_");
-	tmp = tmp.replace(/\^/g, "_POW_");
-	tmp = tmp.replace(/ln/g, "_LN_");
-	tmp = tmp.replace(/log/g, "_LOG_");
-	tmp = tmp.replace(/lg/g, "_LG_");
-	tmp = tmp.replace(/{/g, "_LEFTBRACE_");
-	tmp = tmp.replace(/}/g, "_RIGHTBRACE_");
-	tmp = tmp.replace(/;/g, "_SEMICOLON_");
-	tmp = tmp.replace(/\./g, "_PERIOD_");
+
+	const replacements = {
+		"'": "_APOSTROPHE_",
+		",": "_COMMA_",
+		"+": "_ADD_",
+		"-": "_SUBTRACT_",
+		"*": "_MULTIPLY_",
+		"/": "_DIVIDE_",
+		"^": "_POW_",
+		ln: "_LN_",
+		log: "_LOG_",
+		lg: "_LG_",
+        sin: "_SIN_",
+        cos: "_COS_",
+		tan: "_TAN_",
+        asin: "_ASIN_",
+        acos: "_ACOS_",
+		atan: "_ATAN_",
+		abs: "_ABS_",
+		sqrt: "_SQRT_",
+		"[": "_LEFTBRACKET_",
+		"]": "_RIGHTBRACKET_",
+		"{": "_LEFTBRACE_",
+		"}": "_RIGHTBRACE_",
+		";": "_SEMICOLON_",
+		".": "_PERIOD_",
+		"(": "_LEFTPARENTHESIS_",
+		")": "_RIGHTPARENTHESIS_",
+		"\\": "_BACKSLASH_",
+	};
+
+	// 替换特殊字符
+	tmp = tmp.replace(
+		new RegExp(
+			Object.keys(replacements)
+				.map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+				.join("|"),
+			"g"
+		),
+		(match) => replacements[match]
+	);
+
+	// 替换中文字符
 	tmp = replaceChineseWithUnicode(tmp);
-	tmp = tmp.replace(/\(/g, "_LEFTPARENTHESIS_");
-	tmp = tmp.replace(/\)/g, "_RIGHTPARENTHESIS_");
-	tmp = tmp.replace(/\\/g, "_BACKSLASH_");
 	return tmp;
 }
 // 处理变量名规范，以便数学解析器解析
@@ -963,7 +1247,7 @@ function evaluateUncer(dataList, expression, currentTitle, multiplier) {
 	sortedDataList.forEach((item) => {
 		if (item.title !== currentTitle) {
 			variables[item.title] = escapeVariableName(item.title);
-			parser.set(escapeVariableName(item.title), {
+			parser.set(variables[item.title], {
 				data: item.data,
 				uncer: item.uncer,
 			});
@@ -1065,10 +1349,10 @@ function calculateLeastSquares(x, y) {
 		ElMessage.error("数组为空！");
 		return {};
 	}
-    if(x.length === 1){
-        ElMessage.error('数组长度为 1，无法进行线性拟合！');
-        return {}
-    }
+	if (x.length === 1) {
+		ElMessage.error("数组长度为 1，无法进行线性拟合！");
+		return {};
+	}
 	let n = x.length;
 	let sumX = 0,
 		sumY = 0,
@@ -1107,7 +1391,7 @@ function calculateQuadraticLeastSquares(x, y) {
 		ElMessage.error("数组为空！");
 		return {};
 	}
-    if (x.length === 1 || x.length === 2) {
+	if (x.length === 1 || x.length === 2) {
 		ElMessage.error(`数组长度为${x.length}，无法进行二次拟合！`);
 		return {};
 	}

@@ -156,12 +156,6 @@ sup {
     /* 调整上划线与文字的距离 */
 }
 
-.formula {
-    font-family: 'Times New Roman', serif;
-    font-size: 1.2em;
-    line-height: 1.4;
-}
-
 .overline {
     text-decoration: overline;
 }
