@@ -11,7 +11,8 @@ const store = useAllDataStore()
         <p>有效数字的修约遵循<em>四舍六入五凑偶</em>的原则：</p>
         <ul>
             <li>当修约的保留位后首位数字<strong>小于 5 </strong>时，舍去保留位之后的所有数字，保留位不变。例如：3.141 保留到 0.01 位，则修约到 3.14。</li>
-            <li>当修约的保留位后首位数字<strong>大于 5</strong>，或<strong>等于 5 且后面还有非零数字</strong>时，舍去修约位置之后的所有数字，并将保留位的最后一位数加 1。例如：3.146 或 3.1451 保留到 0.01 位，则修约到 3.15。</li>
+            <li>当修约的保留位后首位数字<strong>大于 5</strong>，或<strong>等于 5 且后面还有非零数字</strong>时，舍去修约位置之后的所有数字，并将保留位的最后一位数加
+                1。例如：3.146 或 3.1451 保留到 0.01 位，则修约到 3.15。</li>
             <li>当修约的保留位后首位数字<strong>等于 5，且后面数字均为 0</strong>时，若保留位为偶数，则直接舍去保留位之后的所有数字；若保留位为奇数，则在舍去的基础上，保留位进一。例如：2.550
                 保留到 0.1 位，则修约到 2.6；换成 2.650，则也修约到 2.6。</li>
         </ul>
@@ -123,11 +124,8 @@ const store = useAllDataStore()
             </li>
             <li>
                 最小二乘直线（按有效数字方式保留）
-                <vue-latex expression="y=ax+b" display-mode></vue-latex>
-                <vue-latex expression="a=\frac{\sum x_i y_i - n\bar{x} \bar{y}}{\sum x_i{}^2 - n \bar{x}^2}"
-                    display-mode></vue-latex>
-                <vue-latex expression="b=\bar{y} - a\bar{x}" display-mode></vue-latex>
-                <vue-latex expression="R^2=\frac{\left(\sum (x_i - \bar{x})(y_i - \bar{y})\right)^2}{\sum (x_i - \bar{x})^2\sum (y_i - \bar{y})^2}"
+                <vue-latex
+                    expression="y=ax+b,\quad\left\{\begin{align*}a&=\frac{\sum x_i y_i - n\bar{x} \bar{y}}{\sum x_i{}^2 - n \bar{x}^2}\\b&=\bar{y} - a\bar{x}\\R^2&=\frac{\left(\sum (x_i - \bar{x})(y_i - \bar{y})\right)^2}{\sum (x_i - \bar{x})^2\sum (y_i - \bar{y})^2}\end{align*}\right."
                     display-mode></vue-latex>
             </li>
         </ul>

@@ -9,6 +9,7 @@ const config = {
 
 const valueMath = create(all, config);
 const uncerMath = create(all, config);
+const unitMath = create(all, config);
 // 导入自定义运算
 
 /**检查错误情况的方法类 */
@@ -1073,7 +1074,7 @@ uncerMath.import(
 			number: function (num) {
 				return {
 					data: String(Math.cos(num)),
-                    uncer: "0",
+					uncer: "0",
 				};
 			},
 		}),
@@ -1109,7 +1110,7 @@ uncerMath.import(
 			number: function (num) {
 				return {
 					data: String(Math.asin(num)),
-                    uncer: "0",
+					uncer: "0",
 				};
 			},
 		}),
@@ -1124,10 +1125,10 @@ uncerMath.import(
 					),
 				};
 			},
-            number: function (num) {
+			number: function (num) {
 				return {
 					data: String(Math.acos(num)),
-                    uncer: "0",
+					uncer: "0",
 				};
 			},
 		}),
@@ -1141,16 +1142,229 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-                return {
+				return {
 					data: String(Math.atan(num)),
 					uncer: "0",
 				};
-            },
+			},
 		}),
 	},
 	{ override: true }
 );
 // 不确定度计算规则
+
+/**单位计算规则 */
+unitMath.import(
+	{
+		// 自定义乘法
+		multiply: typed("multiply", {
+			"Object, Object": function (a, b) {
+				let result = {};
+				for (let key in a) {
+					result[key] = a[key];
+				}
+				for (let key in b) {
+					if (result[key]) {
+						result[key] += b[key];
+					} else {
+						result[key] = b[key];
+					}
+				}
+				for (let key in result) {
+					if (result[key] === 0) {
+						delete result[key];
+					}
+				}
+				return result;
+			},
+			"Object, number": function (obj, num) {
+				return obj;
+			},
+			"number, Object": function (num, obj) {
+				return obj;
+			},
+			"number ,number": function (a, b) {
+				return {};
+			},
+		}),
+		// 自定义除法
+		divide: typed("divide", {
+			"Object, Object": function (a, b) {
+				let result = {};
+				for (let key in a) {
+					result[key] = a[key];
+				}
+				for (let key in b) {
+					if (result[key]) {
+						result[key] -= b[key];
+					} else {
+						result[key] = -b[key];
+					}
+				}
+				for (let key in result) {
+					if (result[key] === 0) {
+						delete result[key];
+					}
+				}
+				return result;
+			},
+			"Object, number": function (obj, num) {
+				return obj;
+			},
+			"number, Object": function (num, obj) {
+				return obj;
+			},
+			"number ,number": function (a, b) {
+				return {};
+			},
+		}),
+		add: typed("add", {
+			"Object, Object": function (obj1, obj2) {
+				if (Object.keys(obj1).length !== 0) {
+					return obj1;
+				}
+				return obj2;
+			},
+			"number, Object": function (num, obj) {
+				return obj;
+			},
+			"Object, number": function (obj, num) {
+				return obj;
+			},
+			"number ,number": function (a, b) {
+				return {};
+			},
+		}),
+		subtract: typed("subtract", {
+			"Object, Object": function (obj1, obj2) {
+				if (Object.keys(obj1).length !== 0) {
+					return obj1;
+				}
+				return obj2;
+			},
+			"number, Object": function (num, obj) {
+				return obj;
+			},
+			"Object, number": function (obj, num) {
+				return obj;
+			},
+			"number ,number": function (a, b) {
+				return {};
+			},
+		}),
+		ln: typed("ln", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		sqrt: typed("sqrt", {
+			Object: function (obj) {
+				let result = {};
+				for (let key in obj) {
+					result[key] = obj[key] / 2;
+				}
+				return result;
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		abs: typed("abs", {
+			Object: function (obj) {
+				return obj;
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		pow: typed("pow", {
+			"Object, number": function (obj, num) {
+				let result = {};
+				for (let key in obj) {
+					result[key] = obj[key] * num;
+				}
+				return result;
+			},
+			"number ,number": function (a, b) {
+				return {};
+			},
+			"number, Object": function (a, b) {
+				return {};
+			},
+			"Object, Object": function (a, b) {
+				return {};
+			},
+		}),
+		lg: typed("lg", {
+			number: function (a) {
+				return {};
+			},
+			Object: function (a) {
+				return {};
+			},
+		}),
+		unaryMinus: typed("unaryMinus", {
+			Object: function (obj) {
+				return obj;
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		sin: typed("sin", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		cos: typed("cos", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		tan: typed("tan", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		asin: typed("asin", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		acos: typed("acos", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+		atan: typed("atan", {
+			Object: function (a) {
+				return {};
+			},
+			number: function (a) {
+				return {};
+			},
+		}),
+	},
+	{ override: true }
+);
 
 function escapeVariableName(variableName) {
 	if (!variableName) {
@@ -1182,11 +1396,11 @@ function escapeVariableName(variableName) {
 		ln: "_LN_",
 		log: "_LOG_",
 		lg: "_LG_",
-        sin: "_SIN_",
-        cos: "_COS_",
+		sin: "_SIN_",
+		cos: "_COS_",
 		tan: "_TAN_",
-        asin: "_ASIN_",
-        acos: "_ACOS_",
+		asin: "_ASIN_",
+		acos: "_ACOS_",
 		atan: "_ATAN_",
 		abs: "_ABS_",
 		sqrt: "_SQRT_",
@@ -1339,6 +1553,164 @@ function evaluateExpression(
 	}
 }
 // 依据计算式计算值
+
+/**根据算式计算单位 */
+function evaluateUnit(dataList, expression, currentTitle) {
+	const parser = unitMath.parser();
+	let variables = {};
+
+	/**根据unit字符串构造unit运算对象 */
+	function constructUnit(str) {
+		if (str === "") {
+			return {};
+		}
+		const constructRegex = /\s*[*/()]\s*|\s*[-+]?\d+\s*|\s*[a-zA-Z]+\s*/g;
+		/**
+		 *  判断是否是字母
+		 * @param {*} str
+		 * @returns   {boolean}
+		 */
+		function isLetter(str) {
+			return /[a-zA-Z]+/.test(str);
+		}
+
+		/**
+		 *  判断是否是数字
+		 * @param {*} str
+		 * @returns   {boolean}
+		 */
+		function isNumber(str) {
+			return !isNaN(Number(str));
+		}
+
+		let arr = str.match(constructRegex);
+		if (arr) {
+			arr = arr.map((match) => match.trim());
+		} else {
+			return {};
+		}
+
+		let unit = {};
+		let inDivisionParen = false;
+		let i = 0;
+		let count = 0;
+		while (i < arr.length && count < 100) {
+			// 是字母
+			if (isLetter(arr[i])) {
+				if (arr[i + 1] && isNumber(arr[i + 1])) {
+					if (inDivisionParen) {
+						unit[arr[i]] = -Number(arr[i + 1]);
+					} else {
+						unit[arr[i]] = Number(arr[i + 1]);
+					}
+					i = i + 2;
+				} else {
+					unit[arr[i]] = 1;
+					i++;
+				}
+			} else {
+				// 乘法，直接算下一个
+				if (arr[i] === "*") {
+					i++;
+				}
+				// 除法，就地处理
+				else if (arr[i] === "/") {
+					if (arr[i + 1] === "(") {
+						inDivisionParen = true;
+						i = i + 2;
+					} else {
+						if (arr[i + 2] && isNumber(arr[i + 2])) {
+							unit[arr[i + 1]] = -Number(arr[i + 2]);
+							i = i + 3;
+						} else {
+							unit[arr[i + 1]] = -1;
+							i = i + 2;
+						}
+					}
+				}
+				// 结束除法括号
+				else if (arr[i] === ")") {
+					inDivisionParen = false;
+					i++;
+				} else if (arr[i] === "(") {
+					i++;
+				}
+			}
+			++count;
+		}
+		return unit;
+	}
+
+	const sortedDataList = dataList
+		.map((item) => ({
+			title: item.title,
+			unit: constructUnit(item.unit),
+		}))
+		.sort((a, b) => b.title.length - a.title.length);
+	sortedDataList.forEach((item) => {
+		if (item.title !== currentTitle) {
+			variables[item.title] = escapeVariableName(item.title);
+			parser.set(variables[item.title], item.unit);
+		}
+		// 防止该数据的命名与算式有冲突
+	});
+	try {
+		let result = parser.evaluate(escapeExpression(expression, variables));
+
+		if (JSON.stringify(result) === "{}") {
+			return "";
+		}
+		let keys = Object.keys(result).sort(
+			(key1, key2) => result[key2] - result[key1]
+		);
+
+		let resultStr = "";
+		let negKeyCount = 0;
+		for (let i = keys.length - 1; i >= 0; i--) {
+			if (result[keys[i]] < 0) {
+				negKeyCount++;
+			} else {
+				break;
+			}
+		}
+
+		if (negKeyCount === 1) {
+			for (let i = 0; i < keys.length - 1; i++) {
+				if (i === 0) {
+					resultStr += `${keys[i]}${
+						result[keys[i]] === 1 ? "" : result[keys[i]]
+					}`;
+				} else {
+					resultStr += `*${keys[i]}${
+						result[keys[i]] === 1 ? "" : result[keys[i]]
+					}`;
+				}
+			}
+			resultStr += `/${keys[keys.length - 1]}${
+				result[keys[keys.length - 1]] === 1
+					? ""
+					: `${result[keys[keys.length - 1]]}`
+			}`;
+		} else {
+			for (let i = 0; i < keys.length; i++) {
+				if (i === 0) {
+					resultStr += `${keys[i]}${
+						result[keys[i]] === 1 ? "" : `${result[keys[i]]}`
+					}`;
+				} else {
+					resultStr += `*${keys[i]}${
+						result[keys[i]] === 1 ? "" : `${result[keys[i]]}`
+					}`;
+				}
+			}
+		}
+		return resultStr;
+	} catch (error) {
+		ElMessage.error("计算单位过程中出错！");
+		console.error("Error evaluating Unit:", error);
+		return ""; // 错误处理
+	}
+}
 
 function calculateLeastSquares(x, y) {
 	if (x.length !== y.length) {
@@ -1541,7 +1913,6 @@ function getBit(str) {
 }
 // 获得一个数据的有效位数
 function toScientific(str) {
-	console.log(str);
 	if (/e/i.test(str)) {
 		return str;
 	}
@@ -1907,6 +2278,7 @@ export {
 	dimensionalAdd,
 	evaluateExpression,
 	evaluateUncer,
+	evaluateUnit,
 	calculateLeastSquares,
 	calculateQuadraticLeastSquares,
 	getLevel,

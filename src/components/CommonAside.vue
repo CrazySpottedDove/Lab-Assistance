@@ -2,7 +2,7 @@
     <div class="common-aside">
         <el-aside width="100%">
             <el-menu background-color="#626aef"
-                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '1', '1-1', '1-2', '2', '3']">
+                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5','0-6', '1', '1-1', '1-2', '2', '3']">
                 <!-- 用户配置 -->
                 <el-sub-menu index="0">
                     <template #title>
@@ -59,6 +59,15 @@
                             @click="handleChangeUserConfig('newVersionTips', true)">是</el-menu-item>
                         <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === false }"
                             @click="handleChangeUserConfig('newVersionTips', false)">否</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-6">
+                        <template #title>
+                            <span style="color: gainsboro!important;">自动计算单位</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === true }"
+                            @click="handleChangeUserConfig('autoCalcUnit', true)">是</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === false }"
+                            @click="handleChangeUserConfig('autoCalcUnit', false)">否</el-menu-item>
                     </el-sub-menu>
                 </el-sub-menu>
                 <!--  直接数据与间接数据-->

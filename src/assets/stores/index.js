@@ -5,6 +5,7 @@ import {
 	dimensionalAdd,
 	evaluateExpression,
 	evaluateUncer,
+	evaluateUnit,
 	calculateLeastSquares,
 	calculateQuadraticLeastSquares,
 	getLevel,
@@ -44,9 +45,10 @@ export const useAllDataStore = defineStore("allData", () => {
 					autoSaveFile: true,
 					language: "chinese",
 					directDataLevelRule: "unified",
-                    framed: false,
-                    saveByDate: true,
-                    newVersionTips: true
+					framed: false,
+					saveByDate: true,
+					newVersionTips: true,
+					autoCalcUnit: true,
 				};
 			},
 
@@ -286,9 +288,7 @@ export const useAllDataStore = defineStore("allData", () => {
 		return {
 			/**添加一个直接数据 */
 			directData: function () {
-				state.value.directDataList.push(
-					Init.directData()
-				);
+				state.value.directDataList.push(Init.directData());
 				// 根据flag值选择合适的数据初始化方法
 				state.value.view = {
 					type: "directData",
@@ -300,9 +300,7 @@ export const useAllDataStore = defineStore("allData", () => {
 
 			/**添加一个间接数据 */
 			indirectData: function () {
-				state.value.indirectDataList.push(
-					Init.indirectData()
-				);
+				state.value.indirectDataList.push(Init.indirectData());
 				state.value.view = {
 					type: "indirectData",
 					index: state.value.indirectDataList.length - 1,
@@ -377,7 +375,7 @@ export const useAllDataStore = defineStore("allData", () => {
 		};
 	})();
 
-    const userConfig = ref(Init.config());
+	const userConfig = ref(Init.config());
 	const state = ref(Init.state());
 	const rely = `\\usepackage{amsmath}
 \\usepackage{bm}
@@ -886,15 +884,15 @@ export const useAllDataStore = defineStore("allData", () => {
 			...state.value.indirectDataList,
 		];
 
-        console.log(selectedList)
+		console.log(selectedList);
 		// 根据计算选项执行相应的计算操作
-        selectedList.dataSet = evaluateExpression(
+		selectedList.dataSet = evaluateExpression(
 			dataList,
 			selectedList.computeMethod,
 			selectedList.computeOption,
 			selectedList.title,
 			Number(selectedList.multiplier)
-		)
+		);
 
 		// 间接数据按照不确定度保留时
 		if (selectedList.dataMethod) {
@@ -910,6 +908,17 @@ export const useAllDataStore = defineStore("allData", () => {
 			selectedList.title,
 			Number(selectedList.multiplier)
 		);
+
+		if (
+			userConfig.value.autoCalcUnit &&
+			Number(selectedList.multiplier) === 1
+		) {
+			selectedList.unit = evaluateUnit(
+				dataList,
+				selectedList.computeMethod,
+				selectedList.title
+			);
+		}
 
 		// 刷新视图以显示更新后的数据
 		refreshDataDetails();

@@ -29,6 +29,9 @@ function checkConfig(configData) {
     if(configData.newVersionTips === undefined){
         configData.newVersionTips = true;
     }
+    if(configData.autoCalcUnit === undefined){
+        configData.autoCalcUnit = true;
+    }
 	return configData;
 }
 
