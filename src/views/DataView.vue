@@ -3,7 +3,7 @@ import { useAllDataStore } from '../assets/stores';
 import { computed, ref, nextTick, watch } from 'vue';
 import { CircleClose, FirstAidKit } from '@element-plus/icons-vue';
 // Never import { expression } from 'mathjs';
-import { commentFormat, dataFormat } from '../assets/format'
+import { commentFormat, dataFormat, unitFormat } from '../assets/format'
 const store = useAllDataStore()
 const viewType = computed(() => store.state.view.type)
 const viewIndex = computed(() => store.state.view.index)
@@ -263,6 +263,16 @@ const handleSuggestionSelect = (item) => {
         </el-card>
     </div>
 
+    <!-- 倍率卡片 -->
+    <div class="card-div" v-if="isIndirectData && viewIndex >= 0">
+        <el-card shadow="hover">
+            <div class="equipment">
+                <label style="font-weight: 550;width: 16%;text-align: left;">倍率</label>
+                <input style="text-align: center;width: 84%;" v-model="selectedData.multiplier">
+            </div>
+        </el-card>
+    </div>
+
     <!-- 公用的单位卡片 -->
     <div class="card-div" v-if="isData && viewIndex >= 0">
         <el-card shadow="hover">
@@ -270,9 +280,11 @@ const handleSuggestionSelect = (item) => {
                 <label style="font-weight: 550;width: 16%;text-align: left;">单位</label>
                 <input style="text-align: center;width: 84%;" placeholder="选填，仅对LaTeX制表/图有影响"
                     v-model="selectedData.unit">
-                <span style="width: 2%; min-width: 1em;" v-if="isIndirectData"></span>
-                <label style="font-weight: 550;width: 16%;text-align: left;" v-if="isIndirectData">倍率</label>
-                <input style="text-align: center;width: 84%;" v-model="selectedData.multiplier" v-if="isIndirectData">
+                <span style="width: 2%; min-width: 1em;" ></span>
+                <label style="font-weight: 550;width: 16%;text-align: left;">预览</label>
+                <span style="width: 84%;">
+                    <center><vue-latex :expression="unitFormat(selectedData.unit)"></vue-latex></center>
+                </span>
             </div>
         </el-card>
     </div>
@@ -330,7 +342,8 @@ const handleSuggestionSelect = (item) => {
                 <el-table-column v-for="(property, index) in propertyLabel" :key="index" :prop="property.prop"
                     :label="property.label" align="center">
                     <template #default="scope">
-                        <vue-latex :expression="dataFormat(scope.row[property.prop])" style="font-size: small;"></vue-latex>
+                        <vue-latex :expression="dataFormat(scope.row[property.prop])"
+                            style="font-size: small;"></vue-latex>
                     </template>
                 </el-table-column>
             </el-table>

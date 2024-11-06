@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useAllDataStore } from '../assets/stores'
 import { CircleClose, DocumentCopy } from '@element-plus/icons-vue';
 import { titleFormat, dataFormat, unitFormat, docFormat } from '../assets/format';
-
+import { highlightKeywords } from '../assets/highlight';
 
 // 基础属性
 const store = useAllDataStore()
@@ -351,122 +351,129 @@ const handleGraphUpdate = () => {
 </script>
 <template>
     <!-- 导出为LaTeX图像视图 -->
-    <div v-if="viewType === 'graph' && viewIndex >= 0">
-        <div v-for="(singleGraph, index) in graphList[viewIndex].singleGraphs">
+    <div v-for="(graph, graphIndex) of graphList">
+        <div v-show="viewType==='graph'&& viewIndex === graphIndex">
+            <!-- 图线列表 -->
+            <div v-for="(singleGraph, singleGraphIndex) in graph.singleGraphs">
+                <div class="card-div">
+                    <el-card shadow="hover">
+                        <div class="equipment" style="font-weight: bold; font-size: large;">
+                            图线 {{ singleGraphIndex + 1 }}
+                            <el-icon class="el-icon--right deleteicon" @click="handleDeleteSingleGraph(singleGraphIndex)">
+                                <circle-close></circle-close>
+                            </el-icon>
+                        </div>
+                        <div class="equipment">
+                            <div class="equipment" style="width: 60%;">
+                                <label style="font-weight: 550;width: 16%;text-align: center;">x轴数据</label>
+                                <span style="width: 1%;"></span>
+                                <el-select style="width: 32%;text-align: center;min-width: 5.5em"
+                                    v-model="singleGraph.xDataId" @change="handleGraphQuietUpdate">
+                                    <template #label="{ label }">
+                                        <vue-latex :expression="label" style="font-size: small;"></vue-latex>
+                                    </template>
+                                    <el-option v-for="xDataOption in xDataOptionList" :key="xDataOption.value"
+                                        :label="xDataOption.label" :value="xDataOption.value">
+                                        <template #default>
+                                            <vue-latex :expression="xDataOption.label"></vue-latex>
+                                        </template>
+                                    </el-option>
+                                </el-select>
+                                <span style="width: 1%;"></span>
+                                <label style="font-weight: 550;width: 16%;text-align: center;">y轴数据</label>
+                                <span style="width: 1%;"></span>
+                                <el-select style="width: 32%;text-align: center;min-width: 5.5em"
+                                    v-model="singleGraph.yDataId" @change="handleGraphQuietUpdate">
+                                    <template #label="{ label }" style="font-size: small;">
+                                        <vue-latex :expression="label" style="font-size: small;"></vue-latex>
+                                    </template>
+                                    <el-option v-for="title in yDataOptionList" :key="title.value" :label="title.label"
+                                        :value="title.value">
+                                        <template #default>
+                                            <vue-latex :expression="title.label"></vue-latex>
+                                        </template>
+                                    </el-option>
+                                </el-select>
+                                <span style="width: 1%;"></span>
+                            </div>
+                            <div class="equipment" style="width: 40%;">
+                                <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
+                                <span style="width: 5%;"></span>
+                                <el-select style="width: 45%;text-align: center;min-width: 5.5em"
+                                    v-model="singleGraph.graphOption" @change="handleGraphQuietUpdate">
+                                    <el-option v-for="option in graphOptions" :key="option.value" :label="option.label"
+                                        :value="option.value"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                    </el-card>
+                </div>
+                <div class="card-div" v-if="singleGraph.graphData !== ''">
+                    <el-card shadow="hover">
+                        <div class="equipment" style="font-size: 15pt;font-weight: bold;"
+                            v-if="singleGraph.graphOption === 'line'">
+                            拟合结果：
+                            <vue-latex
+                                :expression="`y=${dataFormat(singleGraph.graphData.slope)} x${(singleGraph.graphData.intercept[0] === '-' ? '' : '+')}${dataFormat(singleGraph.graphData.intercept)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
+                            </vue-latex>
+                        </div>
+                        <div class="equipment" style="font-size: 15pt;font-weight: bold;"
+                            v-if="singleGraph.graphOption === 'square'">
+                            拟合结果：
+                            <vue-latex
+                                :expression="`y=${dataFormat(singleGraph.graphData.a)} x^2${singleGraph.graphData.b[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.b)} x${singleGraph.graphData.c[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.c)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
+                            </vue-latex>
+                        </div>
+                    </el-card>
+                </div>
+            </div>
+            <!-- 标题，添加图线，刷新 -->
             <div class="card-div">
                 <el-card shadow="hover">
-                    <div class="equipment" style="font-weight: bold; font-size: large;">
-                        图线 {{ index + 1 }}
-                        <el-icon class="el-icon--right deleteicon" @click="handleDeleteSingleGraph(index)">
-                            <circle-close></circle-close>
-                        </el-icon>
-                    </div>
                     <div class="equipment">
-                        <div class="equipment" style="width: 60%;">
-                            <label style="font-weight: 550;width: 16%;text-align: center;">x轴数据</label>
-                            <span style="width: 1%;"></span>
-                            <el-select style="width: 32%;text-align: center;min-width: 5.5em"
-                                v-model="singleGraph.xDataId" @change="handleGraphQuietUpdate">
-                                <template #label="{ label }">
-                                    <vue-latex :expression="label" style="font-size: small;"></vue-latex>
-                                </template>
-                                <el-option v-for="xDataOption in xDataOptionList" :key="xDataOption.value"
-                                    :label="xDataOption.label" :value="xDataOption.value">
-                                    <template #default>
-                                        <vue-latex :expression="xDataOption.label"></vue-latex>
-                                    </template>
-                                </el-option>
-                            </el-select>
-                            <span style="width: 1%;"></span>
-                            <label style="font-weight: 550;width: 16%;text-align: center;">y轴数据</label>
-                            <span style="width: 1%;"></span>
-                            <el-select style="width: 32%;text-align: center;min-width: 5.5em"
-                                v-model="singleGraph.yDataId" @change="handleGraphQuietUpdate">
-                                <template #label="{ label }" style="font-size: small;">
-                                    <vue-latex :expression="label" style="font-size: small;"></vue-latex>
-                                </template>
-                                <el-option v-for="title in yDataOptionList" :key="title.value" :label="title.label"
-                                    :value="title.value">
-                                    <template #default>
-                                        <vue-latex :expression="title.label"></vue-latex>
-                                    </template>
-                                </el-option>
-                            </el-select>
-                            <span style="width: 1%;"></span>
-                        </div>
-                        <div class="equipment" style="width: 40%;">
-                            <label style="font-weight: 550;width: 10%;text-align: center;">制图方法</label>
-                            <span style="width: 5%;"></span>
-                            <el-select style="width: 45%;text-align: center;min-width: 5.5em"
-                                v-model="singleGraph.graphOption" @change="handleGraphQuietUpdate">
-                                <el-option v-for="option in graphOptions" :key="option.value" :label="option.label"
-                                    :value="option.value"></el-option>
-                            </el-select>
-                        </div>
+                        <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
+                        <span style="width: 1%;"></span>
+                        <input placeholder="标题" v-model="graph.graphTitleContent"
+                            @change="handleGraphQuietUpdate" style="width: 22%; text-align: center;">
+                        <span style="width: 5%;"></span>
+                        <el-button @click="handleAddSingleGraph"
+                            style="width: 35%; text-align: center;">添加图线</el-button>
+                        <span style="width: 5%;"></span>
+                        <el-button @click="handleGraphUpdate" style="width: 35%; text-align: center;">刷新</el-button>
                     </div>
                 </el-card>
             </div>
-            <div class="card-div" v-if="singleGraph.graphData !== ''">
+            <!-- 带/不带边框，图的代码 -->
+            <div class="card-div">
                 <el-card shadow="hover">
-                    <div class="equipment" style="font-size: 15pt;font-weight: bold;"
-                        v-if="singleGraph.graphOption === 'line'">
-                        拟合结果：
-                        <vue-latex
-                            :expression="`y=${dataFormat(singleGraph.graphData.slope)} x${(singleGraph.graphData.intercept[0] === '-' ? '' : '+')}${dataFormat(singleGraph.graphData.intercept)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
-                        </vue-latex>
-                    </div>
-                    <div class="equipment" style="font-size: 15pt;font-weight: bold;"
-                        v-if="singleGraph.graphOption === 'square'">
-                        拟合结果：
-                        <vue-latex
-                            :expression="`y=${dataFormat(singleGraph.graphData.a)} x^2${singleGraph.graphData.b[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.b)} x${singleGraph.graphData.c[0] === '-' ? '' : '+'}${dataFormat(singleGraph.graphData.c)}\\qquad R^2=${dataFormat(singleGraph.graphData.rSquared)}`">
-                        </vue-latex>
+                    <div>
+                        <div style="text-align: center;">
+                            <el-switch v-model="graph.graphFramed" size="large" inactive-text="不带边框"
+                                active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                                @change="handleGraphQuietUpdate" />
+                            <span style="font-weight: bold; font-size: large;"> 内容 </span>
+                            <el-icon class="copy el-icon--right" @click="handleGraphCopy">
+                                <document-copy></document-copy>
+                            </el-icon>
+                        </div>
+                        <pre v-html="highlightKeywords(graph.graphContent)"></pre>
                     </div>
                 </el-card>
             </div>
-        </div>
-        <div class="card-div">
-            <el-card shadow="hover">
-                <div class="equipment">
-                    <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
-                    <span style="width: 1%;"></span>
-                    <input placeholder="标题" v-model="graphList[viewIndex].graphTitleContent"
-                        @change="handleGraphQuietUpdate" style="width: 22%; text-align: center;">
-                    <span style="width: 5%;"></span>
-                    <el-button @click="handleAddSingleGraph" style="width: 35%; text-align: center;">添加图线</el-button>
-                    <span style="width: 5%;"></span>
-                    <el-button @click="handleGraphUpdate" style="width: 35%; text-align: center;">刷新</el-button>
-                </div>
-            </el-card>
-        </div>
-        <div class="card-div">
-            <el-card shadow="hover">
-                <div>
-                    <div style="text-align: center;">
-                        <el-switch v-model="graphList[viewIndex].graphFramed" size="large" inactive-text="不带边框"
-                            active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
-                            @change="handleGraphQuietUpdate" />
-                        <span style="font-weight: bold; font-size: large;"> 内容 </span>
-                        <el-icon class="copy el-icon--right" @click="handleGraphCopy">
-                            <document-copy></document-copy>
-                        </el-icon>
+            <!-- 依赖代码 -->
+            <div class="card-div">
+                <el-card shadow="hover" style="height: 100px; overflow: auto;">
+                    <div>
+                        <div style="text-align: center;">
+                            <span style="font-weight: bold; font-size: large;">依赖 </span>
+                            <el-icon class="copy el-icon--right" @click="handleRelyCopy">
+                                <document-copy></document-copy>
+                            </el-icon>
+                        </div>
+                        <pre v-html="highlightKeywords(store.rely)"></pre>
                     </div>
-                    <pre>{{ graphList[viewIndex].graphContent }}</pre>
-                </div>
-            </el-card>
-        </div>
-        <div class="card-div">
-            <el-card shadow="hover" style="height: 100px; overflow: auto;">
-                <div>
-                    <div style="text-align: center;">
-                        <span style="font-weight: bold; font-size: large;">依赖 </span>
-                        <el-icon class="copy el-icon--right" @click="handleRelyCopy">
-                            <document-copy></document-copy>
-                        </el-icon>
-                    </div>
-                    <pre>{{ store.rely }}</pre>
-                </div>
-            </el-card>
+                </el-card>
+            </div>
         </div>
     </div>
 </template>

@@ -133,7 +133,7 @@ const restoreReg = new RegExp(Object.keys(reverseReplacements).join("|"), "g");
 /**将字符串表达式转化成数组表达式用的正则表达式 */
 const tokenizeReg = new RegExp(
 	operators.map((op) => op.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") +
-		"|[()+\\-*/^]|[^()+\\-*/^ ]+",
+		"|[()+\\-*/^]|[^()+\\-*/^]+",
 	"g"
 );
 // 表达式树的节点类
@@ -348,7 +348,7 @@ function titleFormat(input) {
 		return `\\text{${input}}`;
 	}
 
-	input = input.replace(chinese, (match) => `\\text{${match}} `);
+	input = input.replace(chinese, (match) => `\\text{${match}}`);
 
 	// 使用正则表达式匹配字母后面直接跟随的数字或逗号隔开的数字
 	return input.replace(/([a-zA-Z\\]+)\s*(\d+(,\d+)*)/g, "$1_{$2}");
@@ -409,9 +409,12 @@ function commentFormat(str, dataList) {
 	});
 
 	let infixExpression = tokenize(str);
+
 	let postfixExpression = infixToPostfix(infixExpression);
+
 	let expressionTree = constructExpressionTree(postfixExpression);
 	str = processExpressionTree(expressionTree);
+    
 	return restoreTitle(str);
 }
 

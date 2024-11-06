@@ -3,7 +3,7 @@ import { useAllDataStore } from '../assets/stores';
 import { computed, watch, ref } from 'vue';
 import { titleFormat, dataFormat, unitFormat, commentFormat, docFormat } from '../assets/format';
 import { DocumentCopy } from '@element-plus/icons-vue';
-
+import { highlightKeywords} from '../assets/highlight';
 // 基本参数
 const store = useAllDataStore()
 const viewType = computed(() => store.state.view.type)
@@ -590,66 +590,70 @@ const handleRelyCopy = () => {
         })
         .catch(err => alert('复制失败: ' + err));
 }
+
+
 </script>
 
 <template>
-    <!-- 导出为LaTeX图表视图 -->
-    <div v-if="viewType === 'table' && viewIndex >= 0">
-        <div class="card-div">
-            <el-card shadow="hover">
-                <div class="equipment">
-                    <label style="font-weight: 550;width: 10%;text-align: center;">表格数据</label>
-                    <span style="width: 1%;"></span>
-                    <el-cascader :options="dataOptions" :props="props" placeholder="选择数据"
-                        v-model="tableDataList[viewIndex]" style="width: 38.5%;">
-                        <template v-slot:default="{ node, data }">
-                            <vue-latex :expression="data.label" style="font-size: small;"></vue-latex>
-                        </template>
-                        <template #label="label">
-                            <vue-latex :expression="label"></vue-latex>
-                        </template>
-                    </el-cascader>
-                    <span style="width: 1%;"></span>
-                    <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
-                    <span style="width: 1%;"></span>
-                    <input placeholder="标题" v-model="selectedTable.tableTitleContent"
-                        style="width: 38.5%; text-align: center; " @change="updateCurrentTable">
-
-                </div>
-                <div class="equipment">
-                    <el-button @click="handleTableSelectAll" style="width: 32%;">全选</el-button>
-                    <el-button @click="handleTableClearAll" style="width: 32%;">清空</el-button>
-                    <el-button @click="handleTableUpdate" style="width: 32%;">刷新</el-button>
-                </div>
-            </el-card>
-        </div>
-        <div class="card-div">
-            <el-card shadow="hover">
-                <div>
-                    <div style="text-align: center;">
-                        <el-switch v-model="selectedTable.tableFramed" size="large" inactive-text="不带边框"
-                            active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
-                            @change="updateCurrentTable" />
-                        <span style="font-weight: bold; font-size: large;"> 内容 </span>
-                        <el-icon class="copy el-icon--right" @click="handleTableCopy">
-                            <document-copy></document-copy>
-                        </el-icon>
+    <div v-for="(table, index) of store.state.tableList">
+        <div v-show="viewType==='table'&& viewIndex === index">
+            <!-- 表格数据，标题，全选，清空，刷新 -->
+            <div class="card-div">
+                <el-card shadow="hover">
+                    <div class="equipment">
+                        <label style="font-weight: 550;width: 10%;text-align: center;">表格数据</label>
+                        <span style="width: 1%;"></span>
+                        <el-cascader :options="dataOptions" :props="props" placeholder="选择数据"
+                            v-model="tableDataList[index]" style="width: 38.5%;">
+                            <template v-slot:default="{ node, data }">
+                                <vue-latex :expression="data.label" style="font-size: small;"></vue-latex>
+                            </template>
+                            <template #label="label">
+                                <vue-latex :expression="label"></vue-latex>
+                            </template>
+                        </el-cascader>
+                        <span style="width: 1%;"></span>
+                        <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
+                        <span style="width: 1%;"></span>
+                        <input placeholder="标题" v-model="table.tableTitleContent"
+                            style="width: 38.5%; text-align: center; " @change="updateCurrentTable">
                     </div>
-                    <pre>{{ selectedTable.tableContent }}</pre>
-                </div>
-            </el-card>
-            <br>
-            <el-card shadow="hover" style="height: 350px; overflow: auto;">
-                <div>
-                    <div style="text-align: center;">
-                        <span style="font-weight: bold; font-size: large;"> 依赖 </span>
-                        <el-icon class="copy el-icon--right" @click="handleRelyCopy">
-                            <document-copy></document-copy>
-                        </el-icon>
+                    <div class="equipment">
+                        <el-button @click="handleTableSelectAll" style="width: 32%;">全选</el-button>
+                        <el-button @click="handleTableClearAll" style="width: 32%;">清空</el-button>
+                        <el-button @click="handleTableUpdate" style="width: 32%;">刷新</el-button>
                     </div>
-                    <pre>{{ store.rely }}</pre>
-                </div>
-            </el-card>
+                </el-card>
+            </div>
+            <!-- 带/不带边框，内容代码，依赖 -->
+            <div class="card-div">
+                <el-card shadow="hover">
+                    <div>
+                        <div style="text-align: center;">
+                            <el-switch v-model="table.tableFramed" size="large" inactive-text="不带边框"
+                                active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                                @change="updateCurrentTable" />
+                            <span style="font-weight: bold; font-size: large;"> 内容 </span>
+                            <el-icon class="copy el-icon--right" @click="handleTableCopy">
+                                <document-copy></document-copy>
+                            </el-icon>
+                        </div>
+                        <pre v-html="highlightKeywords(table.tableContent)"></pre>
+                    </div>
+                </el-card>
+                <br>
+                <el-card shadow="hover" style="height: 100px; overflow: auto;">
+                    <div>
+                        <div style="text-align: center;">
+                            <span style="font-weight: bold; font-size: large;"> 依赖 </span>
+                            <el-icon class="copy el-icon--right" @click="handleRelyCopy">
+                                <document-copy></document-copy>
+                            </el-icon>
+                        </div>
+                        <pre v-html="highlightKeywords(store.rely)"></pre>
+                    </div>
+                </el-card>
+            </div>
         </div>
     </div>
 </template>
