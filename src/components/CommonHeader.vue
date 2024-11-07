@@ -11,6 +11,7 @@
                 <a :href="updateUrl" target="_blank">
                     &nbsp;<img src="../assets/logo.jpg" alt="" style="width: 20pt; height: auto;"><sup>!</sup>
                 </a>
+                <sup style="font-size: small;">&nbsp;落后{{ behind }}个版本</sup>
             </span>
         </span>
     </div>
@@ -39,7 +40,7 @@ async function openFile(state) {
 const store = useAllDataStore()
 
 const updateUrl = ref(null)
-
+const behind = ref(0)
 
 /**读取用户配置 */
 readUserConfig()
@@ -53,9 +54,10 @@ readUserConfig()
     .finally(() => {
         /**如有最新版本，获取最新版本的url */
         fetchLatestVersionUrl(store.userConfig.newVersionTips)
-            .then((url) => {
-                if (url !== null) {
-                    updateUrl.value = url
+            .then((obj) => {
+                if (obj !== null) {
+                    updateUrl.value = obj.url
+                    behind.value=obj.behind
                 }
             })
             .catch((error) => {

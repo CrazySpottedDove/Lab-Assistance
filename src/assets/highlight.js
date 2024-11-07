@@ -1,32 +1,56 @@
 
 const keyWords = {
-	blue: ["\\begin", "\\end"],
-	lightseagreen: ["$"],
-	orange: ["{", "}"],
-    darkgoldenrod: ["[","]"],
-	purple: ["&", "\\\\"],
-	darkcyan: [
-		"\\text",
-		"\\mathrm",
-		"\\displaystyle",
-		"\\left",
-		"\\right",
-		"\\framed",
-		"\\notframed",
-		"\\qquad",
-        "\\xstyle",
-        "\\ystyle",
-        "\\datapoint",
-        "\\functionline",
-	],
-    deeppink:["(",")"]
+	light: {
+		blue: ["\\begin", "\\end"],
+		lightseagreen: ["$"],
+		orange: ["{", "}"],
+		darkgoldenrod: ["[", "]"],
+		purple: ["&", "\\\\"],
+		darkcyan: [
+			"\\text",
+			"\\mathrm",
+			"\\displaystyle",
+			"\\left",
+			"\\right",
+			"\\framed",
+			"\\notframed",
+			"\\qquad",
+			"\\xstyle",
+			"\\ystyle",
+			"\\datapoint",
+			"\\functionline",
+		],
+		deeppink: ["(", ")"],
+	},
+	dark: {
+		lightskyblue: ["\\begin", "\\end"],
+		lightseagreen: ["$"],
+		orange: ["{", "}"],
+		darkgoldenrod: ["[", "]"],
+		pink: ["&", "\\\\"],
+		darkcyan: [
+			"\\text",
+			"\\mathrm",
+			"\\displaystyle",
+			"\\left",
+			"\\right",
+			"\\framed",
+			"\\notframed",
+			"\\qquad",
+			"\\xstyle",
+			"\\ystyle",
+			"\\datapoint",
+			"\\functionline",
+		],
+		deeppink: ["(", ")"],
+	},
 };
 // 方法，用于生成高亮后的文本
-const highlightKeywords = (text) => {
+const highlightKeywords = (text, theme) => {
 	let content = text;
 
 	// 遍历 keyWords 对象
-	Object.entries(keyWords).forEach(([key, values]) => {
+	Object.entries(keyWords[theme]).forEach(([key, values]) => {
 		values.forEach((value) => {
 			// 对特殊字符进行转义
 			const escapedValue = value.replace(

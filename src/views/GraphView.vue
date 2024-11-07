@@ -449,14 +449,14 @@ const handleGraphUpdate = () => {
                     <div>
                         <div style="text-align: center;">
                             <el-switch v-model="graph.graphFramed" size="large" inactive-text="不带边框"
-                                active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                                active-text="带边框" style="font-size: large;width: 20%;"
                                 @change="handleGraphQuietUpdate" />
                             <span style="font-weight: bold; font-size: large;"> 内容 </span>
                             <el-icon class="copy el-icon--right" @click="handleGraphCopy">
                                 <document-copy></document-copy>
                             </el-icon>
                         </div>
-                        <pre v-html="highlightKeywords(graph.graphContent)"></pre>
+                        <pre v-html="highlightKeywords(graph.graphContent, store.userConfig.theme)"></pre>
                     </div>
                 </el-card>
             </div>
@@ -470,7 +470,7 @@ const handleGraphUpdate = () => {
                                 <document-copy></document-copy>
                             </el-icon>
                         </div>
-                        <pre v-html="highlightKeywords(store.rely)"></pre>
+                        <pre v-html="highlightKeywords(store.rely, store.userConfig.theme)"></pre>
                     </div>
                 </el-card>
             </div>

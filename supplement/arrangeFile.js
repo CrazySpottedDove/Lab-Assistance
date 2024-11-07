@@ -32,6 +32,9 @@ function checkConfig(configData) {
     if(configData.autoCalcUnit === undefined){
         configData.autoCalcUnit = true;
     }
+    if(configData.theme === undefined){
+        configData.theme = "light";
+    }
 	return configData;
 }
 

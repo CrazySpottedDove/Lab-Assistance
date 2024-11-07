@@ -1,8 +1,7 @@
 <template>
     <div class="common-aside">
         <el-aside width="100%">
-            <el-menu background-color="#626aef"
-                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5','0-6', '1', '1-1', '1-2', '2', '3']">
+            <el-menu :background-color="props.elmenuBackgroundColor" :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '0-6', '0-7', '1', '1-1', '1-2', '2', '3']">
                 <!-- 用户配置 -->
                 <el-sub-menu index="0">
                     <template #title>
@@ -69,6 +68,15 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === false }"
                             @click="handleChangeUserConfig('autoCalcUnit', false)">否</el-menu-item>
                     </el-sub-menu>
+                    <el-sub-menu index="0-7">
+                        <template #title>
+                            <span style="color: gainsboro!important;">主题</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.theme === 'light' }"
+                            @click="handleChangeUserConfig('theme', 'light')">亮</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.theme === 'dark' }"
+                            @click="handleChangeUserConfig('theme', 'dark')">暗</el-menu-item>
+                    </el-sub-menu>
                 </el-sub-menu>
                 <!--  直接数据与间接数据-->
                 <el-sub-menu index="1">
@@ -83,8 +91,8 @@
                             @click="handleSelect('directData', index)"
                             :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
                             <span style="width: 120px;">
-                                <el-input v-model="item.title"
-                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
+                                <input v-model="item.title"
+                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></input>
                                 <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
@@ -106,8 +114,8 @@
                             @click="handleSelect('indirectData', index)"
                             :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
                             <span style="width: 120px;">
-                                <el-input v-model="item.title"
-                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
+                                <input v-model="item.title"
+                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></input>
                                 <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
@@ -185,7 +193,9 @@ import { CircleClose, Setting } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import { titleFormat } from '../assets/format.js';
 // 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
-
+const props = defineProps({
+    elmenuBackgroundColor:String
+})
 async function saveUserConfig() {
     const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
     saveUserConfig(store.userConfig)
@@ -223,7 +233,6 @@ const handleAdd = (key) => {
 .el-menu {
     border-right: none;
     font-weight: bold;
-
     .el-menu-item {
         line-height: 48px;
         color: gainsboro;
@@ -234,7 +243,6 @@ const handleAdd = (key) => {
 
 .el-aside {
     height: 100%;
-    background-color: #626aef;
 }
 
 .common-aside {
@@ -256,7 +264,6 @@ const handleAdd = (key) => {
 }
 
 .selected {
-    background-color: #1520f5 !important;
     color: aliceblue;
 }
 
@@ -264,11 +271,14 @@ const handleAdd = (key) => {
     text-align: center;
 }
 
-.copytarget {
-    background-color: rgb(52, 11, 78);
-}
-
 .sidetitle {
     font-size: small !important;
+}
+
+input{
+    height: 25px;
+    width: 90px;
+    border-radius: 5%;
+    text-align: center;
 }
 </style>

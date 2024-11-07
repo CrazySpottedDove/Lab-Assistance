@@ -137,7 +137,7 @@ const handleSuggestionSelect = (item) => {
                         <label style="font-weight: 550;width: 10%;text-align: center;">保留方式</label>
                         <span style="width: 5%;"></span>
                         <el-switch v-model="indirectData.dataMethod" size="large" active-text="不确定度方式"
-                            inactive-text="有效数字方式" style="font-size: large;width: 40%;--el-switch-on-color: #626aef;" />
+                            inactive-text="有效数字方式" style="font-size: large;width: 40%;" />
                         <span style="width: 1%;"></span>
                         <label style="font-weight: 550;width: 5%;text-align: left;min-width: 5em;">符号含义</label>
                         <input v-model="indirectData.doc" style="text-align: center;width: 39%;"

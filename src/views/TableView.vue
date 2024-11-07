@@ -631,14 +631,14 @@ const handleRelyCopy = () => {
                     <div>
                         <div style="text-align: center;">
                             <el-switch v-model="table.tableFramed" size="large" inactive-text="不带边框"
-                                active-text="带边框" style="font-size: large;width: 20%;--el-switch-on-color: #626aef;"
+                                active-text="带边框" style="font-size: large;width: 20%;"
                                 @change="updateCurrentTable" />
                             <span style="font-weight: bold; font-size: large;"> 内容 </span>
                             <el-icon class="copy el-icon--right" @click="handleTableCopy">
                                 <document-copy></document-copy>
                             </el-icon>
                         </div>
-                        <pre v-html="highlightKeywords(table.tableContent)"></pre>
+                        <pre v-html="highlightKeywords(table.tableContent, store.userConfig.theme)"></pre>
                     </div>
                 </el-card>
                 <br>
@@ -650,7 +650,7 @@ const handleRelyCopy = () => {
                                 <document-copy></document-copy>
                             </el-icon>
                         </div>
-                        <pre v-html="highlightKeywords(store.rely)"></pre>
+                        <pre v-html="highlightKeywords(store.rely, store.userConfig.theme)"></pre>
                     </div>
                 </el-card>
             </div>

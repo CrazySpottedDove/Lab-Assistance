@@ -49,6 +49,7 @@ const store = useAllDataStore()
             <li><em>图表边框</em>： 决定了制作图表时默认 带/不带 边框。</li>
             <li><em>推送新版本</em>：如果为“是”，当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</li>
             <li><em>自动计算单位</em>：如果为“是”，当刷新间接数据且倍率为 1 时，将会根据直接数据的单位推断间接数据的单位。</li>
+            <li><em>主题</em>用于切换亮暗模式</li>
             <li>所有设置被保存在 <vue-latex expression="\text{package.nw}"></vue-latex>(<vue-latex
                     expression="\text{mac}"></vue-latex> 用户为 <vue-latex expression="\text{app.nw}"></vue-latex>)
                 同级目录 <vue-latex expression="\text{user}"></vue-latex> 下的 <vue-latex

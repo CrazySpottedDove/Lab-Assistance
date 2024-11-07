@@ -147,7 +147,7 @@ const handleUncerEdit = () => {
                     <div class="equipment">
                         <label style="font-weight: 550;width: 10%;text-align: left;min-width: 5em;">精度规则</label>
                         <el-select style="width: 39%;text-align: center;min-width: 5.5em" v-model="directData.levelRule"
-                            @change="handleEditLevelRule">
+                            @change="handleEditLevelRule" :popper-append-to-body="false">
                             <el-option v-for="levelRule in levelRules" :key="levelRule.value" :label="levelRule.label"
                                 :value="levelRule.value"></el-option>
                         </el-select>
