@@ -364,7 +364,9 @@ function unitFormat(str) {
 		.replace(/μ/g, "\\upmu ")
 		.replace(/°/g, "{}^{\\circ}")
 		.replace(/℃/g, "{}^{\\circ}C")
-		.replace(/\*/g, "\\cdot ");
+		.replace(/\*/g, "\\cdot ")
+        .replace(/\\mu/g,"\\upmu ")
+        .replace(/\\Omega/g,"\\bm{\\Omega}");
 	// 将字母后面跟随的正负数（包括负号）转化为上标
 	str = str.replace(/([a-zA-Z])([-]?\d+)/g, "$1^{$2}");
 	// 处理分数的情况
@@ -414,7 +416,7 @@ function commentFormat(str, dataList) {
 
 	let expressionTree = constructExpressionTree(postfixExpression);
 	str = processExpressionTree(expressionTree);
-    
+
 	return restoreTitle(str);
 }
 

@@ -1,11 +1,11 @@
 <script setup>
 import 'katex/dist/katex.css'
-import DataView from './DataView.vue';
 import TableView from './TableView.vue';
 import GraphView from './GraphView.vue';
 import ReadmeView from './ReadmeView.vue';
 import DocView from './DocView.vue';
-
+import DirectDataView from './DirectDataView.vue';
+import IndirectDataView from './IndirectDataView.vue';
 import { useAllDataStore } from '../assets/stores';
 import { handleKeyDown } from '../assets/keyBoard';
 import { onMounted, onBeforeUnmount } from 'vue';
@@ -23,7 +23,8 @@ onBeforeUnmount(() => {
 
 </script>
 <template>
-    <data-view></data-view>
+    <direct-data-view></direct-data-view>
+    <indirect-data-view></indirect-data-view>
     <graph-view></graph-view>
     <table-view></table-view>
     <readme-view></readme-view>
