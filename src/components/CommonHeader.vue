@@ -1,6 +1,6 @@
 <template>
     <div class="header">
-        <span style="text-align: center; width: 100%; font-weight: bold; font-size: larger;">普物实验数据处理小助手
+        <span style="text-align: center; width: 100%; font-weight: bold; font-size: larger;">Lab-Assistance {{ currentVersion }}
             <el-icon class="saveicon el-icon--right" @click="handleFileSave">
                 <folder-checked></folder-checked>
             </el-icon>
@@ -20,7 +20,7 @@
 import { FolderChecked, FolderOpened } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import { ref, watch } from 'vue'
-import { fetchLatestVersionUrl } from '../assets/versionTips.js';
+import { fetchLatestVersionUrl , currentVersion} from '../assets/versionTips.js';
 
 async function readUserConfig() {
     const { readUserConfig } = await import('../../supplement/arrangeFile.js')

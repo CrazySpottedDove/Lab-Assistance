@@ -54,4 +54,4 @@ function hasNewVersion(latestVersion) {
 	return latest-current
 }
 
-export { fetchLatestVersionUrl };
+export { fetchLatestVersionUrl , currentVersion};
