@@ -91,8 +91,8 @@
                             @click="handleSelect('directData', index)"
                             :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
                             <span style="width: 120px;">
-                                <input v-model="item.title"
-                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></input>
+                                <el-input v-model="item.title"
+                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
                                 <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
@@ -114,8 +114,8 @@
                             @click="handleSelect('indirectData', index)"
                             :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
                             <span style="width: 120px;">
-                                <input v-model="item.title"
-                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></input>
+                                <el-input v-model="item.title"
+                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
                                 <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
                             </span>
                             <span>
@@ -275,10 +275,5 @@ const handleAdd = (key) => {
     font-size: small !important;
 }
 
-input{
-    height: 25px;
-    width: 90px;
-    border-radius: 5%;
-    text-align: center;
-}
+
 </style>

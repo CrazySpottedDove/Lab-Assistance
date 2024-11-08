@@ -54,7 +54,7 @@ function handleKeyDown(event, store) {
 				if (store.state.view.index < 0) return;
 
 				store.state.copyBoardByView.type = store.state.view.type;
-                store.state.copyBoardByView.index = store.state.view.index;
+				store.state.copyBoardByView.index = store.state.view.index;
 				switch (store.state.view.type) {
 					case "directData":
 						ElMessage.success(

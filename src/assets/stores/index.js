@@ -812,6 +812,10 @@ export const useAllDataStore = defineStore("allData", () => {
 							selectedList.moreUncer.wholeUncer =
 								selectedList.moreUncer.bUncer;
 						}
+                        else{
+                            delete selectedList.moreUncer.bUncer;
+                            selectedList.moreUncer.wholeUncer = '0'
+                        }
 					}
 					delete selectedAnalysis["relErr"];
 					delete selectedAnalysis["avgRelErr"];

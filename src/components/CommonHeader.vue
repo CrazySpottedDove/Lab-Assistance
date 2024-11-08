@@ -1,12 +1,20 @@
 <template>
     <div class="header">
-        <span style="text-align: center; width: 100%; font-weight: bold; font-size: larger;">Lab-Assistance {{ currentVersion }}
+        <span style="text-align: center; width: 100%; font-weight: bold; font-size: larger;">Lab-Assistance {{
+            currentVersion }}
             <el-icon class="saveicon el-icon--right" @click="handleFileSave">
                 <folder-checked></folder-checked>
             </el-icon>
             <el-icon class="saveicon el-icon--right" @click="handleFileLoad">
                 <folder-opened></folder-opened>
             </el-icon>
+            <el-icon class="saveicon el-icon--right" v-show="store.userConfig.theme==='light'" @click="handleThemeChange('dark')">
+                <sunny></sunny>
+            </el-icon>
+            <el-icon class="saveicon el-icon--right" v-show="store.userConfig.theme==='dark'" @click="handleThemeChange('light')">
+                <moon></moon>
+            </el-icon>
+
             <span v-show="updateUrl !== null">
                 <a :href="updateUrl" target="_blank">
                     &nbsp;<img src="../assets/logo.jpg" alt="" style="width: 20pt; height: auto;"><sup>!</sup>
@@ -17,7 +25,7 @@
     </div>
 </template>
 <script setup>
-import { FolderChecked, FolderOpened } from '@element-plus/icons-vue';
+import { FolderChecked, FolderOpened, Sunny, Moon  } from '@element-plus/icons-vue';
 import { useAllDataStore } from '../assets/stores';
 import { ref, watch } from 'vue'
 import { fetchLatestVersionUrl , currentVersion} from '../assets/versionTips.js';
@@ -35,6 +43,11 @@ async function saveStateOnExit(state, userConfig) {
 async function openFile(state) {
     const { openFile } = await import('../../supplement/arrangeFile.js')
     openFile(state)
+}
+
+async function saveUserConfig(userConfig) {
+    const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
+    saveUserConfig(userConfig)
 }
 
 const store = useAllDataStore()
@@ -84,6 +97,10 @@ watch(store.state, (newState) => {
     }
 }, { deep: true })
 
+const handleThemeChange = (theme) => {
+    store.userConfig.theme = theme
+    saveUserConfig(store.userConfig)
+}
 </script>
 <style lang="less" scoped>
 .header {
