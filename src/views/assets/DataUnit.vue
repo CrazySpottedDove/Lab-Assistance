@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { unitFormat } from '../../assets/format';
 
 const props = defineProps({
@@ -12,9 +12,11 @@ const props = defineProps({
 const emit = defineEmits(['update:unit']);
 
 const localUnit = ref(props.unit);
-
+watch(() => props.unit, (newVal) => {
+    localUnit.value = newVal;
+})
 const handleInput = () => {
-    emit('update:unit', props.unit=localUnit.value);
+    emit('update:unit', props.unit = localUnit.value);
 };
 </script>
 
