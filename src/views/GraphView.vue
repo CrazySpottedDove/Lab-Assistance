@@ -433,8 +433,8 @@ const handleGraphUpdate = () => {
                     <div class="equipment">
                         <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                         <span style="width: 1%;"></span>
-                        <input placeholder="标题" v-model="graph.graphTitleContent"
-                            @change="handleGraphQuietUpdate" style="width: 22%; text-align: center;">
+                        <el-input placeholder="标题" v-model="graph.graphTitleContent"
+                            @change="handleGraphQuietUpdate" style="width: 22%; text-align: center;"></el-input>
                         <span style="width: 5%;"></span>
                         <el-button @click="handleAddSingleGraph"
                             style="width: 35%; text-align: center;">添加图线</el-button>

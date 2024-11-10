@@ -95,23 +95,34 @@ const precedence = {
 
 /**保护title时的算符映射规则 */
 const replacements = {
-	"+": "@ADD",
-	"-": "@SUBTRACTION",
-	"*": "@TIMES",
-	"/": "@DIVIDE",
-	"^": "@POW",
-	"(": "@LEFTPAREN",
-	")": "@RIGHTPAREN",
-	abs: "@ABS",
-	ln: "@LN",
-	lg: "@LG",
-	asin: "@ASIN",
-	acos: "@ACOS",
-	atan: "@ATAN",
-	sin: "@SIN",
-	cos: "@COS",
-	tan: "@TAN",
-	sqrt: "@SQRT",
+	"'": "_APOSTROPHE_",
+	",": "_COMMA_",
+	"+": "_ADD_",
+	"-": "_SUBTRACT_",
+	"*": "_MULTIPLY_",
+	"/": "_DIVIDE_",
+	"^": "_POW_",
+	ln: "_LN_",
+	log: "_LOG_",
+	lg: "_LG_",
+	sin: "_SIN_",
+	cos: "_COS_",
+	tan: "_TAN_",
+	asin: "_ASIN_",
+	acos: "_ACOS_",
+	atan: "_ATAN_",
+	abs: "_ABS_",
+	sqrt: "_SQRT_",
+	"[": "_LEFTBRACKET_",
+	"]": "_RIGHTBRACKET_",
+	"{": "_LEFTBRACE_",
+	"}": "_RIGHTBRACE_",
+	";": "_SEMICOLON_",
+	".": "_PERIOD_",
+	"(": "_LEFTPARENTHESIS_",
+	")": "_RIGHTPARENTHESIS_",
+	"\\": "_BACKSLASH_",
+	" ": "_SPACE_",
 };
 
 /**恢复title时的反映射规则 */
@@ -133,7 +144,7 @@ const restoreReg = new RegExp(Object.keys(reverseReplacements).join("|"), "g");
 /**将字符串表达式转化成数组表达式用的正则表达式 */
 const tokenizeReg = new RegExp(
 	operators.map((op) => op.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") +
-		"|[()+\\-*/^]|[^()+\\-*/^]+",
+		"|[()+\\-*/^]|[^()+\\-*/^\\s]+",
 	"g"
 );
 // 表达式树的节点类
@@ -402,21 +413,22 @@ function commentFormat(str, dataList) {
 	}
 
 	str = handleScientificNotation(str);
-
+    console.log('scientific'+str)
 	// 实现保护变量名
 	dataList.forEach((item) => {
 		const title = item.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 		const regex = new RegExp(`${title}`, "g");
 		str = str.replace(regex, `${protectTitle(item.title)}`);
 	});
-
+    console.log('protect'+str)
 	let infixExpression = tokenize(str);
-
+    console.log('infix'+infixExpression)
 	let postfixExpression = infixToPostfix(infixExpression);
-
+    console.log('postfix'+postfixExpression)
 	let expressionTree = constructExpressionTree(postfixExpression);
-	str = processExpressionTree(expressionTree);
 
+	str = processExpressionTree(expressionTree);
+    console.log('tree'+str)
 	return restoreTitle(str);
 }
 
@@ -461,4 +473,4 @@ function dataFormat(str) {
 	}
 }
 
-export { titleFormat, unitFormat, commentFormat, docFormat, dataFormat };
+export { titleFormat, unitFormat, commentFormat, docFormat, dataFormat , replacements};

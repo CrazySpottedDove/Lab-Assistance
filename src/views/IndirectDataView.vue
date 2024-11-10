@@ -104,8 +104,9 @@ const handleSuggestionSelect = (item) => {
             <div class="card-div">
                 <el-card shadow="hover">
                     <div class="equipment">
-                        <label style="font-weight: 550;width: 5%;text-align: center;min-width: 2.5em;">算式</label>
-                        <span style="width: 4%;"></span>
+                        <span style="width: 1.7%;"></span>
+                        <label style="font-weight: 550;width: 4%;text-align: right;min-width: 2.5em;">算式</label>
+                        <span style="width: 5%;"></span>
                         <span style=" width: 40%;">
                             <el-autocomplete style="text-align: center;width: 98%;" placeholder="示例：(a+b)/(9.8*c)"
                                 v-model="inputComputeMethod" :fetch-suggestions="querySearch"
@@ -116,11 +117,12 @@ const handleSuggestionSelect = (item) => {
                                 </template>
                             </el-autocomplete>
                         </span>
-                        <span style="width: 3.5%;"></span>
-                        <label style="font-weight: 550;width: 5%;text-align: center;min-width: 2.5em;">预览</label>
-                        <span style=" width: 40%;">
-                            <center><vue-latex :expression="commentFormat(indirectData.computeMethod, [...store.state.directDataList,
-                            ...store.state.indirectDataList])" style="font-size: large;"></vue-latex></center>
+                        <span style="width: 3%;"></span>
+                        <label style="font-weight: 550;width: 5%;text-align: right;min-width: 2.5em;">预览</label>
+                        <span style="width: 3%;"></span>
+                        <span style=" width: 40%;" class="fake-input">
+                            <vue-latex :expression="commentFormat(indirectData.computeMethod, [...store.state.directDataList,
+                            ...store.state.indirectDataList])" style="font-size: large;"></vue-latex>
                         </span>
                     </div>
                     <div class="equipment">
@@ -140,8 +142,8 @@ const handleSuggestionSelect = (item) => {
                             inactive-text="有效数字方式" style="font-size: large;width: 40%;" />
                         <span style="width: 1%;"></span>
                         <label style="font-weight: 550;width: 5%;text-align: left;min-width: 5em;">符号含义</label>
-                        <input v-model="indirectData.doc" style="text-align: center;width: 39%;"
-                            placeholder="选填，仅对 LaTeX 制表/图有影响">
+                        <el-input v-model="indirectData.doc" style="text-align: center;width: 39%;"
+                            placeholder="选填，仅对 LaTeX 制表/图有影响"></el-input>
                         <br />
                     </div>
                 </el-card>
@@ -151,7 +153,7 @@ const handleSuggestionSelect = (item) => {
                 <el-card shadow="hover">
                     <div class="equipment">
                         <label style="font-weight: 550;width: 16%;text-align: left;">倍率</label>
-                        <input style="text-align: center;width: 84%;" v-model="indirectData.multiplier">
+                        <el-input style="text-align: center;width: 84%;" v-model="indirectData.multiplier"></el-input>
                     </div>
                 </el-card>
             </div>
@@ -180,8 +182,8 @@ const handleSuggestionSelect = (item) => {
                     <div class="edit-one">
                         <div class="indirect-theo-data">
                             <label style="font-weight: 550;width: 20%;text-align: left;">理论值</label>
-                            <input v-model="indirectData.theoData" style="text-align: center;width: 80%;"
-                                placeholder="选填" @change="handleEditTheoData"></input>
+                            <el-input v-model="indirectData.theoData" style="text-align: center;width: 80%;"
+                                placeholder="选填" @change="handleEditTheoData"></el-input>
                         </div>
                     </div>
                 </el-card>
@@ -191,8 +193,8 @@ const handleSuggestionSelect = (item) => {
                     <div class="edit-one">
                         <div class="indirect-theo-data">
                             <label style="font-weight: 550;width: 20%;text-align: left;">理论值</label>
-                            <input v-model="indirectData.theoData" style="text-align: center;width: 80%;"
-                                placeholder="选填" @change="handleEditTheoData"></input>
+                            <el-input v-model="indirectData.theoData" style="text-align: center;width: 80%;"
+                                placeholder="选填" @change="handleEditTheoData"></el-input>
                         </div>
                     </div>
                 </el-card>
@@ -203,8 +205,8 @@ const handleSuggestionSelect = (item) => {
                 <el-card shadow="hover">
                     <div class="equipment">
                         <label style="font-weight: 550;width: 20%;text-align: left;">不确定度</label>
-                        <input style="text-align: center;width: 80%;" disabled
-                            v-model="indirectData.moreUncer.wholeUncer">
+                        <el-input style="text-align: center;width: 80%;" disabled
+                            v-model="indirectData.moreUncer.wholeUncer"></el-input>
                     </div>
                 </el-card>
             </div>

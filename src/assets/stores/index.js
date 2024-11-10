@@ -503,6 +503,7 @@ export const useAllDataStore = defineStore("allData", () => {
 
 	/**更新当前数据的各项指标，包括 analysis 和 uncer */
 	function refreshDataDetails() {
+        console.log('refreshDataDetails')
 		// 错误检查
 		if (
 			state.value.view.type !== "directData" &&

@@ -615,8 +615,8 @@ const handleRelyCopy = () => {
                         <span style="width: 1%;"></span>
                         <label style="font-weight: 550;width: 10%;text-align: center;">标题</label>
                         <span style="width: 1%;"></span>
-                        <input placeholder="标题" v-model="table.tableTitleContent"
-                            style="width: 38.5%; text-align: center; " @change="updateCurrentTable">
+                        <el-input placeholder="标题" v-model="table.tableTitleContent"
+                            style="width: 38.5%; text-align: center; " @change="updateCurrentTable"></el-input>
                     </div>
                     <div class="equipment">
                         <el-button @click="handleTableSelectAll" style="width: 32%;">全选</el-button>

@@ -135,13 +135,13 @@ const handleUncerEdit = () => {
                     <div class="edit-one">
                         <div class="new-data">
                             <label style="font-weight: 550;width: 20%;text-align: left;">新数据</label>
-                            <input v-model="dataInput" @change="handleAddRawData"
-                                style="text-align: center;width: 80%;">
+                            <el-input v-model="dataInput" @change="handleAddRawData"
+                                style="text-align: center;width: 80%;" ></el-input>
                         </div>
                         <div class="theo-data">
                             <label style="font-weight: 550;width: 20%;text-align: left;">理论值</label>
-                            <input v-model="directData.theoData" style="text-align: center;width: 80%;" placeholder="选填"
-                                @change="handleEditTheoData"></input>
+                            <el-input v-model="directData.theoData" style="text-align: center;width: 80%;" placeholder="选填"
+                                @change="handleEditTheoData" ></el-input>
                         </div>
                     </div>
                     <div class="equipment">
@@ -153,8 +153,8 @@ const handleUncerEdit = () => {
                         </el-select>
                         <span style="width: 1%;"></span>
                         <label style="font-weight: 550;width: 9%;text-align: left;min-width: 5em;">符号含义</label>
-                        <input v-model="directData.doc" style="text-align: center;width: 40%;"
-                            placeholder="选填，仅对 LaTeX 制表/图有影响">
+                        <el-input v-model="directData.doc" style="text-align: center;width: 40%;"
+                            placeholder="选填，仅对 LaTeX 制表/图有影响"></el-input>
                     </div>
                 </el-card>
             </div>
@@ -165,17 +165,17 @@ const handleUncerEdit = () => {
                 <el-card shadow="hover">
                     <div class="equipment">
                         <label style="font-weight: 550;width: 20%;text-align: left;">仪器允差</label>
-                        <input style="text-align: center;width: 80%;" placeholder="选填"
-                            v-model="directData.moreUncer.equipUncer" @change="handleEditEquipUncer">
+                        <el-input style="text-align: center;width: 80%;" placeholder="选填"
+                            v-model="directData.moreUncer.equipUncer" @change="handleEditEquipUncer"></el-input>
                     </div>
                     <div class="equipment" v-show="directData.moreUncer.bUncer">
                         <label style="font-weight: 550;width: 20%;text-align: left;">B类不确定度</label>
-                        <input style="text-align: center;width: 80%;" v-model="directData.moreUncer.bUncer" disabled>
+                        <el-input style="text-align: center;width: 80%;" v-model="directData.moreUncer.bUncer" disabled></el-input>
                     </div>
                     <div class="equipment">
                         <label style="font-weight: 550;width: 20%;text-align: left;">不确定度</label>
-                        <input style="text-align: center;width: 80%;" :disabled="directData.dataSet.length !== 1"
-                            v-model="directData.moreUncer.wholeUncer" @change="handleUncerEdit">
+                        <el-input style="text-align: center;width: 80%;" :disabled="directData.dataSet.length !== 1"
+                            v-model="directData.moreUncer.wholeUncer" @change="handleUncerEdit"></el-input>
                     </div>
                 </el-card>
             </div>

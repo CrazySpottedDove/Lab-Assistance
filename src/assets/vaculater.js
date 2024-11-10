@@ -1,7 +1,7 @@
 import { calc } from "a-calc";
 import { ElMessage } from "element-plus";
-import { create, all, typed, cos, atan, acos } from "mathjs";
-
+import { create, all, typed} from "mathjs";
+import { replacements } from "./format";
 const config = {
 	// 可以选择在这里添加其他配置，如处理大数等
 };
@@ -1385,36 +1385,6 @@ function escapeVariableName(variableName) {
 	// 用双引号包裹变量名，防止撇号引起解析错误
 	let tmp = variableName;
 
-	const replacements = {
-		"'": "_APOSTROPHE_",
-		",": "_COMMA_",
-		"+": "_ADD_",
-		"-": "_SUBTRACT_",
-		"*": "_MULTIPLY_",
-		"/": "_DIVIDE_",
-		"^": "_POW_",
-		ln: "_LN_",
-		log: "_LOG_",
-		lg: "_LG_",
-		sin: "_SIN_",
-		cos: "_COS_",
-		tan: "_TAN_",
-		asin: "_ASIN_",
-		acos: "_ACOS_",
-		atan: "_ATAN_",
-		abs: "_ABS_",
-		sqrt: "_SQRT_",
-		"[": "_LEFTBRACKET_",
-		"]": "_RIGHTBRACKET_",
-		"{": "_LEFTBRACE_",
-		"}": "_RIGHTBRACE_",
-		";": "_SEMICOLON_",
-		".": "_PERIOD_",
-		"(": "_LEFTPARENTHESIS_",
-		")": "_RIGHTPARENTHESIS_",
-		"\\": "_BACKSLASH_",
-	};
-
 	// 替换特殊字符
 	tmp = tmp.replace(
 		new RegExp(
@@ -1428,6 +1398,7 @@ function escapeVariableName(variableName) {
 
 	// 替换中文字符
 	tmp = replaceChineseWithUnicode(tmp);
+    console.log('variable'+tmp)
 	return tmp;
 }
 // 处理变量名规范，以便数学解析器解析
@@ -1442,7 +1413,7 @@ function escapeExpression(expression, variables) {
 		const regex = new RegExp(escapedKey, "g"); // 创建全局正则表达式
 		preprocessed = preprocessed.replace(regex, value); // 替换匹配的部分
 	});
-
+    console.log('expression'+preprocessed)
 	return preprocessed;
 }
 // 处理表达式规范，以便数学解析器解析

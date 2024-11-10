@@ -7,56 +7,69 @@ import { computed, watch, ref } from 'vue';
 const store = useAllDataStore()
 const elmenuBackgroundColor = ref('#626aef')
 
+/**
+ * 颜色主题
+ */
+const themes = {
+    light: {
+        '--text-color': '#242424',
+        '--background-color': '#f5f5f5',
+        '--header-color': 'dimgrey',
+        '--h2-color': '#2c3e50',
+        '--h2-line-color': '#3498db',
+        '--el-aside-background-color': '#626aef',
+        '--selected-background-color': '#1520f5',
+        '--strong-color': '#626aef',
+        '--elcard-background-color': 'white',
+        '--eltable-hover-color': 'rgb(199, 216, 244)',
+        '--input-background-color': 'white',
+        '--input-color': '#242424',
+        '--placeholder-color': '#606266',
+        '--elselect-hovered-color': '#f5f7fa',
+        '--border-color': '#dcdfe6',
+        '--eltable-border-color': '#dcdfe6'
+    },
+    dark: {
+        '--text-color': '#e1e1e1',
+        '--background-color': '#242424',
+        '--header-color': '#e1e1e1',
+        '--h2-color': 'rgb(0, 210, 151)',
+        '--h2-line-color': 'rgb(0,210,151)',
+        '--el-aside-background-color': 'rgb(16,87,90)',
+        '--selected-background-color': 'rgb(7,152,175)',
+        '--strong-color': 'rgb(57, 255, 255)',
+        '--elcard-background-color': 'rgb(34,39,37)',
+        '--eltable-hover-color': 'rgb(60, 86, 80)',
+        '--input-background-color': '#242424',
+        '--input-color': '#e1e1e1',
+        '--placeholder-color': 'rgb(165,165,165)',
+        '--elselect-hovered-color': 'rgb(60,86,80)',
+        '--border-color': 'rgb(90,90,90)',
+        '--eltable-border-color': 'rgb(85,85,85)'
+    }
+};
+
+/**
+ * 更新主题
+ */
 const theme = computed(() => {
     switch (store.userConfig.theme) {
         case 'light':
-            document.documentElement.style.setProperty('--text-color', '#242424')
-            document.documentElement.style.setProperty('--background-color', '#f5f5f5')
-            document.documentElement.style.setProperty('--header-color', 'dimgrey')
-            document.documentElement.style.setProperty('--h2-color', '#2c3e50')
-            document.documentElement.style.setProperty('--h2-line-color', '#3498db')
-            document.documentElement.style.setProperty('--el-aside-background-color', '#626aef')
-            document.documentElement.style.setProperty('--selected-background-color', '#1520f5')
-            document.documentElement.style.setProperty('--strong-color', '#626aef')
-            document.documentElement.style.setProperty('--elcard-background-color', 'white')
-            document.documentElement.style.setProperty('--eltable-hover-color', 'rgb(199, 216, 244)')
-            document.documentElement.style.setProperty('--input-background-color', 'white')
-            document.documentElement.style.setProperty('--input-color', '#242424')
-            document.documentElement.style.setProperty('--placeholder-color', '#606266')
-            document.documentElement.style.setProperty('--elselect-hovered-color', '#f5f7fa')
-            document.documentElement.style.setProperty('--border-color', '#dcdfe6')
-            document.documentElement.style.setProperty('--eltable-border-color', '#dcdfe6')
             elmenuBackgroundColor.value = "#626aef"
             break;
         case 'dark':
-            document.documentElement.style.setProperty('--text-color', '#e1e1e1')
-            document.documentElement.style.setProperty('--background-color', '#242424')
-            document.documentElement.style.setProperty('--header-color', '#e1e1e1')
-            document.documentElement.style.setProperty('--h2-color', 'rgb(0, 210, 151)')
-            document.documentElement.style.setProperty('--h2-line-color', 'rgb(0,210,151)')
-            document.documentElement.style.setProperty('--el-aside-background-color', 'rgb(16,87,90)')
-            document.documentElement.style.setProperty('--selected-background-color', 'rgb(7,152,175)')
-            document.documentElement.style.setProperty('--strong-color', 'rgb(57, 255, 255)')
-            document.documentElement.style.setProperty('--elcard-background-color', 'rgb(34,39,37)')
-            document.documentElement.style.setProperty('--eltable-hover-color', 'rgb(60, 86, 80)')
-            document.documentElement.style.setProperty('--input-background-color', '#242424')
-            document.documentElement.style.setProperty('--input-color', '#e1e1e1')
-            document.documentElement.style.setProperty('--placeholder-color', 'rgb(165,165,165)')
-            document.documentElement.style.setProperty('--elselect-hovered-color', 'rgb(60,86,80)')
-            document.documentElement.style.setProperty('--border-color', 'rgb(80,80,80)')
-            document.documentElement.style.setProperty('--eltable-border-color', 'rgb(85,85,85)')
             elmenuBackgroundColor.value = "rgb(16,87,90)"
             break;
     }
+    Object.entries(themes[store.userConfig.theme]).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(key, value)
+    })
 })
 // 这里的用法比较奇怪，使用computed属性来调整css变量，并使用watch来强制这些调整生效
 watch(theme, () => { })
 
-
-
 </script>
 <template>
-
     <div class="common-layout">
         <el-container class="lay-container">
             <common-aside :elmenuBackgroundColor="elmenuBackgroundColor" />
@@ -70,7 +83,6 @@ watch(theme, () => { })
             </el-container>
         </el-container>
     </div>
-
 </template>
 <style lang="less">
 .common-layout,
@@ -84,7 +96,7 @@ watch(theme, () => { })
 }
 
 .common-layout {
-    color: rgb(34, 39, 37);
+    color: rgb(120, 120, 120);
     color: var(--text-color);
     background-color: var(--background-color);
 
@@ -111,20 +123,23 @@ watch(theme, () => { })
 
     .el-card {
         background-color: var(--elcard-background-color);
-        --el-card-border-color:var(--border-color);
+        --el-card-border-color: var(--border-color);
     }
 
     .el-table {
         background-color: var(--elcard-background-color);
         --el-table-row-hover-bg-color: var(--eltable-hover-color);
-        --el-table-border:1px solid var(--eltable-border-color);
+        --el-table-border: 1px solid var(--eltable-border-color);
+
         thead {
             color: var(--tableheader-color);
         }
     }
-    .el-table__inner-wrapper:before{
+
+    .el-table__inner-wrapper:before {
         background-color: var(--border-color);
     }
+
     input {
         color: var(--input-color);
         background-color: var(--input-background-color);
@@ -136,18 +151,27 @@ watch(theme, () => { })
         box-shadow: 0 0 0 1px var(--border-color) inset;
     }
 
+    .is-disabled .el-input__wrapper {
+        color: var(--input-color);
+        background-color: var(--input-background-color);
+        box-shadow: 0 0 0 1px var(--border-color) inset;
+    }
+
     .el-select {
         color: var(--input-color);
         background-color: var(--input-background-color);
 
         .el-select__wrapper {
             background-color: var(--input-background-color);
+            box-shadow: 0 0 0 1px var(--border-color) inset;
         }
     }
 
     .el-button {
         color: var(--input-color);
         background-color: var(--input-background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 3px;
     }
 
     .el-switch {
@@ -184,6 +208,19 @@ watch(theme, () => { })
     .el-scrollbar__view {
         color: var(--input-color);
         background-color: var(--input-background-color);
+    }
+
+    .fake-input {
+        border: 1px solid var(--border-color);
+        border-radius: 3px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .el-cascader__tags .el-tag{
+        background-color: var(--border-color);
+        color:var(--text-color)
     }
 }
 
