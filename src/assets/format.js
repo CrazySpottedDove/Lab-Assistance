@@ -413,22 +413,17 @@ function commentFormat(str, dataList) {
 	}
 
 	str = handleScientificNotation(str);
-    console.log('scientific'+str)
 	// 实现保护变量名
 	dataList.forEach((item) => {
 		const title = item.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 		const regex = new RegExp(`${title}`, "g");
 		str = str.replace(regex, `${protectTitle(item.title)}`);
 	});
-    console.log('protect'+str)
 	let infixExpression = tokenize(str);
-    console.log('infix'+infixExpression)
 	let postfixExpression = infixToPostfix(infixExpression);
-    console.log('postfix'+postfixExpression)
 	let expressionTree = constructExpressionTree(postfixExpression);
 
 	str = processExpressionTree(expressionTree);
-    console.log('tree'+str)
 	return restoreTitle(str);
 }
 

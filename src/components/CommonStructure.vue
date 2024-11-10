@@ -27,7 +27,8 @@ const themes = {
         '--placeholder-color': '#606266',
         '--elselect-hovered-color': '#f5f7fa',
         '--border-color': '#dcdfe6',
-        '--eltable-border-color': '#dcdfe6'
+        '--eltable-border-color': '#dcdfe6',
+        '--suggestion-hovered-color':'white'
     },
     dark: {
         '--text-color': '#e1e1e1',
@@ -45,7 +46,8 @@ const themes = {
         '--placeholder-color': 'rgb(165,165,165)',
         '--elselect-hovered-color': 'rgb(60,86,80)',
         '--border-color': 'rgb(90,90,90)',
-        '--eltable-border-color': 'rgb(85,85,85)'
+        '--eltable-border-color': 'rgb(85,85,85)',
+        '--suggestion-hovered-color': 'rgb(60,86,80)'
     }
 };
 
@@ -240,5 +242,18 @@ watch(theme, () => { })
 
 .el-cascader-node:not(.is-disabled):hover {
     background-color: var(--elselect-hovered-color);
+}
+
+.el-autocomplete-suggestion__wrap{
+    background-color: var(--background-color);
+}
+
+.el-autocomplete-suggestion li{
+    background-color: var(--background-color)!important;
+    color: var(--text-color)!important;
+}
+
+.el-autocomplete-suggestion li.highlighted{
+    background-color: var(--suggestion-hovered-color)!important;
 }
 </style>
