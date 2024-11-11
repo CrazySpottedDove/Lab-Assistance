@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import { unitFormat } from '../../assets/format';
+import { unitTextFormat } from '../../assets/format';
 
 const props = defineProps({
     unit: {
@@ -30,7 +30,7 @@ const handleInput = () => {
                 <span style="width: 2%; min-width: 1em;"></span>
                 <label style="font-weight: 550;width: 16%;text-align: left;">预览</label>
                 <span style="width: 84%; " class="fake-input">
-                    <vue-latex :expression="unitFormat(localUnit)"></vue-latex>
+                    <vue-latex :expression="unitTextFormat(localUnit)"></vue-latex>
                 </span>
             </div>
         </el-card>

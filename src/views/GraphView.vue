@@ -246,10 +246,16 @@ function updateCurrentGraph(mode) {
                 throw new Error(`${xTitle} 与 ${yTitle} 数组长度不一致！`)
             }
             // 检测
+            const rawDataMap={}
+            for(let i=0;i<xDataSet.length;i++){
+                rawDataMap[xDataSet[i].rawData] = yDataSet[i].rawData
+            }
+            // 先对 xDataSet 按照 Number(xDataSet[i].rawData) 进行排序
+            const sortedXDataSet = xDataSet.slice().sort((a, b) => Number(a.rawData) - Number(b.rawData));
 
             let datapointContent = ''
             for (let i = 0; i < xDataSet.length; i++) {
-                datapointContent += `(${xDataSet[i].rawData} , ${yDataSet[i].rawData}) `
+                datapointContent += `(${sortedXDataSet[i].rawData} , ${rawDataMap[sortedXDataSet[i].rawData]}) `
             }
             let xDomain = ''
             switch (graphs[i].graphOption) {

@@ -387,6 +387,27 @@ function unitFormat(str) {
 	return "/\\mathrm{" + str + "}";
 }
 
+/**用于预览的unitFormat，除去了katex不支持的命令 */
+function unitTextFormat(str){
+    if (str === "") {
+		return str;
+	}
+	// 替换常见符号
+	str = str
+		.replace(/μ/g, "\\mu ")
+		.replace(/°/g, "{}^{\\circ}")
+		.replace(/℃/g, "{}^{\\circ}C")
+		.replace(/\*/g, "\\cdot ")
+		.replace(/\\Omega/g, "\\bm{\\Omega}");
+	// 将字母后面跟随的正负数（包括负号）转化为上标
+	str = str.replace(/([a-zA-Z])([-]?\d+)/g, "$1^{$2}");
+	// 处理分数的情况
+	if (str.includes("/")) {
+		str = "(" + str + ")";
+	}
+	return "/\\mathrm{" + str + "}";
+}
+
 // 注释区格式
 function commentFormat(str, dataList) {
 	if (str === "") {
@@ -468,4 +489,4 @@ function dataFormat(str) {
 	}
 }
 
-export { titleFormat, unitFormat, commentFormat, docFormat, dataFormat , replacements};
+export { titleFormat, unitFormat, commentFormat, docFormat, dataFormat , replacements, unitTextFormat};
