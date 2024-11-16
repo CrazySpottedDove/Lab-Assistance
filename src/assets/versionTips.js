@@ -1,10 +1,10 @@
-const currentVersion = "v1.2.8";
+const currentVersion = "v1.3.0";
+
+// 定义GitHub仓库的API URL
+const repoUrl =
+	"https://api.github.com/repos/CrazySpottedDove/Lab-Assistance/releases/latest";
 
 async function fetchLatestVersionUrl(newVersionTips) {
-	// 定义GitHub仓库的API URL
-	const repoUrl =
-		"https://api.github.com/repos/CrazySpottedDove/Lab-Assistance/releases/latest";
-
 	try {
 		console.log(newVersionTips);
 		if (!newVersionTips) {

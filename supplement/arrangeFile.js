@@ -35,6 +35,9 @@ function checkConfig(configData) {
     if(configData.theme === undefined){
         configData.theme = "light";
     }
+    if(configData.autoUpdate === undefined){
+        configData.autoUpdate = true;
+    }
 	return configData;
 }
 

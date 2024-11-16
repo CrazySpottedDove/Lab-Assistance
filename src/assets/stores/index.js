@@ -49,7 +49,8 @@ export const useAllDataStore = defineStore("allData", () => {
 					saveByDate: true,
 					newVersionTips: true,
 					autoCalcUnit: true,
-                    theme: "light"
+                    theme: "light",
+                    autoUpdate:true
 				};
 			},
 

@@ -16,7 +16,7 @@
             </el-icon>
 
             <span v-show="updateUrl !== null">
-                <a :href="updateUrl" target="_blank">
+                <a :href="updateUrl" target="_blank" @click="handleUpdateVersion">
                     &nbsp;<img src="../assets/logo.jpg" alt="" style="width: 20pt; height: auto;"><sup>!</sup>
                 </a>
                 <sup style="font-size: small;">&nbsp;落后{{ behind }}个版本</sup>
@@ -29,6 +29,7 @@ import { FolderChecked, FolderOpened, Sunny, Moon  } from '@element-plus/icons-v
 import { useAllDataStore } from '../assets/stores';
 import { ref, watch } from 'vue'
 import { fetchLatestVersionUrl , currentVersion} from '../assets/versionTips.js';
+import { ElMessage } from 'element-plus';
 
 async function readUserConfig() {
     const { readUserConfig } = await import('../../supplement/arrangeFile.js')
@@ -48,6 +49,21 @@ async function openFile(state) {
 async function saveUserConfig(userConfig) {
     const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
     saveUserConfig(userConfig)
+}
+
+async function updateVersion(){
+    const {updateVersion} = await import('../../supplement/arrangeUpdate.js')
+    updateVersion()
+}
+
+async function handleUpdateVersion(){
+    try{
+        await updateVersion()
+        ElMessage.success('已更新到最新版本，请重启以启用！')
+    }
+    catch(error){
+        console.error("Error handling update:", error);
+    }
 }
 
 const store = useAllDataStore()
@@ -71,6 +87,9 @@ readUserConfig()
                 if (obj !== null) {
                     updateUrl.value = obj.url
                     behind.value=obj.behind
+                    if(store.userConfig.autoUpdate){
+                        handleUpdateVersion()
+                    }
                 }
             })
             .catch((error) => {
