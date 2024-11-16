@@ -108,5 +108,7 @@ async function updateVersion() {
     await extractZip(destination)
 
     await cleanUp(destination)
+
+    return true
 }
 export { updateVersion };

@@ -1,7 +1,8 @@
 <template>
     <div class="common-aside">
         <el-aside width="100%">
-            <el-menu :background-color="props.elmenuBackgroundColor" :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '0-6', '0-7', '1', '1-1', '1-2', '2', '3']">
+            <el-menu :background-color="props.elmenuBackgroundColor"
+                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '0-6', '0-7','0-8', '1', '1-1', '1-2', '2', '3']">
                 <!-- 用户配置 -->
                 <el-sub-menu index="0">
                     <template #title>
@@ -76,6 +77,15 @@
                             @click="handleChangeUserConfig('theme', 'light')">亮</el-menu-item>
                         <el-menu-item :class="{ 'selected': store.userConfig.theme === 'dark' }"
                             @click="handleChangeUserConfig('theme', 'dark')">暗</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-8">
+                        <template #title>
+                            <span style="color: gainsboro!important;">自动更新</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === true }"
+                            @click="handleChangeUserConfig('autoUpdate', true)">是</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === false }"
+                            @click="handleChangeUserConfig('autoUpdate', false)">否</el-menu-item>
                     </el-sub-menu>
                 </el-sub-menu>
                 <!--  直接数据与间接数据-->
