@@ -59,10 +59,10 @@ async function updateVersion(){
 async function handleUpdateVersion(){
     try{
         await updateVersion()
-        ElMessage.success('检测到新版本，为您拉取更新……下次启动且更新完毕时启用！')
+        ElMessage.success({message:'检测到新版本，正在为您拉取更新─=≡Σ((( つ•̀ω•́)つ',duration:10000})
     }
     catch(error){
-        ElMessage.error('更新失败，请检查网络连接！')
+        ElMessage.error('更新失败，请检查网络连接(◞‸◟)')
         console.error("Error handling update:", error);
     }
 }
