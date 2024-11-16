@@ -83,18 +83,14 @@ async function updateVersion() {
 
 	/**根据当前的操作系统，获取对应资源的下载地址 */
 	function getSource(name) {
-        let last = ''
 		for (let i = 0; i < data.assets.length; i++) {
             console.log(data.assets[i].name)
             console.log(data.assets[i].browser_download_url)
 			if (data.assets[i].name === name) {
 				return data.assets[i].browser_download_url;
 			}
-            else{
-                last = data.assets[i].browser_download_url
-            }
 		}
-		return last;
+		return null;
 	}
 
 	const sourceUrl = getSource(sourceName);
