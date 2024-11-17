@@ -28,7 +28,8 @@ const themes = {
         '--elselect-hovered-color': '#f5f7fa',
         '--border-color': '#dcdfe6',
         '--eltable-border-color': '#dcdfe6',
-        '--suggestion-hovered-color':'white'
+        '--suggestion-hovered-color':'white',
+        '--sideheader-background-color':'rgb(117, 102, 199)',
     },
     dark: {
         '--text-color': '#e1e1e1',
@@ -47,7 +48,8 @@ const themes = {
         '--elselect-hovered-color': 'rgb(60,86,80)',
         '--border-color': 'rgb(90,90,90)',
         '--eltable-border-color': 'rgb(85,85,85)',
-        '--suggestion-hovered-color': 'rgb(60,86,80)'
+        '--suggestion-hovered-color': 'rgb(60,86,80)',
+        '--sideheader-background-color': 'rgb(6, 121, 50)',
     }
 };
 
@@ -98,7 +100,7 @@ watch(theme, () => { })
 }
 
 .common-layout {
-    color: rgb(120, 120, 120);
+    color: rgb(6, 121, 50);
     color: var(--text-color);
     background-color: var(--background-color);
 
@@ -223,6 +225,9 @@ watch(theme, () => { })
     .el-cascader__tags .el-tag{
         background-color: var(--border-color);
         color:var(--text-color)
+    }
+    .sideheader {
+        background-color:var(--sideheader-background-color);
     }
 }
 

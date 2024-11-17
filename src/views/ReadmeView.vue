@@ -18,7 +18,7 @@ const store = useAllDataStore()
         <p>间接数据通过计算式得到。算式中支持的算符如下：</p>
         <ul>
             <li>基本运算符号 <vue-latex expression="+,\ -,\ *,\ /,\ ()"></vue-latex> </li>
-            <li>对数与指数函数 <vue-latex expression="\ln(),\ \lg(),\ \^{}"></vue-latex> </li>
+            <li>对数与指数函数 <vue-latex expression="\ln(),\ \lg(),\ \text{\^{}}"></vue-latex> </li>
             <li>采用弧度制的三角函数 <vue-latex expression="\sin(),\ \cos(),\ \tan()"></vue-latex> 与反三角函数 <vue-latex
                     expression="\mathrm{asin(),\ acos(),\ atan()}"></vue-latex> </li>
             <li>其它函数 <vue-latex expression="\mathrm{sqrt(),\ abs()}"></vue-latex> </li>
@@ -35,22 +35,19 @@ const store = useAllDataStore()
         <p>处理器会自动根据计算式求出间接数据的不确定度。请确保依赖的直接数据的不确定度正确。</p>
         <h2>设置</h2>
         <ul>
-            <li><em>文件保存策略</em>： 无论手动还是自动，数据的保存路径都是 <vue-latex
-                    expression="\text{package.nw}"></vue-latex>(<vue-latex expression="\text{mac}"></vue-latex>
+            <li><em>文件保存策略</em>： 无论手动还是自动，数据的保存路径都是 <vue-latex expression="\text{package.nw}"></vue-latex>(<vue-latex
+                    expression="\text{mac}"></vue-latex>
                 用户为 <vue-latex expression="\text{app.nw}"></vue-latex>)
                 同级目录
-                <vue-latex expression="\text{user}"></vue-latex> 下的 <vue-latex
-                    expression="\text{data}"></vue-latex>
-                目录。<em>自动保存</em>时，数据实时保存；<em>手动保存</em>时，只有 Ctrl + S
+                <vue-latex expression="\text{user}"></vue-latex> 下的 <vue-latex expression="\text{data}"></vue-latex>
+                目录。<em>自动保存</em>时，数据实时保存；<em>手动保存</em>时，只有 <vue-latex expression="\mathrm{Ctrl + S}"></vue-latex>
                 或者点击保存图标才会保存。<em>按日期保存</em>时，会额外生成对应日期的保存目录，<em>不按日期保存</em>则反之。
             </li>
-            <li><em>输出语言</em>： 决定了制表和制图时一些默认注释的语言。</li>
+            <li><em>更新策略</em>： 选择是否为您推送新版本，以及若推送新版本，是否自动更新。推送新版本时，页面头部会出现咕咕提示，点击即可跳转至更新说明，并拉取新版本。</li>
             <li><em>直接数据精度规则</em>：决定了直接数据默认的精度规则。</li>
+            <li><em>间接数据单位</em>：决定是否在间接数据倍率为 1 时自动推断间接数据的单位。</li>
+            <li><em>图表输出语言</em>：决定了图表代码中一些默认文字是中文还是英文。</li>
             <li><em>图表边框</em>： 决定了制作图表时默认 带/不带 边框。</li>
-            <li><em>推送新版本</em>：如果为“是”，当仓库出现新的更新时，页面头部会出现咕咕提醒，点击即可跳转至最新仓库。</li>
-            <li><em>自动计算单位</em>：如果为“是”，当刷新间接数据且倍率为 1 时，将会根据直接数据的单位推断间接数据的单位。</li>
-            <li><em>主题</em>用于切换亮暗模式（也可在头栏处切换）。</li>
-            <li><em>自动更新</em>在推送新版本为“是”且自动更新为“是”时生效，启动时自动检验版本并拉取更新。</li>
             <li>所有设置被保存在 <vue-latex expression="\text{package.nw}"></vue-latex>(<vue-latex
                     expression="\text{mac}"></vue-latex> 用户为 <vue-latex expression="\text{app.nw}"></vue-latex>)
                 同级目录 <vue-latex expression="\text{user}"></vue-latex> 下的 <vue-latex

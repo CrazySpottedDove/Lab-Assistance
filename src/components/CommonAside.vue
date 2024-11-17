@@ -2,7 +2,7 @@
     <div class="common-aside">
         <el-aside width="100%">
             <el-menu :background-color="props.elmenuBackgroundColor"
-                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '0-6', '0-7','0-8', '1', '1-1', '1-2', '2', '3']">
+                :default-openeds="['0-1', '0-2', '0-3', '0-4', '0-5', '0-6', '1', '2', '3', '4', '6']">
                 <!-- 用户配置 -->
                 <el-sub-menu index="0">
                     <template #title>
@@ -11,11 +11,11 @@
                         </el-icon>
                         <span style="color: gainsboro">设置</span>
                     </template>
-                    <el-sub-menu index="0-1">
+                    <el-sub-menu index="0-1" class="sideheader">
                         <template #title>
                             <span style="color: gainsboro!important;">文件保存策略</span>
                         </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === true }"
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === true, 'item': true }"
                             @click="handleChangeUserConfig('autoSaveFile', true)">自动保存</el-menu-item>
                         <el-menu-item :class="{ 'selected': store.userConfig.autoSaveFile === false }"
                             @click="handleChangeUserConfig('autoSaveFile', false)">手动保存</el-menu-item>
@@ -24,16 +24,20 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.saveByDate === false }"
                             @click="handleChangeUserConfig('saveByDate', false)">不按日期保存</el-menu-item>
                     </el-sub-menu>
-                    <el-sub-menu index="0-2">
+                    <el-sub-menu index="0-2" class="sideheader">
                         <template #title>
-                            <span style="color: gainsboro!important;">输出语言</span>
+                            <span style="color: gainsboro!important;">更新策略</span>
                         </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'chinese' }"
-                            @click="handleChangeUserConfig('language', 'chinese')">中文</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'english' }"
-                            @click="handleChangeUserConfig('language', 'english')">英文</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === true }"
+                            @click="handleChangeUserConfig('newVersionTips', true)">推送新版本</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === false }"
+                            @click="handleChangeUserConfig('newVersionTips', false), handleChangeUserConfig('autoUpdate', false)">不推送新版本</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === true }"
+                            @click="handleChangeUserConfig('autoUpdate', true), handleChangeUserConfig('newVersionTips', true)">自动拉取更新</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === false }"
+                            @click="handleChangeUserConfig('autoUpdate', false)">不自动拉取更新</el-menu-item>
                     </el-sub-menu>
-                    <el-sub-menu index="0-3">
+                    <el-sub-menu index="0-3" class="sideheader">
                         <template #title>
                             <span style="color: gainsboro!important;">直接数据精度规则</span>
                         </template>
@@ -42,7 +46,25 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.directDataLevelRule === 'nonUnified' }"
                             @click="handleChangeUserConfig('directDataLevelRule', 'nonUnified')">不统一精度</el-menu-item>
                     </el-sub-menu>
-                    <el-sub-menu index="0-4">
+                    <el-sub-menu index="0-4" class="sideheader">
+                        <template #title>
+                            <span style="color: gainsboro!important;">间接数据单位</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === true }"
+                            @click="handleChangeUserConfig('autoCalcUnit', true)">自动计算</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === false }"
+                            @click="handleChangeUserConfig('autoCalcUnit', false)">不自动计算</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-5" class="sideheader">
+                        <template #title>
+                            <span style="color: gainsboro!important;">图表输出语言</span>
+                        </template>
+                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'chinese' }"
+                            @click="handleChangeUserConfig('language', 'chinese')">中文</el-menu-item>
+                        <el-menu-item :class="{ 'selected': store.userConfig.language === 'english' }"
+                            @click="handleChangeUserConfig('language', 'english')">英文</el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="0-6" class="sideheader">
                         <template #title>
                             <span style="color: gainsboro!important;">图表边框</span>
                         </template>
@@ -51,104 +73,63 @@
                         <el-menu-item :class="{ 'selected': store.userConfig.framed === false }"
                             @click="handleChangeUserConfig('framed', false)">无</el-menu-item>
                     </el-sub-menu>
-                    <el-sub-menu index="0-5">
-                        <template #title>
-                            <span style="color: gainsboro!important;">推送新版本</span>
-                        </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === true }"
-                            @click="handleChangeUserConfig('newVersionTips', true)">是</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.newVersionTips === false }"
-                            @click="handleChangeUserConfig('newVersionTips', false)">否</el-menu-item>
-                    </el-sub-menu>
-                    <el-sub-menu index="0-6">
-                        <template #title>
-                            <span style="color: gainsboro!important;">自动计算单位</span>
-                        </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === true }"
-                            @click="handleChangeUserConfig('autoCalcUnit', true)">是</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoCalcUnit === false }"
-                            @click="handleChangeUserConfig('autoCalcUnit', false)">否</el-menu-item>
-                    </el-sub-menu>
-                    <el-sub-menu index="0-7">
-                        <template #title>
-                            <span style="color: gainsboro!important;">主题</span>
-                        </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.theme === 'light' }"
-                            @click="handleChangeUserConfig('theme', 'light')">亮</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.theme === 'dark' }"
-                            @click="handleChangeUserConfig('theme', 'dark')">暗</el-menu-item>
-                    </el-sub-menu>
-                    <el-sub-menu index="0-8">
-                        <template #title>
-                            <span style="color: gainsboro!important;">自动更新</span>
-                        </template>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === true }"
-                            @click="handleChangeUserConfig('autoUpdate', true)">是</el-menu-item>
-                        <el-menu-item :class="{ 'selected': store.userConfig.autoUpdate === false }"
-                            @click="handleChangeUserConfig('autoUpdate', false)">否</el-menu-item>
-                    </el-sub-menu>
                 </el-sub-menu>
                 <!--  直接数据与间接数据-->
-                <el-sub-menu index="1">
+
+                <el-sub-menu index="1" class="sideheader">
                     <template #title>
-                        <span style="color: gainsboro!important;">数据管理</span>
+                        <span style="color: gainsboro!important;">直接数据</span>
                     </template>
-                    <el-sub-menu index="1-1">
-                        <template #title>
-                            <span style="color: gainsboro!important;">直接数据</span>
-                        </template>
-                        <el-menu-item v-for="(item, index) of store.state.directDataList"
-                            @click="handleSelect('directData', index)"
-                            :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
-                            <span style="width: 120px;">
-                                <el-input v-model="item.title"
-                                    v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
-                                <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
-                            </span>
-                            <span>
-                                <el-icon @click.stop="handleDelete('directData', index)"
-                                    class="deleteicon el-icon--right">
-                                    <circle-close></circle-close>
-                                </el-icon>
-                            </span>
-                        </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAdd('directData')">
-                            添加数据
-                        </el-menu-item>
-                    </el-sub-menu>
-                    <el-sub-menu index="1-2">
-                        <template #title>
-                            <span style="color: gainsboro!important;">间接数据</span>
-                        </template>
-                        <el-menu-item v-for="(item, index) of store.state.indirectDataList"
-                            @click="handleSelect('indirectData', index)"
-                            :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
-                            <span style="width: 120px;">
-                                <el-input v-model="item.title"
-                                    v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
-                                <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
-                            </span>
-                            <span>
-                                <el-icon @click.stop="handleDelete('indirectData', index)"
-                                    class="deleteicon el-icon--right">
-                                    <circle-close></circle-close>
-                                </el-icon>
-                            </span>
-                        </el-menu-item>
-                        <el-menu-item class="mybutton" @click="handleAdd('indirectData')">
-                            添加数据
-                        </el-menu-item>
-                    </el-sub-menu>
+                    <el-menu-item v-for="(item, index) of store.state.directDataList"
+                        @click="handleSelect('directData', index)"
+                        :class="{ 'selected': store.state.view.type === 'directData' && store.state.view.index === index }">
+                        <span style="width: 140px;">
+                            <el-input v-model="item.title"
+                                v-if="store.state.view.type === 'directData' && store.state.view.index === index"></el-input>
+                            <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
+                        </span>
+                        <span>
+                            <el-icon @click.stop="handleDelete('directData', index)" class="deleteicon el-icon--right">
+                                <circle-close></circle-close>
+                            </el-icon>
+                        </span>
+                    </el-menu-item>
+                    <el-menu-item class="mybutton" @click="handleAdd('directData')">
+                        添加数据
+                    </el-menu-item>
+                </el-sub-menu>
+                <el-sub-menu index="2" class="sideheader">
+                    <template #title>
+                        <span style="color: gainsboro!important;">间接数据</span>
+                    </template>
+                    <el-menu-item v-for="(item, index) of store.state.indirectDataList"
+                        @click="handleSelect('indirectData', index)"
+                        :class="{ 'selected': store.state.view.type === 'indirectData' && store.state.view.index === index }">
+                        <span style="width: 140px;">
+                            <el-input v-model="item.title"
+                                v-if="store.state.view.type === 'indirectData' && store.state.view.index === index"></el-input>
+                            <vue-latex class="sidetitle" :expression="titleFormat(item.title)" v-else></vue-latex>
+                        </span>
+                        <span>
+                            <el-icon @click.stop="handleDelete('indirectData', index)"
+                                class="deleteicon el-icon--right">
+                                <circle-close></circle-close>
+                            </el-icon>
+                        </span>
+                    </el-menu-item>
+                    <el-menu-item class="mybutton" @click="handleAdd('indirectData')">
+                        添加数据
+                    </el-menu-item>
                 </el-sub-menu>
                 <!-- 制表 -->
-                <el-sub-menu index="2">
+                <el-sub-menu index="3" class="sideheader">
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX 制表</span>
                     </template>
                     <el-menu-item v-for="(table, index) of store.state.tableList" @click="handleSelect('table', index)"
                         :class="{ 'selected': store.state.view.type === 'table' && store.state.view.index === index }">
                         表{{ index + 1 }}
-                        <span style="width: 58%;"></span>
+                        <span style="width: 90pt;"></span>
                         <span>
                             <el-icon @click="handleDelete('table', index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
@@ -160,14 +141,14 @@
                     </el-menu-item>
                 </el-sub-menu>
                 <!-- 制图 -->
-                <el-sub-menu index="3">
+                <el-sub-menu index="4" class="sideheader">
                     <template #title>
                         <span style="color: gainsboro!important;">LaTeX 制图</span>
                     </template>
                     <el-menu-item v-for="(graph, index) of store.state.graphList" @click="handleSelect('graph', index)"
                         :class="{ 'selected': store.state.view.type === 'graph' && store.state.view.index === index }">
                         图{{ index + 1 }}
-                        <span style="width: 58%;"></span>
+                        <span style="width: 90pt;"></span>
                         <span>
                             <el-icon @click="handleDelete('graph', index)" class="deleteicon el-icon--right">
                                 <circle-close></circle-close>
@@ -179,19 +160,19 @@
                     </el-menu-item>
                 </el-sub-menu>
                 <!-- readme -->
-                <el-menu-item index="4" @click="handleSelect('readme')"
+                <el-menu-item index="5" @click="handleSelect('readme')"
                     :class="{ 'selected': store.state.view.type === 'readme' }">使用指南
                 </el-menu-item>
                 <!-- 参考 -->
-                <el-sub-menu index="5">
+                <el-sub-menu index="6" class="sideheader">
                     <template #title>
                         <span style="color: gainsboro!important;">参考</span>
                     </template>
-                    <el-menu-item index="5-1" @click="handleSelect('numberDoc')"
+                    <el-menu-item index="6-1" @click="handleSelect('numberDoc')"
                         :class="{ 'selected': store.state.view.type === 'numberDoc' }">参考：有效数字</el-menu-item>
-                    <el-menu-item index="5-2" @click="handleSelect('uncerDoc')"
+                    <el-menu-item index="6-2" @click="handleSelect('uncerDoc')"
                         :class="{ 'selected': store.state.view.type === 'uncerDoc' }">参考：不确定度</el-menu-item>
-                    <el-menu-item index="5-3" @click="handleSelect('propertyDoc')"
+                    <el-menu-item index="6-3" @click="handleSelect('propertyDoc')"
                         :class="{ 'selected': store.state.view.type === 'propertyDoc' }">参考：各项参数</el-menu-item>
                 </el-sub-menu>
             </el-menu>
@@ -204,7 +185,7 @@ import { useAllDataStore } from '../assets/stores';
 import { titleFormat } from '../assets/format.js';
 // 不要引入expression.js，否则会引入mathjs，导致latex无法渲染
 const props = defineProps({
-    elmenuBackgroundColor:String
+    elmenuBackgroundColor: String
 })
 async function saveUserConfig() {
     const { saveUserConfig } = await import('../../supplement/arrangeFile.js')
@@ -243,6 +224,7 @@ const handleAdd = (key) => {
 .el-menu {
     border-right: none;
     font-weight: bold;
+
     .el-menu-item {
         line-height: 48px;
         color: gainsboro;
@@ -284,6 +266,4 @@ const handleAdd = (key) => {
 .sidetitle {
     font-size: small !important;
 }
-
-
 </style>
