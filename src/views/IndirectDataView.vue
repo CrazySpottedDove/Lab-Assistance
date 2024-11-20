@@ -59,11 +59,6 @@ const computeOptions = [
     },
 ]
 
-// 临时存储输入框数据
-const inputComputeMethod = ref([])
-
-// 临时存储输入框光标位置
-const inputCursorPostion = ref([])
 
 // 参与补全的函数
 const functionList = ['sin()', 'cos()', 'ln()', 'asin()', 'acos()', 'atan()', 'sqrt()', 'log()', 'abs()', 'tan()']
@@ -86,14 +81,14 @@ const querySearch = (queryString, cb) => {
     if (cursorPosition <= queryString.length && cursorPosition >= 0) {
         // 获取光标前最近的部分
         let queryPart = queryString.slice(0, cursorPosition);
-
+        console.log(queryPart)
         // 使用正则表达式查找光标前的最近部分（可以是单词或符号）
-        const match = queryPart.match(/[\w]+$/);  // 匹配最后一个单词
+        const match = queryPart.match(/[\w\\\[\]\{\}\(\)\u4e00-\u9fa5]+$/);  // 匹配最后一个单词
 
         if (match) {
             queryPart = match[0];  // 只保留最后一个匹配到的部分
         }
-
+        console.log(queryPart)
         // 通过queryPart与completionList中的每个项进行匹配
         suggestions = compeletionList.filter(title =>
             title.toLowerCase().startsWith(queryPart.toLowerCase())  // 匹配开头部分
@@ -111,7 +106,7 @@ const handleSuggestionSelect = (item) => {
 
     let beforeCursor = currentContent.slice(0, cursorPosition); // 光标之前的内容
     const afterCursor = currentContent.slice(cursorPosition); // 光标之后的内容
-    const match = beforeCursor.match(/[\w]+$/);  // 匹配最后一个单词
+    const match = beforeCursor.match(/[\w\\\[\]\{\}\(\)\u4e00-\u9fa5]+$/);  // 匹配最后一个单词
     if (match) {
         // beforCursor删除末尾的match[0]
         beforeCursor = beforeCursor.slice(0, beforeCursor.length - match[0].length)
