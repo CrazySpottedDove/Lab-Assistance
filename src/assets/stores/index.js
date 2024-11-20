@@ -28,6 +28,8 @@ export const useAllDataStore = defineStore("allData", () => {
 				return {
 					directDataList: [],
 					indirectDataList: [],
+                    inputComputeMethod:[],
+                    inputCursorPosition:[],
 					tableList: [],
 					graphList: [],
 					tableDataList: [],
@@ -260,6 +262,8 @@ export const useAllDataStore = defineStore("allData", () => {
 			/**删除一组间接数据 */
 			indirectData: function (index) {
 				state.value.indirectDataList.splice(index, 1);
+                state.value.inputComputeMethod.splice(index,1)
+                state.value.inputCursorPosition.splice(index,1)
 				displayAfterDeletion("indirectData", index);
 			},
 
@@ -303,6 +307,8 @@ export const useAllDataStore = defineStore("allData", () => {
 			/**添加一个间接数据 */
 			indirectData: function () {
 				state.value.indirectDataList.push(Init.indirectData());
+                state.value.inputComputeMethod.push('')
+                state.value.inputCursorPosition.push(0)
 				state.value.view = {
 					type: "indirectData",
 					index: state.value.indirectDataList.length - 1,

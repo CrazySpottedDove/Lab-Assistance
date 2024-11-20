@@ -306,7 +306,9 @@ function processExpressionTree(node) {
 		case "/":
 			return `\\frac{${leftValue}}{${rightValue}}`;
 		case "^":
-			return `{${leftValue}}^{${rightValue}}`;
+            return isOperator(node.left.value)
+				? `{\\left( ${leftValue} \\right)}^{${rightValue}}`
+				: `${leftValue}^{${rightValue}}`;
 		case "sqrt":
 			return `\\sqrt{${leftValue}}`;
 		case "abs":

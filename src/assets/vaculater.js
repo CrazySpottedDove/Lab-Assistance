@@ -801,10 +801,7 @@ uncerMath.import(
 				};
 			},
 			"number, number": function (num1, num2) {
-				return {
-					data: String(num1 * num2),
-					uncer: "0",
-				};
+				return num1*num2
 			},
 			"Object, number": function (obj, num) {
 				return {
@@ -836,10 +833,7 @@ uncerMath.import(
 			},
 			"number, number": function (num1, num2) {
 				Check.divisorZero(num2);
-				return {
-					data: String(num1 / num2),
-					uncer: "0",
-				};
+				return num1/num2
 			},
 			"Object, number": function (obj, num) {
 				Check.divisorZero(num);
@@ -882,10 +876,7 @@ uncerMath.import(
 				};
 			},
 			"number, number": function (num1, num2) {
-				return {
-					data: num1 + num2,
-					uncer: "0",
-				};
+				return num1 + num2;
 			},
 		}),
 		subtract: typed("subtract", {
@@ -924,10 +915,7 @@ uncerMath.import(
 			},
 			number: function (num) {
 				Check.naturalInpositive(num);
-				return {
-					data: String(Math.log(num)),
-					uncer: "0",
-				};
+				return Math.log(num);
 			},
 		}),
 		sqrt: typed("sqrt", {
@@ -942,10 +930,7 @@ uncerMath.import(
 			},
 			number: function (num) {
 				Check.radicandNegative(num);
-				return {
-					data: String(Math.sqrt(num)),
-					uncer: "0",
-				};
+				return Math.sqrt(num);
 			},
 		}),
 		abs: typed("abs", {
@@ -956,10 +941,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.abs(num)),
-					uncer: "0",
-				};
+				return Math.abs(num);
 			},
 		}),
 		pow: typed("pow", {
@@ -1006,10 +988,7 @@ uncerMath.import(
 			},
 			"number, number": function (num1, num2) {
 				Check.invalidPow(num1, num2);
-				return {
-					data: String(Math.pow(num1, num2)),
-					uncer: "0",
-				};
+				return Math.pow(num1, num2);
 			},
 		}),
 		lg: typed("lg", {
@@ -1026,10 +1005,7 @@ uncerMath.import(
 			},
 			number: function (num) {
 				Check.naturalInpositive(num);
-				return {
-					data: String(Math.log10(num)),
-					uncer: "0",
-				};
+				return Math.log10(num);
 			},
 		}),
 		unaryMinus: typed("unaryMinus", {
@@ -1040,10 +1016,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(-num),
-					uncer: "0",
-				};
+				return -num
 			},
 		}),
 		sin: typed("sin", {
@@ -1056,10 +1029,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.sin(num)),
-					uncer: "0",
-				};
+				return Math.sin(num);
 			},
 		}),
 		cos: typed("cos", {
@@ -1072,10 +1042,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.cos(num)),
-					uncer: "0",
-				};
+				return Math.cos(num);
 			},
 		}),
 		tan: typed("tan", {
@@ -1090,10 +1057,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.tan(num)),
-					uncer: "0",
-				};
+				return Math.tan(num);
 			},
 		}),
 		asin: typed("asin", {
@@ -1108,10 +1072,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.asin(num)),
-					uncer: "0",
-				};
+				return Math.asin(num);
 			},
 		}),
 		acos: typed("acos", {
@@ -1126,10 +1087,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.acos(num)),
-					uncer: "0",
-				};
+				return Math.acos(num);
 			},
 		}),
 		atan: typed("atan", {
@@ -1142,10 +1100,7 @@ uncerMath.import(
 				};
 			},
 			number: function (num) {
-				return {
-					data: String(Math.atan(num)),
-					uncer: "0",
-				};
+				return Math.atan(num);
 			},
 		}),
 	},

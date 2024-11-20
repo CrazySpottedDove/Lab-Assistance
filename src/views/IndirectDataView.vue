@@ -1,6 +1,6 @@
 <script setup>
 import { useAllDataStore } from '../assets/stores';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 
 // Never import { expression } from 'mathjs';
 import { commentFormat, titleFormat } from '../assets/format'
@@ -59,30 +59,44 @@ const computeOptions = [
     },
 ]
 
-const strStartIndex = ref(0)
-const inputComputeMethod = ref('')
-watch(selectedData, () => {
-    if (selectedData.value.type === 'indirect') {
-        inputComputeMethod.value = selectedData.value.computeMethod
-    }
-}, { deep: true })
+// 临时存储输入框数据
+const inputComputeMethod = ref([])
+
+// 临时存储输入框光标位置
+const inputCursorPostion = ref([])
+
+// 参与补全的函数
+const functionList = ['sin()', 'cos()', 'ln()', 'asin()', 'acos()', 'atan()', 'sqrt()', 'log()', 'abs()', 'tan()']
 const querySearch = (queryString, cb) => {
-    const titleList = [...(store.state.directDataList.map(item => item.title)), ...(store.state.indirectDataList.map(item => item.title))]
-    strStartIndex.value = queryString.length - 1
-    const operators = '+-*/^(|'
+    // 补全表
+    const compeletionList = [...(store.state.directDataList.map(item => item.title)), ...(store.state.indirectDataList.map(item => item.title)), ...functionList]
+
+    const inputElement = document.getElementById(`myAutocomplete${viewIndex.value}`)
+    const cursorPosition = inputElement ? inputElement.selectionStart : 0
+
+    // 存储位置，防止回车丢失
+    store.state.inputCursorPosition[viewIndex.value] = cursorPosition
+
+    // 实时更新
     selectedData.value.computeMethod = queryString
-    while (strStartIndex.value >= 0) {
-        if (operators.includes(queryString[strStartIndex.value])) {
-            break
-        } else {
-            strStartIndex.value--
-        }
-    }
-    strStartIndex.value++
+
     let suggestions = []
-    if (strStartIndex.value < queryString.length) {
-        suggestions = titleList.filter(title =>
-            title.toLowerCase().includes(queryString.slice(strStartIndex.value).toLowerCase())
+
+    // 通过光标位置开始切割查询字符串
+    if (cursorPosition <= queryString.length && cursorPosition >= 0) {
+        // 获取光标前最近的部分
+        let queryPart = queryString.slice(0, cursorPosition);
+
+        // 使用正则表达式查找光标前的最近部分（可以是单词或符号）
+        const match = queryPart.match(/[\w]+$/);  // 匹配最后一个单词
+
+        if (match) {
+            queryPart = match[0];  // 只保留最后一个匹配到的部分
+        }
+
+        // 通过queryPart与completionList中的每个项进行匹配
+        suggestions = compeletionList.filter(title =>
+            title.toLowerCase().startsWith(queryPart.toLowerCase())  // 匹配开头部分
         );
     }
     cb(suggestions);
@@ -92,8 +106,32 @@ const handleSuggestionSelect = (item) => {
     if (typeof item === 'object') {
         return
     }
-    selectedData.value.computeMethod = selectedData.value.computeMethod.slice(0, strStartIndex.value) + item
-    inputComputeMethod.value = selectedData.value.computeMethod
+    const currentContent = selectedData.value.computeMethod
+    const cursorPosition = store.state.inputCursorPosition[viewIndex.value]
+
+    let beforeCursor = currentContent.slice(0, cursorPosition); // 光标之前的内容
+    const afterCursor = currentContent.slice(cursorPosition); // 光标之后的内容
+    const match = beforeCursor.match(/[\w]+$/);  // 匹配最后一个单词
+    if (match) {
+        // beforCursor删除末尾的match[0]
+        beforeCursor = beforeCursor.slice(0, beforeCursor.length - match[0].length)
+    }
+
+    // 更新
+    selectedData.value.computeMethod = beforeCursor + ' ' + item + ' ' + afterCursor
+    store.state.inputComputeMethod[viewIndex.value] = selectedData.value.computeMethod
+
+    // 移动光标到合适位置
+    const inputElement = document.getElementById(`myAutocomplete${viewIndex.value}`)
+    if (item.endsWith('()')) {
+        nextTick(() => {
+            if (inputElement) {
+                const beginIndex = beforeCursor.length + item.length
+                inputElement.setSelectionRange(beginIndex, beginIndex);
+                inputElement.focus();
+            }
+        });
+    }
 }
 
 </script>
@@ -109,8 +147,9 @@ const handleSuggestionSelect = (item) => {
                         <span style="width: 5%;"></span>
                         <span style=" width: 40%;">
                             <el-autocomplete style="text-align: center;width: 98%;" placeholder="示例：(a+b)/(9.8*c)"
-                                v-model="inputComputeMethod" :fetch-suggestions="querySearch"
-                                :select-when-unmatched=true :highlight-first-item=true @select="handleSuggestionSelect">
+                                v-model="store.state.inputComputeMethod[indirectDataIndex]" :fetch-suggestions="querySearch"
+                                :select-when-unmatched=true :highlight-first-item=true @select="handleSuggestionSelect"
+                                :id="`myAutocomplete${indirectDataIndex}`">
                                 <!-- 自定义补全建议显示内容 -->
                                 <template v-slot="{ item }">
                                     <vue-latex style="width: 98%;font-size: small;" :expression="item"></vue-latex>

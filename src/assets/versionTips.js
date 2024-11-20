@@ -1,4 +1,4 @@
-const currentVersion = "v1.3.3";
+const currentVersion = "v1.3.4";
 
 // 定义GitHub仓库的API URL
 const repoUrl =
