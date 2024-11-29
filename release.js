@@ -19,11 +19,14 @@ const outputDir = path.join(__dirname, "nw-folders/zipped");
 // 执行 shell 命令
 function execCommand(command) {
 	try {
-        console.log(chalk.blue(`EXEC: ${command}`))
+		console.log(chalk.blue(`EXEC: ${command}`));
 		const output = execSync(command, { encoding: "utf-8" });
-		return output
+		return output;
 	} catch (error) {
-		console.error(chalk.red("Error executing command:"), chalk.red(error.message));
+		console.error(
+			chalk.red("Error executing command:"),
+			chalk.red(error.message)
+		);
 		process.exit(1);
 	}
 }
@@ -121,17 +124,25 @@ async function zipFolder(folderPath, zipPath) {
 		archive.directory(folderPath, path.basename(folderPath));
 		await archive.finalize();
 	} catch (error) {
-		console.error(chalk.red(`Failed to create zip for ${folderPath}:`), chalk.red(error));
+		console.error(
+			chalk.red(`Failed to create zip for ${folderPath}:`),
+			chalk.red(error)
+		);
 	}
 }
 
 // 检查 GitHub Release 是否存在
 function checkReleaseExists(version) {
 	try {
-		const result = execCommand(`gh release list --limit 1000 --json tagName`);
+		const result = execCommand(
+			`gh release list --limit 1000 --json tagName`
+		);
 		return result.includes(version); // 如果版本号在列表中，表示已经存在该 Release
 	} catch (error) {
-		console.error(chalk.red("Failed to check for existing release:"), chalk.red(error));
+		console.error(
+			chalk.red("Failed to check for existing release:"),
+			chalk.red(error)
+		);
 		return false;
 	}
 }
@@ -150,35 +161,19 @@ async function publishRelease() {
 		commitNotes = getCommitNotes(previousTag, currentVersion);
 	}
 	if (releaseExists) {
-		console.log(
-			`Release ${currentVersion} already exists. Editing the release...`
-		);
+		console.log(`Release ${currentVersion} already exists. Delete it...`);
 
-		// 更新已存在的 Release（上传新的文件和修改标题）
+		execCommand(`gh release delete ${currentVersion} --yes`);
 
-		execCommand(
-			`gh release edit ${currentVersion} --title "${currentVersion} " --notes "${commitNotes}" --latest`
-		);
-
-		console.log(`Release ${currentVersion} has been updated.`);
-
-		// 上传新的资产（如果需要）
-
-		execCommand(
-			`gh release upload ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --clobber`
-		);
-		console.log(`Assets uploaded to Release ${currentVersion}.`);
-	} else {
-		console.log(
-			`Release ${currentVersion} does not exist. Creating a new release...`
-		);
-		// 创建新的 Release 并上传文件
-
-		execCommand(
-			`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}" --published`
-		);
-		console.log(`Release ${currentVersion} has been created.`);
+		console.log(`Release ${currentVersion} has been deleted.`);
 	}
+	console.log(`Creating a new release...`);
+	// 创建新的 Release 并上传文件
+
+	execCommand(
+		`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}" --published`
+	);
+	console.log(`Release ${currentVersion} has been created.`);
 }
 
 (async () => {
@@ -190,5 +185,5 @@ async function publishRelease() {
 	await zipFolder(packageNwDir, path.join(outputDir, "package.nw.zip"));
 	await zipFolder(appNwDir, path.join(outputDir, "app.nw.zip"));
 	await publishRelease();
-    console.log(chalk.green("Release success!"))
+	console.log(chalk.green("Release success!"));
 })();
