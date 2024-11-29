@@ -16,11 +16,22 @@ const packageNwDir = path.resolve(__dirname, "nw-folders/unzipped/package.nw");
 const appNwDir = path.join(__dirname, "nw-folders/unzipped/app.nw");
 const outputDir = path.join(__dirname, "nw-folders/zipped");
 
+// 执行 shell 命令
+function execCommand(command) {
+	try {
+        console.log(chalk.blue(`EXEC: ${command}`))
+		const output = execSync(command, { encoding: "utf-8" });
+		console.log(output);
+	} catch (error) {
+		console.error(chalk.red("Error executing command:"), chalk.red(error.message));
+		process.exit(1);
+	}
+}
+
 // 获取上一个tag
 function getPreviousTag(version) {
 	try {
-		console.log(chalk.blue(`EXEC: git tag --sort=-creatordate`));
-		const result = execSync(`git tag --sort=-creatordate`, {
+		const result = execCommand(`git tag --sort=-creatordate`, {
 			encoding: "utf-8",
 		}).split("\n");
 		let prevTag = "";
@@ -44,8 +55,8 @@ function getPreviousTag(version) {
 function getCommitNotes(fromTag, toTag) {
 	try {
 		// 获取标签之间的提交信息
-		console.log(chalk.blue(`EXEC: git log ${fromTag}..${toTag} --oneline`));
-		const commits = execSync(`git log ${fromTag}..${toTag} --oneline`, {
+
+		const commits = execCommand(`git log ${fromTag}..${toTag} --oneline`, {
 			encoding: "utf-8",
 		});
 
@@ -121,8 +132,8 @@ async function zipFolder(folderPath, zipPath) {
 // 检查 GitHub Release 是否存在
 function checkReleaseExists(version) {
 	try {
-        console.log(chalk.blue(`EXEC: gh release list --limit 1000 --json tagName`))
-		const result = execSync(`gh release list --limit 1000 --json tagName`, {
+
+		const result = execCommand(`gh release list --limit 1000 --json tagName`, {
 			encoding: "utf-8",
 		});
 		return result.includes(version); // 如果版本号在列表中，表示已经存在该 Release
@@ -151,16 +162,16 @@ async function publishRelease() {
 		);
 
 		// 更新已存在的 Release（上传新的文件和修改标题）
-        console.log(chalk.blue(`EXEC: gh release edit ${currentVersion} --title "${currentVersion}" --notes "${commitNotes}"`))
-		execSync(
-			`gh release edit ${currentVersion} --title "${currentVersion} " --notes "${commitNotes}" --latest`
+
+		execCommand(
+			`gh release edit ${currentVersion} --title "${currentVersion} " --notes "${commitNotes}" --latest --published`
 		);
 
 		console.log(`Release ${currentVersion} has been updated.`);
 
 		// 上传新的资产（如果需要）
-        console.log(chalk.blue(`EXEC: gh release upload ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --clobber`))
-		execSync(
+
+		execCommand(
 			`gh release upload ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --clobber`
 		);
 		console.log(`Assets uploaded to Release ${currentVersion}.`);
@@ -169,9 +180,9 @@ async function publishRelease() {
 			`Release ${currentVersion} does not exist. Creating a new release...`
 		);
 		// 创建新的 Release 并上传文件
-        console.log(chalk.blue(`EXEC: gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}"`))
-		execSync(
-			`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}"`
+
+		execCommand(
+			`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}" --published`
 		);
 		console.log(`Release ${currentVersion} has been created.`);
 	}
