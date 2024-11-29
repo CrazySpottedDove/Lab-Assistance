@@ -18,9 +18,18 @@ function execCommand(command) {
 // 脚本主要功能
 function updateGit(commitMessage) {
 
-	// 1. 执行 git add 和 git commit
-	execCommand("git add .");
-	execCommand(`git commit -m "${commitMessage}"`);
+    if(commitMessage){
+		// 1. 执行 git add 和 git commit
+        try {
+            execCommand("git add .");
+		    execCommand(`git commit -m "${commitMessage}"`);
+        }
+        catch (error) {
+            console.error("Error executing git commands:", error.message);
+            console.error("try to use NON-COMMIT mode.")
+            process.exit(1);
+        }
+	}
 
 	// 2. 检查是否已有 currentVersion 标签
 	try {
@@ -47,9 +56,12 @@ function updateGit(commitMessage) {
 // 获取命令行参数
 const args = process.argv.slice(2);
 if (args.length === 0) {
-	console.error("Please provide a commit message.");
-	process.exit(1);
+	console.log("script gitupdate.js works as NON-COMMIT mode.");
+	updateGit()
+}
+else{
+	console.log("script gitupdate.js works as COMMIT mode.");
+	// 执行更新操作
+	updateGit(args.join(" "));
 }
 
-// 执行更新操作
-updateGit(args.join(" "));
