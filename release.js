@@ -171,7 +171,7 @@ async function publishRelease() {
 	// 创建新的 Release 并上传文件
 
 	execCommand(
-		`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}" --published`
+		`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}"`
 	);
 	console.log(`Release ${currentVersion} has been created.`);
 }
