@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { currentVersion } from "./src/assets/versionTips.js";
 import chalk from "chalk";
-import { ChatLineRound } from "@element-plus/icons-vue";
+
 // 获取当前文件目录的绝对路径
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

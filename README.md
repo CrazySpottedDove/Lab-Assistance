@@ -17,8 +17,10 @@ npm run dev
 # 构建开发环境
 npm run build
 # 构建生产环境
-node build.js
-# zip打包
+node update.js
+# 提交当前工作并创建tag
+node release.js
+# 提交release
 ```
 ## 下载与更新
 Lab-Assistance 支持 windows-64 版本和 macOS-arm64 版本。
