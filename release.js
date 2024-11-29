@@ -157,7 +157,7 @@ async function publishRelease() {
 		// 更新已存在的 Release（上传新的文件和修改标题）
 
 		execCommand(
-			`gh release edit ${currentVersion} --title "${currentVersion} " --notes "${commitNotes}" --latest --published`
+			`gh release edit ${currentVersion} --title "${currentVersion} " --notes "${commitNotes}" --latest`
 		);
 
 		console.log(`Release ${currentVersion} has been updated.`);
