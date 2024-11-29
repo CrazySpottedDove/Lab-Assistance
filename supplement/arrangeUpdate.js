@@ -42,10 +42,10 @@ async function cleanUp(zipPath) {
 		fs.chmodSync(zipPath, 0o777); // 修改权限
 		fs.unlinkSync(zipPath);
 		console.log("File deleted successfully!");
-        ElMessage.success("删除压缩包成功(*´∀`)~♥");
+		ElMessage.success("删除压缩包成功(*´∀`)~♥");
 	} catch (error) {
 		console.error(`Failed to delete ${zipPath}:`, error);
-        ElMessage.error("删除压缩包失败，请检查文件权限(;´༎ຶД༎ຶ`)");
+		ElMessage.error("删除压缩包失败，请检查文件权限(;´༎ຶД༎ຶ`)");
 	}
 }
 /**解压缩zip */
@@ -53,11 +53,11 @@ async function extractZip(zipPath) {
 	try {
 		execSync(`unzip -o ${zipPath} -d ${currentPath}`);
 		console.log("Extraction successful!");
-        ElMessage.success("解压缩并替换成功⁽⁽ ◟(∗ ˊωˋ ∗)◞ ⁾⁾");
-        ElMessage.success('请重启软件以使用新版本(*/ω＼*)')
+		ElMessage.success("解压缩并替换成功⁽⁽ ◟(∗ ˊωˋ ∗)◞ ⁾⁾");
+		ElMessage.success("请重启软件以使用新版本(*/ω＼*)");
 	} catch (err) {
 		console.error("Error extracting zip file:", err);
-        ElMessage.error("解压缩失败，请检查文件权限(;´༎ຶД༎ຶ`)");
+		ElMessage.error("解压缩失败，请检查文件权限(;´༎ຶД༎ຶ`)");
 	}
 }
 
@@ -66,7 +66,7 @@ const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
 	const timeoutId = setTimeout(() => {
 		controller.abort();
 		ElMessage.error("下载资源超时(((ﾟДﾟ;)))");
-        console.error("Download aborted due to timeout");
+		console.error("Download aborted due to timeout");
 	}, timeout);
 	options.signal = controller.signal;
 
@@ -95,7 +95,7 @@ async function downLoadSource(url, destination) {
 		const timeoutId = setTimeout(() => {
 			controller.abort(); // 超时后中止下载流
 			console.error("Download aborted due to timeout");
-            ElMessage.error("下载资源超时(((ﾟДﾟ;)))");
+			ElMessage.error("下载资源超时(((ﾟДﾟ;)))");
 		}, 10000); // 10秒超时
 
 		await new Promise((resolve, reject) => {
@@ -108,12 +108,12 @@ async function downLoadSource(url, destination) {
 				}
 			});
 		});
-        if (fs.statSync(destination).size === 0) {
-            ElMessage.error("下载文件为空，请检查网络连接(;´༎ຶД༎ຶ`)");
+		if (fs.statSync(destination).size === 0) {
+			ElMessage.error("下载文件为空，请检查网络连接(;´༎ຶД༎ຶ`)");
 			throw new Error("Downloaded file is empty");
 		}
 		console.log(`File downloaded to ${destination}`);
-        ElMessage.success("下载资源成功(≧∀≦)ゞ");
+		ElMessage.success("下载资源成功(≧∀≦)ゞ");
 	} catch (error) {
 		console.error("Error downloading source:", error);
 	}
@@ -142,11 +142,12 @@ async function updateVersion() {
 
 	const sourceUrl = getSource(sourceName);
 	if (!sourceUrl) {
-        ElMessage.error("未找到对应资源，请检查网络连接(;´༎ຶД༎ຶ`)");
+		ElMessage.error("未找到对应资源，请检查网络连接(;´༎ຶД༎ຶ`)");
 		throw new Error("No source found");
 	}
 	const destination = path.join(currentPath, sourceName);
-
+	console.log("current path" + currentPath);
+    console.log('source name' + sourceName)
 	await downLoadSource(sourceUrl, destination);
 
 	await extractZip(destination);

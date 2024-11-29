@@ -44,7 +44,7 @@ async function zipFolder(folderPath, zipPath) {
 		});
 
 		archive.pipe(output);
-		archive.directory(folderPath, false);
+		archive.directory(folderPath, path.basename(folderPath));
 		await archive.finalize();
 	} catch (error) {
 		console.error(`Failed to create zip for ${folderPath}:`, error);

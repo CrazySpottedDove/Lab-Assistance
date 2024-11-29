@@ -9,35 +9,24 @@ const configDir = path.join(__dirname, "../user/config");
 const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
 let tmpname = "";
 
+const initConfig = {
+    language:'chinese',
+    directDataLevelRule:'unified',
+    autoSaveFile:true,
+    framed:false,
+    saveByDate: true,
+    newVersionTips: true,
+    autoCalcUnit: true,
+    theme: "light",
+    autoUpdate:true
+}
 /**检查config完整性并补全 */
 function checkConfig(configData) {
-	if (configData.language === undefined) {
-		configData.language = "chinese";
-	}
-	if (configData.directDataLevelRule === undefined) {
-		configData.directDataLevelRule = "unified";
-	}
-	if (configData.autoSaveFile === undefined) {
-		configData.autoSaveFile = true;
-	}
-	if (configData.framed === undefined) {
-		configData.framed = false;
-	}
-	if (configData.saveByDate === undefined) {
-		configData.saveByDate = true;
-	}
-    if(configData.newVersionTips === undefined){
-        configData.newVersionTips = true;
-    }
-    if(configData.autoCalcUnit === undefined){
-        configData.autoCalcUnit = true;
-    }
-    if(configData.theme === undefined){
-        configData.theme = "light";
-    }
-    if(configData.autoUpdate === undefined){
-        configData.autoUpdate = true;
-    }
+    Object.keys(initConfig).forEach((key) => {
+		if (configData[key] === undefined) {
+			configData[key] = initConfig[key];
+		}
+	});
 	return configData;
 }
 
@@ -50,14 +39,7 @@ function readUserConfig() {
 		return configData;
 	} else {
 		fs.mkdirSync(configDir, { recursive: true });
-		const initConfig = {
-			autoSaveFile: true,
-			language: "chinese",
-			directDataLevelRule: "unified",
-			framed: false,
-			saveByDate: true,
-		};
-		const jsonContent = initConfig;
+		const jsonContent = JSON.stringify(initConfig);
 		fs.writeFileSync(configFilePath, jsonContent, "utf-8");
 		return initConfig;
 	}

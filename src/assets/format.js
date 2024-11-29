@@ -179,6 +179,8 @@ function tokenize(expression) {
 
 // 将中缀表达式转化成后缀表达式
 function infixToPostfix(infixTokens) {
+    if(infixTokens === undefined || infixTokens === null)
+        return []
 	const outputQueue = [];
 	const operatorStack = [];
 
