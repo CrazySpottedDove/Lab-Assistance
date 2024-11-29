@@ -94,7 +94,7 @@ async function ensureOutputDir() {
 async function copyFiles(srcDir, destDir) {
 	try {
 		await fs.ensureDir(destDir);
-		await fs.copy(srcDir, destDir, { overwrite: false });
+		await fs.copy(srcDir, destDir, { overwrite: true });
 		console.log(`Files copied from ${srcDir} to ${destDir}`);
 	} catch (error) {
 		console.error(
