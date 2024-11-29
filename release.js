@@ -21,7 +21,7 @@ function execCommand(command) {
 	try {
         console.log(chalk.blue(`EXEC: ${command}`))
 		const output = execSync(command, { encoding: "utf-8" });
-		console.log(output);
+		return output
 	} catch (error) {
 		console.error(chalk.red("Error executing command:"), chalk.red(error.message));
 		process.exit(1);
@@ -31,9 +31,7 @@ function execCommand(command) {
 // 获取上一个tag
 function getPreviousTag(version) {
 	try {
-		const result = execCommand(`git tag --sort=-creatordate`, {
-			encoding: "utf-8",
-		}).split("\n");
+		const result = execCommand(`git tag --sort=-creatordate`).split("\n");
 		let prevTag = "";
 		for (let i = 0; i < result.length; i++) {
 			if (result[i] === version) {
@@ -56,9 +54,7 @@ function getCommitNotes(fromTag, toTag) {
 	try {
 		// 获取标签之间的提交信息
 
-		const commits = execCommand(`git log ${fromTag}..${toTag} --oneline`, {
-			encoding: "utf-8",
-		});
+		const commits = execCommand(`git log ${fromTag}..${toTag} --oneline`);
 
 		// 使用正则表达式删除哈希值（如63926d4），并保持换行
 		const commitNotes =
@@ -132,10 +128,7 @@ async function zipFolder(folderPath, zipPath) {
 // 检查 GitHub Release 是否存在
 function checkReleaseExists(version) {
 	try {
-
-		const result = execCommand(`gh release list --limit 1000 --json tagName`, {
-			encoding: "utf-8",
-		});
+		const result = execCommand(`gh release list --limit 1000 --json tagName`);
 		return result.includes(version); // 如果版本号在列表中，表示已经存在该 Release
 	} catch (error) {
 		console.error(chalk.red("Failed to check for existing release:"), chalk.red(error));
