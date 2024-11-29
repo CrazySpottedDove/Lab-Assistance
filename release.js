@@ -197,4 +197,5 @@ async function publishRelease() {
 	await zipFolder(packageNwDir, path.join(outputDir, "package.nw.zip"));
 	await zipFolder(appNwDir, path.join(outputDir, "app.nw.zip"));
 	await publishRelease();
+    console.log(chalk.green("Release success!"))
 })();

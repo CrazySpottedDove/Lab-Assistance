@@ -17,7 +17,7 @@ function execCommand(command) {
 }
 
 // 脚本主要功能
-function updateGit(commitMessage) {
+async function updateGit(commitMessage) {
 
     if(commitMessage){
 		// 1. 执行 git add 和 git commit
@@ -43,7 +43,7 @@ function updateGit(commitMessage) {
 		console.log(`Tag ${currentVersion} already exists. Deleting it...`);
 
 		execCommand(`git tag -d ${currentVersion}`); // 删除本地标签
-        
+
 		execCommand(`git push --delete origin ${currentVersion}`); // 删除远程标签
 	} catch (error) {
 		console.log(
@@ -62,12 +62,14 @@ function updateGit(commitMessage) {
 // 获取命令行参数
 const args = process.argv.slice(2);
 if (args.length === 0) {
-	console.log("script gitupdate.js works as NON-COMMIT mode.");
-	updateGit()
+	console.log("script update.js works as NON-COMMIT mode.");
+	await updateGit()
+    console.log(chalk.green("Update completed!"));
 }
 else{
-	console.log("script gitupdate.js works as COMMIT mode.");
+	console.log("script update.js works as COMMIT mode.");
 	// 执行更新操作
-	updateGit(args.join(" "));
+	await updateGit(args.join(" "));
+    console.log(chalk.green("Update completed!"));
 }
 
