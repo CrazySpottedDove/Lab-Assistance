@@ -216,9 +216,9 @@ function checkArgs(args) {
 }
 (async () => {
 	checkArgs(args)
-    Object.keys(flags).forEach((flag) => {
-        if(flag.state){
-            flag.method()
+    Object.keys(flags).forEach((key) => {
+        if(flags[key].state){
+            flags[key].method()
         }
     })
 	await copyFiles(distDir, packageNwDir);
