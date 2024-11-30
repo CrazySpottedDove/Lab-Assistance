@@ -210,7 +210,7 @@ function checkArgs(args) {
 }
 (async () => {
 	checkArgs(args)
-    flags.forEach((flag) => {
+    Object.keys(flags).forEach((flag) => {
         if(flag.state){
             flag.method()
         }
