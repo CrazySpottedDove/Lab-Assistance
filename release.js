@@ -193,7 +193,7 @@ async function publishRelease() {
 const args = process.argv.slice(2)
 let flags = {
     '--no-build':{
-        state: false,
+        state: true,
         method: npmRunBuild
     },
     '--draft':{
@@ -210,7 +210,8 @@ function checkArgs(args) {
     }
     args.forEach((arg) => {
         if(flags[arg]){
-            flags[arg].state = true
+            flags[arg].state = !flags[arg].state
+            console.log(`${arg} passed`)
         }
     })
 }
