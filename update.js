@@ -21,7 +21,7 @@ const flags = {
 		state: false,
 		method: () => {
 			console.log(
-				'Usage: node update.js\nDefault function: ',chalk.yellow('manage tags locally and remotely, according to currentVersion')
+				'Usage: node update.js [options]\nDefault function: ',chalk.yellow('manage tags locally and remotely, according to currentVersion')
 			);
             console.log('Options:')
             Object.keys(flags).forEach((key)=>{

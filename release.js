@@ -31,7 +31,6 @@ function execCommand(command) {
 	}
 }
 
-
 /**
  *
  * @param {*} version
@@ -192,21 +191,39 @@ async function publishRelease() {
 }
 const args = process.argv.slice(2)
 const flags = {
+    '--help':{
+        state:false,
+        method:()=>{
+            console.log('Usage: node release.js [options]')
+            console.log('Default function: ',chalk.yellow('build and zip, then publish a latest release'))
+            console.log('Options:')
+            Object.keys(flags).forEach((key)=>{
+                console.log(chalk.yellow(`\t${key}`),`: ${flags[key].help}`);
+            })
+        },
+        help:'show this help message'
+    },
     '--no-build':{
         state: true,
-        method: npmRunBuild
+        method: npmRunBuild,
+        help:'skip npm run build'
     },
     '--draft':{
         state: false,
         method:()=>{
             releaseArg = '--draft'
-        }
+        },
+        help:'create a draft release, instead of a latest release'
     }
 }
 function checkFlags() {
     if(args.length === 0){
         console.log('No args passed, run:\n\tnpm run build\n\tcopy && zip\n\tpublish release')
         return
+    }
+    if(args.indexOf('--help') !== -1){
+        flags['--help'].method()
+        process.exit(0)
     }
     console.log('Valid flags passed:')
     args.forEach((arg) => {
