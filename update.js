@@ -112,31 +112,20 @@ async function updateGit(commitMessage, push) {
 	}
 	execCommand(`git tag ${currentVersion}`);
 	if (push) {
-		let remoteExist = false;
-		try {
-			// 如果本地没有，检查远程仓库的标签
-			console.log(
-				chalk.blue(
-					`EXEC: git ls-remote --tags origin ${currentVersion}`
-				)
-			);
-			execSync(`git ls-remote --tags origin ${currentVersion}`, {
-				stdio: "ignore",
-			});
-			console.log(
-				`Tag ${currentVersion} exists in remote repository. Deleting it...`
-			);
-			remoteExist = true;
-		} catch (remoteError) {
-			// 如果远程仓库也没有标签
+		// 如果本地没有，检查远程仓库的标签
+		const remoteTags = execCommand(
+			`git ls-remote --tags origin ${currentVersion}`
+		);
+		if (!remoteTags) {
 			console.log(
 				`Tag ${currentVersion} does not exist locally or remotely. Proceeding to create it...`
 			);
-			remoteExist = false;
-		}
-		if (remoteExist) {
+		} else {
+			console.log(
+				`Tag ${currentVersion} exists in remote repository. ReTag it...`
+			);
 			execCommand(`git push --delete origin ${currentVersion}`); // 删除远程标签
-			// 3. 创建新的标签并推送到远程
+			console.log("Deletion completed. Now start creation...");
 		}
 		execCommand(`git push origin ${currentVersion}`);
 
