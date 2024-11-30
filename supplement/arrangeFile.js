@@ -7,78 +7,72 @@ const path = require("path");
 const __dirname = path.resolve();
 const configDir = path.join(__dirname, "../user/config");
 const configFilePath = path.join(__dirname, "../user/config/userConfig.json");
-let tmpname = "";
-
+let lastFileName = "";
+let openFileEvent = false;
 const initConfig = {
-    language:'chinese',
-    directDataLevelRule:'unified',
-    autoSaveFile:true,
-    framed:false,
-    saveByDate: true,
-    newVersionTips: true,
-    autoCalcUnit: true,
-    theme: "light",
-    autoUpdate:true
-}
+	language: "chinese",
+	directDataLevelRule: "unified",
+	autoSaveFile: true,
+	framed: false,
+	saveByDate: true,
+	newVersionTips: true,
+	autoCalcUnit: true,
+	theme: "light",
+	autoUpdate: true,
+};
 /**检查config完整性并补全 */
 function checkConfig(configData) {
-    Object.keys(initConfig).forEach((key) => {
+	let completeFlag = true;
+	Object.keys(initConfig).forEach((key) => {
 		if (configData[key] === undefined) {
 			configData[key] = initConfig[key];
+			completeFlag = false;
 		}
 	});
-	return configData;
+	return [configData, completeFlag];
 }
 
 /**读取用户配置文件 */
 function readUserConfig() {
 	if (fs.existsSync(configFilePath)) {
-		let configData = checkConfig(
+		let [configData, completeFlag] = checkConfig(
 			JSON.parse(fs.readFileSync(configFilePath, "utf-8"))
 		);
+		if (!completeFlag) {
+			saveUserConfig(configData);
+		}
 		return configData;
 	} else {
 		fs.mkdirSync(configDir, { recursive: true });
-		const jsonContent = JSON.stringify(initConfig);
-		fs.writeFileSync(configFilePath, jsonContent, "utf-8");
+		saveUserConfig(initConfig);
 		return initConfig;
 	}
 }
 
 /**保存用户配置文件设置 */
 function saveUserConfig(userConfig) {
-	const jsonContent = JSON.stringify(userConfig, null, 2);
+	const jsonContent = JSON.stringify(userConfig, null, 4);
 	fs.writeFileSync(configFilePath, jsonContent, "utf-8");
 }
 
 /** 生成文件名字*/
 function generateFileName(state) {
-	let filename = "";
-	const tableTitleList = state.tableList.map(
-		(table) => table.tableTitleContent
-	);
-	const graphTitleList = state.graphList.map(
-		(graph) => graph.graphTitleContent
-	);
-	const dataList = [...state.directDataList, ...state.indirectDataList];
-	const titleList = tableTitleList.concat(graphTitleList);
-	const filteredTitleList = titleList.filter((title) => title !== "");
-	if (filteredTitleList.length > 0) {
-		for (let i = 0; i < Math.min(filteredTitleList.length, 8); i++) {
-			if (i !== 0) {
-				filename += "-";
-			}
-			filename += `${filteredTitleList[i]}`;
+	const fileNameList = [
+		...state.tableList.map((table) => table.tableTitleContent),
+		...state.graphList.map((graph) => graph.graphTitleContent),
+		...state.indirectDataList.map((data) => data.title),
+		...state.directDataList.map((data) => data.title),
+	];
+	const filteredFileNameList = fileNameList.filter((name) => name !== "");
+	if (filteredFileNameList.length === 0) return "untitled and works as tmp";
+	let finalFileName = "";
+	for (let i = 0; i < Math.min(filteredFileNameList.length, 10); i++) {
+		if (i !== 0) {
+			finalFileName += "-";
 		}
-	} else {
-		for (let i = 0; i < Math.min(dataList.length, 10); i++) {
-			if (i !== 0) {
-				filename += "-";
-			}
-			filename += `${dataList[i].title}`;
-		}
+		finalFileName += filteredFileNameList[i];
 	}
-	return filename.replace(/[<>:"/\\|?*]+/g, "_");
+	return finalFileName.replace(/[<>:"/\\|?*]+/g, "_");
 }
 
 /**保存state，作为数据文件 */
@@ -86,7 +80,9 @@ function saveStateOnExit(state, userConfig) {
 	if (
 		state.directDataList.length === 0 &&
 		state.indirectDataList.length === 0 &&
-		tmpname === ""
+		state.tableList.length === 0 &&
+		state.graphList.length === 0 &&
+		lastFileName === ""
 	) {
 		return;
 	}
@@ -109,24 +105,23 @@ function saveStateOnExit(state, userConfig) {
 	}
 	const filename = `${generateFileName(state)}.json`;
 	const filePath = path.join(saveDir, filename);
-	const jsonContent = JSON.stringify(state, null, 2);
-	if (tmpname === "") {
-		tmpname = filename;
-		fs.writeFileSync(filePath, jsonContent, "utf-8");
-	} else {
-		if (tmpname !== filename) {
-			const lastPath = path.join(saveDir, tmpname);
-			fs.renameSync(lastPath, filePath);
-			tmpname = filename;
-			fs.writeFileSync(filePath, jsonContent, "utf-8");
-		} else {
-			fs.writeFileSync(filePath, jsonContent, "utf-8");
-		}
+	const jsonContent = JSON.stringify(state, null, 4);
+	// 打开了新的文件
+	if (openFileEvent === true) {
+		openFileEvent = false;
 	}
+	// 编辑上次文件(首次打开除外)
+	else if (lastFileName !== "" && lastFileName !== filename) {
+		const lastPath = path.join(saveDir, lastFileName);
+		fs.renameSync(lastPath, filePath);
+	}
+	lastFileName = filename;
+	fs.writeFileSync(filePath, jsonContent, "utf-8");
 }
 
 /** 打开文件，其中会创建一个临时的input文档元素*/
 function openFile(state) {
+	openFileEvent = true;
 	const fileInput = document.createElement("input");
 	fileInput.type = "file";
 	fileInput.style.display = "none";
@@ -156,7 +151,7 @@ function openFile(state) {
 					console.error("Error parsing JSON:", error);
 				}
 			};
-			reader.readAsText(selectedFile); // 读取文件内容为文本
+			reader.readAsText(selectedFile); // 读取文件内容为文本。读取结束后，触发onload函数
 			fileEvent.target.value = "";
 		} else {
 			console.log("No file selected or file type is not supported.");
