@@ -15,7 +15,7 @@ const distDir = path.join(__dirname, "dist");
 const packageNwDir = path.resolve(__dirname, "nw-folders/unzipped/package.nw");
 const appNwDir = path.join(__dirname, "nw-folders/unzipped/app.nw");
 const outputDir = path.join(__dirname, "nw-folders/zipped");
-
+let releaseArg = '--latest'
 // 执行 shell 命令
 function execCommand(command) {
 	try {
@@ -186,7 +186,7 @@ async function publishRelease() {
 	// 创建新的 Release 并上传文件
 
 	execCommand(
-		`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" --latest --notes "${commitNotes}"`
+		`gh release create ${currentVersion} ${outputDir}/package.nw.zip ${outputDir}/app.nw.zip --title "${currentVersion}" ${releaseArg} --notes "${commitNotes}"`
 	);
 	console.log(`Release ${currentVersion} has been created.`);
 }
@@ -195,6 +195,12 @@ let flags = {
     '--no-build':{
         state: false,
         method: npmRunBuild
+    },
+    '--draft':{
+        state: false,
+        method:()=>{
+            releaseArg = '--draft'
+        }
     }
 }
 function checkArgs(args) {
