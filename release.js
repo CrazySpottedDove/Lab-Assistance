@@ -191,7 +191,7 @@ async function publishRelease() {
 	console.log(`Release ${currentVersion} has been created.`);
 }
 const args = process.argv.slice(2)
-let flags = {
+const flags = {
     '--no-build':{
         state: true,
         method: npmRunBuild
@@ -203,20 +203,21 @@ let flags = {
         }
     }
 }
-function checkArgs(args) {
+function checkFlags() {
     if(args.length === 0){
         console.log('No args passed, run:\n\tnpm run build\n\tcopy && zip\n\tpublish release')
         return
     }
+    console.log('Valid flags passed:')
     args.forEach((arg) => {
         if(flags[arg]){
             flags[arg].state = !flags[arg].state
-            console.log(`${arg} passed`)
+            console.log(`\t${arg}`)
         }
     })
 }
 (async () => {
-	checkArgs(args)
+	checkFlags()
     Object.keys(flags).forEach((key) => {
         if(flags[key].state){
             flags[key].method()

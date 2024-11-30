@@ -8,7 +8,42 @@ const packagePath = "./package.json";
 const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
 const versionTipsPath = "./src/assets/versionTips.js";
 let currentVersion = packageJson.version;
-// import { currentVersion } from "./src/assets/versionTips.js";
+
+// 获取命令行参数
+const args = process.argv.slice(2);
+const messageLocation = args.indexOf("-m");
+let push = true;
+
+const commitMessage = messageLocation !== -1 ? args[messageLocation + 1] : undefined
+const flags = {
+    '--no-push':{
+        state: false,
+        method: ()=>{
+            push = false
+        }
+    },
+    '-np':{
+        state: false,
+        method: ()=>{
+            push = false
+        }
+    }
+}
+
+function checkFlags(){
+    if(args.length === 0){
+        console.log('No args passed. run:\n\tgit tag\n\tgit tag-remote\n\tgit push')
+        return
+    }
+    console.log('Valid flags passed:')
+    args.forEach((arg)=>{
+        if(flags[arg]){
+            flags[arg].state = !flags[arg].state
+            console.log(`\t${arg}`)
+        }
+    })
+}
+
 async function writeNewVersion(newVersion) {
 	fs.readFile(versionTipsPath, "utf8", (err, data) => {
 		if (err) {
@@ -74,7 +109,7 @@ function execCommand(command) {
 }
 
 // 脚本主要功能
-async function updateGit(commitMessage, push) {
+async function updateGit() {
 	if (commitMessage) {
 		// 1. 执行 git add 和 git commit
 		try {
@@ -134,33 +169,19 @@ async function updateGit(commitMessage, push) {
 	}
 }
 
-// 获取命令行参数
-const args = process.argv.slice(2);
-let push = true;
-args.forEach((arg) => {
-	if (arg === "--no-push" || arg === "-np") {
-		push = false;
-	}
-});
+
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 });
 
-async function execUpdate() {
-	if (args.length - (push ? 0 : 1) === 0) {
-		console.log("script update.js works as NON-COMMIT mode.");
-		await updateGit(undefined, push);
-		console.log(chalk.green("Update completed!"));
-	} else {
-		console.log("script update.js works as COMMIT mode.");
-		// 执行更新操作
-		await updateGit(args[0], push);
-		console.log(chalk.green("Update completed!"));
-	}
-}
-
 async function main() {
+    checkFlags()
+    Object.keys(flags).forEach((key) => {
+        if(flags[key].state){
+            flags[key].method()
+        }
+    })
 	rl.question(
 		chalk.yellow(
 			`Current version is ${currentVersion}. Continue?
@@ -182,7 +203,7 @@ async function main() {
 			}
 			rl.close();
 			console.log("Starting update...");
-			await execUpdate();
+			await updateGit()
 		}
 	);
 }
