@@ -14,34 +14,76 @@ const args = process.argv.slice(2);
 const messageLocation = args.indexOf("-m");
 let push = true;
 
-const commitMessage = messageLocation !== -1 ? args[messageLocation + 1] : undefined
+const commitMessage =
+	messageLocation !== -1 ? args[messageLocation + 1] : undefined;
 const flags = {
-    '--no-push':{
-        state: false,
-        method: ()=>{
-            push = false
-        }
-    },
-    '-np':{
-        state: false,
-        method: ()=>{
-            push = false
-        }
+	"--help": {
+		state: false,
+		method: () => {
+			console.log(
+				'Usage: node update.js\nDefault function: ',chalk.yellow('manage tags locally and remotely, according to currentVersion')
+			);
+            console.log('Options:')
+            Object.keys(flags).forEach((key)=>{
+                console.log(chalk.yellow(`\t${key}`),`: ${flags[key].help}`);
+            })
+		},
+		help: "show help",
+	},
+	"--no-push": {
+		state: false,
+		method: () => {
+			push = false;
+		},
+		help: "do not push to remote",
+	},
+	"-np": {
+		state: false,
+		method: () => {
+			push = false;
+		},
+		help: "do not push to remote (shortcut for --no-push)",
+	},
+	"-m": {
+		state: false,
+		method: () => {},
+		help: 'commit the following message wrapped by ""',
+	},
+};
+
+function checkFlags() {
+	if (args.length === 0) {
+		console.log(
+			"No args passed. run:\n\tgit tag\n\tgit tag-remote\n\tgit push"
+		);
+		return;
+	}
+    if(args.indexOf("--help") !== -1){
+        flags["--help"].method();
+        process.exit(0);
     }
+	console.log("Valid flags passed:");
+	args.forEach((arg) => {
+		if (flags[arg]) {
+			flags[arg].state = !flags[arg].state;
+			console.log(`\t${arg}`);
+		}
+	});
 }
 
-function checkFlags(){
-    if(args.length === 0){
-        console.log('No args passed. run:\n\tgit tag\n\tgit tag-remote\n\tgit push')
-        return
-    }
-    console.log('Valid flags passed:')
-    args.forEach((arg)=>{
-        if(flags[arg]){
-            flags[arg].state = !flags[arg].state
-            console.log(`\t${arg}`)
-        }
-    })
+// 执行 shell 命令
+function execCommand(command) {
+	try {
+		console.log(chalk.blue(`EXEC: ${command}`));
+		const output = execSync(command, { encoding: "utf-8" });
+		return output;
+	} catch (error) {
+		console.error(
+			chalk.red("Error executing command:"),
+			chalk.red(error.message)
+		);
+		process.exit(1);
+	}
 }
 
 async function writeNewVersion(newVersion) {
@@ -92,20 +134,6 @@ async function updateVersion(passedVersion, addFlag) {
 	await writeNewVersion(newVersion);
 	currentVersion = newVersion;
 	console.log(chalk.green(`New version: ${newVersion}`));
-}
-// 执行 shell 命令
-function execCommand(command) {
-	try {
-		console.log(chalk.blue(`EXEC: ${command}`));
-		const output = execSync(command, { encoding: "utf-8" });
-		return output;
-	} catch (error) {
-		console.error(
-			chalk.red("Error executing command:"),
-			chalk.red(error.message)
-		);
-		process.exit(1);
-	}
 }
 
 // 脚本主要功能
@@ -169,19 +197,18 @@ async function updateGit() {
 	}
 }
 
-
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
 });
 
 async function main() {
-    checkFlags()
-    Object.keys(flags).forEach((key) => {
-        if(flags[key].state){
-            flags[key].method()
-        }
-    })
+	checkFlags();
+	Object.keys(flags).forEach((key) => {
+		if (flags[key].state) {
+			flags[key].method();
+		}
+	});
 	rl.question(
 		chalk.yellow(
 			`Current version is ${currentVersion}. Continue?
@@ -203,7 +230,7 @@ async function main() {
 			}
 			rl.close();
 			console.log("Starting update...");
-			await updateGit()
+			await updateGit();
 		}
 	);
 }
