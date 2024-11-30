@@ -63,7 +63,7 @@ function execCommand(command) {
 	try {
 		console.log(chalk.blue(`EXEC: ${command}`));
 		const output = execSync(command, { encoding: "utf-8" });
-		console.log(output);
+		return output;
 	} catch (error) {
 		console.error(
 			chalk.red("Error executing command:"),
