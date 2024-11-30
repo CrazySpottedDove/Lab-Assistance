@@ -31,6 +31,21 @@ function execCommand(command) {
 	}
 }
 
+
+/**
+ *
+ * @param {*} version
+ * @returns
+ */
+const npmRunBuild = async()=>{
+    try{
+        execCommand(`npm run build`)
+    }
+    catch(error){
+        console.error(chalk.red("Error running npm run build:"), chalk.red(error));
+    }
+}
+
 // 获取上一个tag
 function getPreviousTag(version) {
 	try {
@@ -175,9 +190,31 @@ async function publishRelease() {
 	);
 	console.log(`Release ${currentVersion} has been created.`);
 }
-
+const args = process.argv.slice(2)
+let flags = {
+    '--no-build':{
+        state: false,
+        method: npmRunBuild
+    }
+}
+function checkArgs(args) {
+    if(args.length === 0){
+        console.log('No args passed, run:\n\tnpm run build\n\tcopy && zip\n\tpublish release')
+        return
+    }
+    args.forEach((arg) => {
+        if(flags[arg]){
+            flags[arg].state = true
+        }
+    })
+}
 (async () => {
-	// 复制 dist 到 package.nw 和 app.nw
+	checkArgs(args)
+    flags.forEach((flag) => {
+        if(flag.state){
+            flag.method()
+        }
+    })
 	await copyFiles(distDir, packageNwDir);
 	await copyFiles(distDir, appNwDir);
 	await ensureOutputDir();
