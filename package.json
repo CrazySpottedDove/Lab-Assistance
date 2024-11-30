@@ -1,44 +1,44 @@
 {
-  "name": "lab-program",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@element-plus/icons-vue": "^2.3.1",
-    "archiver": "^7.0.1",
-    "chalk": "^5.3.0",
-    "element-plus": "^2.7.8",
-    "file-saver": "^2.0.5",
-    "fs-extra": "^11.2.0",
-    "katex": "^0.13.24",
-    "less": "^4.2.0",
-    "mathjs": "^13.0.3",
-    "pinia": "^2.2.1",
-    "unplugin-auto-import": "^0.18.2",
-    "unplugin-vue-components": "^0.27.3",
-    "vatex": "^0.1.0",
-    "vue": "^3.4.35"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.2",
-    "a-calc": "^2.2.6",
-    "concurrently": "^9.0.1",
-    "nw": "^0.76.1-sdk",
-    "terser": "^5.34.1",
-    "vite": "^5.4.0"
-  },
-  "window": {
-    "title": "Vite-NW.js App",
-    "toolbar": false,
-    "frame": true,
-    "width": 800,
-    "height": 600,
-    "devtools": true
-  },
-  "main": "dist/index.html"
+    "name": "lab-program",
+    "private": true,
+    "version": "v1.3.8",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@element-plus/icons-vue": "^2.3.1",
+        "archiver": "^7.0.1",
+        "chalk": "^5.3.0",
+        "element-plus": "^2.7.8",
+        "file-saver": "^2.0.5",
+        "fs-extra": "^11.2.0",
+        "katex": "^0.13.24",
+        "less": "^4.2.0",
+        "mathjs": "^13.0.3",
+        "pinia": "^2.2.1",
+        "unplugin-auto-import": "^0.18.2",
+        "unplugin-vue-components": "^0.27.3",
+        "vatex": "^0.1.0",
+        "vue": "^3.4.35"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.1.2",
+        "a-calc": "^2.2.6",
+        "concurrently": "^9.0.1",
+        "nw": "^0.76.1-sdk",
+        "terser": "^5.34.1",
+        "vite": "^5.4.0"
+    },
+    "window": {
+        "title": "Vite-NW.js App",
+        "toolbar": false,
+        "frame": true,
+        "width": 800,
+        "height": 600,
+        "devtools": true
+    },
+    "main": "dist/index.html"
 }

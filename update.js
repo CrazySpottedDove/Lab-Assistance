@@ -1,23 +1,80 @@
 import { execSync } from "child_process";
 import chalk from "chalk";
+import fs from "fs";
+import readline from "readline";
 // 读取当前版本（currentVersion）
 // 假设 currentVersion 存储在某个文件中，如 'src/assets/version.json'
-import { currentVersion } from "./src/assets/versionTips.js";
+const packagePath = "./package.json";
+const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+const versionTipsPath = "./src/assets/versionTips.js";
+let currentVersion = packageJson.version;
+// import { currentVersion } from "./src/assets/versionTips.js";
+async function writeNewVersion(newVersion) {
+	fs.readFile(versionTipsPath, "utf8", (err, data) => {
+		if (err) {
+			console.error(chalk.red(`Error reading versionTips.js: ${err}`));
+			return;
+		}
+		const lines = data.split("\n");
+		lines[0] = `const currentVersion = "${newVersion}"`;
+		fs.writeFile(versionTipsPath, lines.join("\n"), "utf8", (err) => {
+			if (err) {
+				console.error(
+					chalk.red(`Error writing to versionTips.js: ${err}`)
+				);
+				return;
+			}
+			console.log(
+				chalk.green(
+					`New version written to versionTips.js: ${newVersion}`
+				)
+			);
+		});
+	});
+	packageJson.version = newVersion;
+	fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 4));
+}
+async function updateVersion(passedVersion, addFlag) {
+	let newVersion = "";
+	if (addFlag) {
+		const currentVersionVector = currentVersion.replace("v", "").split(".");
 
+		const newVersionNumber =
+			Number(currentVersionVector[0]) * 100 +
+			Number(currentVersionVector[1]) * 10 +
+			Number(currentVersionVector[2]) +
+			1;
+
+		let newVersionVector = String(Math.trunc(newVersionNumber));
+		while (newVersionVector.length < 3) {
+			newVersionVector = `0${newVersionVector}`;
+		}
+
+		newVersion = `v${newVersionVector[0]}.${newVersionVector[1]}.${newVersionVector[2]}`;
+	} else {
+		newVersion = passedVersion;
+	}
+	await writeNewVersion(newVersion);
+	currentVersion = newVersion;
+	console.log(chalk.green(`New version: ${newVersion}`));
+}
 // 执行 shell 命令
 function execCommand(command) {
 	try {
-        console.log(chalk.blue(`EXEC: ${command}`))
+		console.log(chalk.blue(`EXEC: ${command}`));
 		const output = execSync(command, { encoding: "utf-8" });
 		console.log(output);
 	} catch (error) {
-		console.error(chalk.red("Error executing command:"), chalk.red(error.message));
+		console.error(
+			chalk.red("Error executing command:"),
+			chalk.red(error.message)
+		);
 		process.exit(1);
 	}
 }
 
 // 脚本主要功能
-async function updateGit(commitMessage,push) {
+async function updateGit(commitMessage, push) {
 	if (commitMessage) {
 		// 1. 执行 git add 和 git commit
 		try {
@@ -50,61 +107,95 @@ async function updateGit(commitMessage,push) {
 		);
 		localExist = false;
 	}
-    if(localExist){
+	if (localExist) {
 		execCommand(`git tag -d ${currentVersion}`); // 删除本地标签
 	}
-    execCommand(`git tag ${currentVersion}`);
-    if(push){
-        let remoteExist = false;
-         try {
-				// 如果本地没有，检查远程仓库的标签
-				console.log(
-					chalk.blue(
-						`EXEC: git ls-remote --tags origin ${currentVersion}`
-					)
-				);
-				execSync(`git ls-remote --tags origin ${currentVersion}`, {
-					stdio: "ignore",
-				});
-				console.log(
-					`Tag ${currentVersion} exists in remote repository. Deleting it...`
-				);
-				remoteExist = true;
-			} catch (remoteError) {
-				// 如果远程仓库也没有标签
-				console.log(
-					`Tag ${currentVersion} does not exist locally or remotely. Proceeding to create it...`
-				);
-				remoteExist = false;
-			}
-        if(remoteExist){
+	execCommand(`git tag ${currentVersion}`);
+	if (push) {
+		let remoteExist = false;
+		try {
+			// 如果本地没有，检查远程仓库的标签
+			console.log(
+				chalk.blue(
+					`EXEC: git ls-remote --tags origin ${currentVersion}`
+				)
+			);
+			execSync(`git ls-remote --tags origin ${currentVersion}`, {
+				stdio: "ignore",
+			});
+			console.log(
+				`Tag ${currentVersion} exists in remote repository. Deleting it...`
+			);
+			remoteExist = true;
+		} catch (remoteError) {
+			// 如果远程仓库也没有标签
+			console.log(
+				`Tag ${currentVersion} does not exist locally or remotely. Proceeding to create it...`
+			);
+			remoteExist = false;
+		}
+		if (remoteExist) {
 			execCommand(`git push --delete origin ${currentVersion}`); // 删除远程标签
 			// 3. 创建新的标签并推送到远程
 		}
-        execCommand(`git push origin ${currentVersion}`);
+		execCommand(`git push origin ${currentVersion}`);
 
 		// 4. 强制推送更改到远程仓库
 		execCommand("git push -f");
-    }
+	}
 }
 
 // 获取命令行参数
 const args = process.argv.slice(2);
 let push = true;
-args.forEach(arg=>{
-    if (arg === "--no-push" || arg === "-np") {
-        push = false;
-    }
-})
-if (args.length - (push ? 0 : 1) === 0) {
-	console.log("script update.js works as NON-COMMIT mode.");
-	await updateGit(undefined,push)
-    console.log(chalk.green("Update completed!"));
-}
-else{
-	console.log("script update.js works as COMMIT mode.");
-	// 执行更新操作
-	await updateGit(args[0],push);
-    console.log(chalk.green("Update completed!"));
+args.forEach((arg) => {
+	if (arg === "--no-push" || arg === "-np") {
+		push = false;
+	}
+});
+const rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+});
+
+async function execUpdate() {
+	if (args.length - (push ? 0 : 1) === 0) {
+		console.log("script update.js works as NON-COMMIT mode.");
+		await updateGit(undefined, push);
+		console.log(chalk.green("Update completed!"));
+	} else {
+		console.log("script update.js works as COMMIT mode.");
+		// 执行更新操作
+		await updateGit(args[0], push);
+		console.log(chalk.green("Update completed!"));
+	}
 }
 
+async function main() {
+	rl.question(
+		chalk.yellow(
+			`Current version is ${currentVersion}. Continue?
+        (Enter to continue, type to pass a new version tag, ++ to add version tag, exit to exit)`
+		),
+		async (input) => {
+			input = input.toLowerCase().trim();
+			if (input === "exit") {
+				console.log("Exit.");
+				process.exit(0);
+			} else if (input.startsWith("v")) {
+				await updateVersion(input);
+			} else if (input === "++") {
+				await updateVersion("", true);
+			} else if (input === "") {
+			} else {
+				console.log(chalk.red("Unexcepted input. Abort update."));
+				process.exit(1);
+			}
+			rl.close();
+			console.log("Starting update...");
+			await execUpdate();
+		}
+	);
+}
+
+main();
