@@ -1,0 +1,13 @@
+body {
+    font-size:20px;
+    font-family: 'Times New Roman', 'SimHei';
+    background-color: #f5f5f5;
+    h1{
+        font-size: 40px;
+        color:#0b3c2e
+    }
+    h2{
+        font-size: 30px;
+        color:#0b3c2e
+    }
+}

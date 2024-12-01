@@ -1,0 +1,9 @@
+body .container{
+    /* max-width: 1200px; */
+    max-width: 95%;
+    min-width: 1000px;
+}
+.col-md-3{
+    max-width: 350px;
+    min-width: 200px;
+}

@@ -1,1 +1,14 @@
-site_name: My Docs
+site_name: Lab-Assistance
+nav:
+  - Home: index.md
+  - DownLoad: download.md
+theme:
+  name: flatly
+extra_css:
+  - css/font.css
+  - css/structure.css
+
+
+
+
+
