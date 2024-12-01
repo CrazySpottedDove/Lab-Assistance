@@ -177,7 +177,7 @@ async function updateGit() {
 	if (push) {
 		// 如果本地没有，检查远程仓库的标签
 		const remoteTags = execCommand(
-			`git ls-remote --tags origin master ${currentVersion}`
+			`git ls-remote --tags origin ${currentVersion}`
 		);
 		if (!remoteTags) {
 			console.log(
@@ -190,7 +190,7 @@ async function updateGit() {
 			execCommand(`git push --delete origin ${currentVersion}`); // 删除远程标签
 			console.log("Deletion completed. Now start creation...");
 		}
-		execCommand(`git push origin ${currentVersion}`);
+		execCommand(`git push origin master ${currentVersion}`);
 
 		// 4. 强制推送更改到远程仓库
 		// execCommand("git push -f");
