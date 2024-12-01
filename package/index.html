@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>DownLoad - Lab-Assistance</title>
+        <title>Package - Lab-Assistance</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -40,10 +40,10 @@
                                 <a href=".." class="nav-link">Home</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">DownLoad</a>
+                                <a href="../download/" class="nav-link">DownLoad</a>
                             </li>
                             <li class="nav-item">
-                                <a href="../package/" class="nav-link">Package</a>
+                                <a href="./" class="nav-link active" aria-current="page">Package</a>
                             </li>
                             <li class="nav-item">
                                 <a href="https://github.com/CrazySpottedDove/Lab-Assistance" class="nav-link">GitHub</a>
@@ -57,12 +57,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href=".." class="nav-link">
+                                <a rel="prev" href="../download/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../package/" class="nav-link">
+                                <a rel="next" class="nav-link disabled">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -84,13 +84,13 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">安装与更新</a>
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">宏包</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">安装</a>
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">添加宏包</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">更新</a>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">其它</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -101,28 +101,36 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<h1 id="_1">安装与更新</h1>
-<p>Lab-Assistance 支持 windows-64 版本和 macOS-arm64 版本。</p>
-<p>作者较为繁忙，暂时没有对下载方式做比较好的优化，请用户耐心 follow 教程：</p>
-<h2 id="_2">安装</h2>
+<h1 id="_1">宏包</h1>
+<p>Lab-Assistance 提供的 LaTeX 命令需要对应的宏包才能使用。当然，你也可以选择在软件内复制依赖。</p>
+<h2 id="_2">添加宏包</h2>
+<p>这里以 windows用户、 texlive 为例。</p>
 <ul>
-<li>windows-64：提供两种安装方式： <a href="https://github.com/CrazySpottedDove/Lab-Assistance/releases/download/webpage-download/Lab-Assistance_setup_v1.3.7.exe" title="win64-安装程序">setup.exe</a> 为安装程序。<a href="https://objects.githubusercontent.com/github-production-release-asset-2e65be/842860378/9f6aece6-f23d-4e05-95c6-c6c5dad7f347?X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=releaseassetproduction%2F20241201%2Fus-east-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20241201T025050Z&amp;X-Amz-Expires=300&amp;X-Amz-Signature=de6f08bd026038ef18a726fb886c32f5bc157301070cda2de7392554683c9fa5&amp;X-Amz-SignedHeaders=host&amp;response-content-disposition=attachment%3B%20filename%3DLab-Assistance-win64.zip&amp;response-content-type=application%2Foctet-stream" title="win64-便携版zip">win64.zip</a> 为便携版，解压即用。</li>
-<li>macOS-arm64：<a href="https://github.com/CrazySpottedDove/Lab-Assistance/releases/download/webpage-download/Lab-Assistance-macOS.zip" title="macOS-便携版zip">macOS.zip</a> 为便携版，解压即用。如果提示 Lab-Assistance 已损坏，在终端上运行命令</li>
+<li>找到你的 texlive 安装目录，然后，将宏包文件 <a href="https://github.com/CrazySpottedDove/Lab-Assistance/releases/download/webpage-download/lab-assistance.sty" title="Lab-Assistance的宏包文件">lab-assistance.sty</a> 复制到 /texlive/texmf-local/tex/latex/local/packages 目录下。如果没有其中一些目录，自行创建。</li>
+<li>刷新文件数据库<ul>
+<li>方法1：打开 tl-tray-menu.exe (通常在 texlive/&lt;年份&gt;下可以找到)，操作 =&gt; Regenerate filename database</li>
+<li>方法2：编辑 /textlive/texmf-local/ls-R， 确保其中拥有如下内容：</li>
 </ul>
-<pre><code class="language-bash">xattr -cr /path/to/Lab-Assistance.app
+</li>
+</ul>
+<pre><code class="language-txt">./tex/latex:
+local
+
+./tex/latex/local:
+packages
+
+./tex/latex/local/packages:
+lab-assistance.sty
 </code></pre>
-<h2 id="_3">更新</h2>
-<p>理论上，安装完成就可以使用 Lab-Assistance 了。但是，无法排除现有版本存在的一些 bug。并且，由于作者繁忙，并不会持续更新这个网站上的资源。作为解决方案，作者在 Lab-Assistance 中内置了更新功能。<strong>在确保网络能够稳定连接 GitHub的情况下</strong>，自动更新功能将正常运作，保证用户时刻体验最新发行版本。</p>
-<p>另外，我们也提供了手动更新方式：</p>
+<p>事实上，手动更新其它宏包也是同理。你可以在 local 文件夹中建立不同的文件夹来管理 cls, sty, 甚至一些依赖图片等。</p>
 <ul>
-<li>windows :</li>
-<li>在一些较老旧的版本中，提供了 updater.exe， 在原来目录下运行即可完成更新。</li>
-<li>较新版本使用下载 package.nw 包，并替换 Lab-Assistance 目录下的 package.nw 包的方式更新。</li>
-<li>macOS:</li>
-<li>下载 app.nw 包，并替换 /Lab-Assistance.app/Contents/Resources 目录下的 app.nw 包。</li>
+<li>在你的 .tex 文件的导言区使用</li>
 </ul>
-<p><strong>不推荐任何用户使用老旧版本！一些老版本存在数据计算错误的原则问题，且一般而言，老版本 bug 更多！</strong></p>
-<p>任何使用过程中遇见的问题与建议，欢迎在 <a href="https://github.com/CrazySpottedDove/Lab-Assistance/issues" title="issues">issues</a> 处指出！</p></div>
+<pre><code class="language-latex">\usepackage{lab-assistance}
+</code></pre>
+<p>即可愉快地使用 Lab-Assistance 的命令了。</p>
+<h2 id="_3">其它</h2>
+<p>浙江大学-普物实验采用了电子实验报告的形式，作者提供了一个 <a href="https://github.com/CrazySpottedDove/PhysicsLabReportTemplate_LaTeX" title="LaTeX 模板仓库">LaTeX 模板</a>，内部也使用了 lab-assistance.sty。</p></div>
             </div>
         </div>
 
