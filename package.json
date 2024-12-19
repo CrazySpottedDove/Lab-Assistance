@@ -1,7 +1,7 @@
 {
     "name": "lab-program",
     "private": true,
-    "version": "v1.3.8",
+    "version": "v1.3.9",
     "type": "module",
     "scripts": {
         "dev": "vite",

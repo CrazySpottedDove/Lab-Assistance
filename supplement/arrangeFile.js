@@ -72,7 +72,7 @@ function generateFileName(state) {
 		}
 		finalFileName += filteredFileNameList[i];
 	}
-	return finalFileName.replace(/[<>:"/\\|?*]+/g, "_");
+	return finalFileName.replace(/[<>:"/\\|?*]+/g, "_").slice(0,90);
 }
 
 /**保存state，作为数据文件 */

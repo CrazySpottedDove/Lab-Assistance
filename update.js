@@ -190,7 +190,7 @@ async function updateGit() {
 			execCommand(`git push --delete origin ${currentVersion}`); // 删除远程标签
 			console.log("Deletion completed. Now start creation...");
 		}
-		execCommand(`git push origin master ${currentVersion}`);
+		execCommand(`git push origin master ${currentVersion} --force`);
 
 		// 4. 强制推送更改到远程仓库
 		// execCommand("git push -f");
