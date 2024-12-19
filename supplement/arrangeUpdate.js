@@ -57,11 +57,11 @@ async function extractZip(zipPath) {
 		ElMessage.success("请重启软件以使用新版本(*/ω＼*)");
 	} catch (err) {
 		console.error("Error extracting zip file:", err);
-		ElMessage.error("解压缩失败，请检查文件权限(;´༎ຶД༎ຶ`)");
+		ElMessage.error("解压缩失败，请检查文件权限，或检查环境变量中有没有 unzip (;´༎ຶД༎ຶ`)");
 	}
 }
 
-const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
+async function fetchWithTimeout(url, options = {}, timeout = 5000){
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => {
 		controller.abort();
@@ -146,8 +146,8 @@ async function updateVersion() {
 		throw new Error("No source found");
 	}
 	const destination = path.join(currentPath, sourceName);
-	console.log("current path" + currentPath);
-    console.log('source name' + sourceName)
+	console.log("current path " + currentPath);
+    console.log('source name ' + sourceName)
 	await downLoadSource(sourceUrl, destination);
 
 	await extractZip(destination);
