@@ -142,9 +142,9 @@ const handleSuggestionSelect = (item) => {
                         <span style="width: 5%;"></span>
                         <span style=" width: 40%;">
                             <el-autocomplete style="text-align: center;width: 98%;" placeholder="示例：(a+b)/(9.8*c)"
-                                v-model="store.state.inputComputeMethod[indirectDataIndex]" :fetch-suggestions="querySearch"
-                                :select-when-unmatched=true :highlight-first-item=true @select="handleSuggestionSelect"
-                                :id="`myAutocomplete${indirectDataIndex}`">
+                                v-model="store.state.inputComputeMethod[indirectDataIndex]"
+                                :fetch-suggestions="querySearch" :select-when-unmatched=true :highlight-first-item=true
+                                @select="handleSuggestionSelect" :id="`myAutocomplete${indirectDataIndex}`">
                                 <!-- 自定义补全建议显示内容 -->
                                 <template v-slot="{ item }">
                                     <vue-latex style="width: 98%;font-size: small;" :expression="item"></vue-latex>
@@ -186,8 +186,13 @@ const handleSuggestionSelect = (item) => {
             <div class="card-div">
                 <el-card shadow="hover">
                     <div class="equipment">
-                        <label style="font-weight: 550;width: 16%;text-align: left;">倍率</label>
-                        <el-input style="text-align: center;width: 84%;" v-model="indirectData.multiplier"></el-input>
+                        <label style="font-weight: 550;width: 8%;text-align: left;">倍率</label>
+                        <el-input style="text-align: center;width: 44.5%;" v-model="indirectData.multiplier"></el-input>
+                        <span style="width: 1%;"></span>
+                        <label style="font-weight: 550;width: 12%;text-align: left;">不确定度计算方式</label>
+                        <span style="width: 5%;"></span>
+                        <el-switch v-model="indirectData.uncerMethod" size="large" active-text="由计算式推导"
+                            inactive-text="重新计算" style="font-size: large;width: 35%;" />
                     </div>
                 </el-card>
             </div>
@@ -237,6 +242,21 @@ const handleSuggestionSelect = (item) => {
             <!-- 不确定度卡片 -->
             <div class="card-div">
                 <el-card shadow="hover">
+                    <div class="equipment" v-show="indirectData.uncerMethod === false">
+                        <label style="font-weight: 550;width: 20%;text-align: left;">A类确定度</label>
+                        <el-input style="text-align: center;width: 80%;" disabled
+                            v-model="indirectData.moreUncer.aUncer"></el-input>
+                    </div>
+                    <div class="equipment" v-show="indirectData.uncerMethod === false">
+                        <label style="font-weight: 550;width: 20%;text-align: left;">仪器允差</label>
+                        <el-input style="text-align: center;width: 80%;"
+                            v-model="indirectData.moreUncer.equipUncer"></el-input>
+                    </div>
+                    <div class="equipment" v-show="indirectData.uncerMethod === false && indirectData.moreUncer.equipUncer">
+                        <label style="font-weight: 550;width: 20%;text-align: left;">B类不确定度</label>
+                        <el-input style="text-align: center;width: 80%;" disabled
+                            v-model="indirectData.moreUncer.bUncer"></el-input>
+                    </div>
                     <div class="equipment">
                         <label style="font-weight: 550;width: 20%;text-align: left;">不确定度</label>
                         <el-input style="text-align: center;width: 80%;" disabled

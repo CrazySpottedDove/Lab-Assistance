@@ -89,7 +89,7 @@ export const useAllDataStore = defineStore("allData", () => {
 					moreUncer: {
 						equipUncer: "",
 						bUncer: "",
-						wholeUncer: "",
+						wholeUncer: "0",
 					},
 					unit: "",
 					levelRule: userConfig.value.directDataLevelRule,
@@ -126,12 +126,17 @@ export const useAllDataStore = defineStore("allData", () => {
 					computeMethod: "",
 					computeOption: "forAll",
 					moreUncer: {
-						wholeUncer: "",
+                        aUncer: "0",
+                        equipUncer: "",
+                        bUncer: "",
+						wholeUncer: "0",
 					},
 					unit: "",
 					dataMethod: false,
 					doc: "",
 					multiplier: 1,
+                    // 不确定度计算方式，true 时根据变量关系计算，false 时重新计算
+                    uncerMethod: true,
 				};
 			},
 
@@ -762,6 +767,11 @@ export const useAllDataStore = defineStore("allData", () => {
 							editAnalysis("aUncer", errorMode(tmpAUncer));
 						} else {
 							delete selectedAnalysis["aUncer"];
+                            if (selectedList.uncerMethod === false){
+                                selectedList.moreUncer.aUncer = errorMode(String(Number(tmpStdDev) / Math.sqrt(length)))
+                            }else{
+                                selectedList.moreUncer.aUncer = "0"
+                            }
 						}
 					} else {
 						initAnalysis("stdDev");
@@ -799,6 +809,29 @@ export const useAllDataStore = defineStore("allData", () => {
 						}
 						// 解决总不确定度
 					}
+                    else if (selectedType === "indirect" && selectedList.uncerMethod === false){
+                        let selectedUncers = selectedList.moreUncer;
+                        if (selectedUncers.equipUncer) {
+                            checkInvalidData(selectedUncers.equipUncer);
+                            let tmpBUncer = String(
+                                Number(selectedUncers.equipUncer) / Math.sqrt(3)
+                            );
+                            selectedUncers.bUncer = errorMode(tmpBUncer);
+                        } else {
+                            delete selectedUncers.bUncer;
+                        }
+                        // 解决B类不确定度
+                        if (selectedUncers.bUncer) {
+                            let tmpWholeUncer = dimensionalAdd(
+                                selectedUncers.aUncer,
+                                selectedUncers.bUncer
+                            );
+                            selectedUncers.wholeUncer =
+                                errorMode(tmpWholeUncer);
+                        }else{
+                            selectedUncers.wholeUncer = selectedUncers.aUncer
+                        }
+                    }
 					// 计算direct数据的不确定度
 				}
 				// 长度不为0情况
@@ -825,6 +858,23 @@ export const useAllDataStore = defineStore("allData", () => {
                             selectedList.moreUncer.wholeUncer = '0'
                         }
 					}
+                    else if (selectedType === "indirect" && selectedList.uncerMethod === false){
+                        if (selectedList.moreUncer.equipUncer) {
+                            checkInvalidData(selectedList.moreUncer.equipUncer);
+                            let tmpBUncer = String(
+                                Number(selectedList.moreUncer.equipUncer) /
+                                    Math.sqrt(3)
+                            );
+                            selectedList.moreUncer.bUncer =
+                                errorMode(tmpBUncer);
+                            selectedList.moreUncer.wholeUncer =
+                                selectedList.moreUncer.bUncer;
+                        }
+                        else{
+                            delete selectedList.moreUncer.bUncer;
+                            selectedList.moreUncer.wholeUncer = '0'
+                        }
+                    }
 					delete selectedAnalysis["relErr"];
 					delete selectedAnalysis["avgRelErr"];
 					delete selectedAnalysis["avgOverallRelErr"];

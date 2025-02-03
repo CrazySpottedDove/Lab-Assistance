@@ -1,4 +1,4 @@
-const currentVersion = "v1.3.8"
+const currentVersion = "v1.3.9"
 // 定义GitHub仓库的API URL
 const repoUrl =
 	"https://api.github.com/repos/CrazySpottedDove/Lab-Assistance/releases/latest";
